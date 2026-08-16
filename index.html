@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Index hotell v.01-140</title>
+<title>Index hotell v.01-142</title>
 <style>
   :root{
     --blue:#6678ed;
@@ -582,12 +582,16 @@
   .teacher-settings-row button{margin:0;white-space:nowrap}
   .teacher-settings-status{margin-top:9px;min-height:18px;font-size:11px;font-weight:900;color:#4f6270}
   .teacher-settings-status.saved{color:#24704a}
-  /* v.01-140 · Portabel elevsave: progression flyttas till aktuell masterversion utan att gamla master-scenarier följer med. */
+  /* v.01-141 · Portabel elevsave: progression flyttas till aktuell masterversion utan att gamla master-scenarier följer med. */
   .teacher-result-card{margin:10px 0 16px;padding:14px;border:2px solid #bfcaf0;border-radius:15px;background:#f6f8ff}
   .teacher-result-card h3{margin:0 0 6px;font-size:17px;color:#26396f}
   .teacher-result-card p{margin:0 0 10px;font-size:12px;line-height:1.45;color:#5d6987}
   .teacher-result-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .teacher-result-actions input[type="file"]{flex:1 1 280px;border:2px solid #d6def3;border-radius:12px;padding:9px;background:#fff}
+  .teacher-result-code{margin-top:10px;padding-top:10px;border-top:1px solid #dfe5f6}
+  .teacher-result-code label{margin:0 0 6px;font-size:11px;color:#5d6987}
+  .teacher-result-code textarea{width:100%;min-height:72px;max-height:150px;resize:vertical;font:700 11px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace}
+  .teacher-result-code-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}
   .student-result-view{margin-top:12px;border:2px solid #d9e1ea;border-radius:14px;background:#fff;padding:13px}
   .student-result-view[hidden]{display:none!important}
   .student-result-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -761,6 +765,92 @@
     #mission{width:285px}
   }
 
+
+
+  /* v.01-141 · Skärmanpassning för laptop, mindre fönster och låg skärmhöjd. */
+  /* v.01-142 · E-post via komprimerad elevresultatlänk i stället för .eml-bilaga. */
+  #startScreen{
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:clamp(8px,2vh,22px);
+    min-height:100dvh;
+  }
+  .start-card{
+    max-height:calc(100dvh - clamp(16px,4vh,44px));
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior:contain;
+    scrollbar-gutter:stable;
+  }
+  .modal{
+    overflow:auto;
+    padding:clamp(8px,2vh,18px);
+  }
+  .modal > .box,
+  .modal > [class$="-box"]{
+    max-height:calc(100dvh - clamp(16px,4vh,36px));
+  }
+  .lesson-end-box{
+    max-height:calc(100dvh - 20px);
+    overflow:auto;
+  }
+
+  @media (max-height:850px){
+    .start-card{padding:18px 22px;border-radius:24px}
+    .hotel-logo{font-size:46px;line-height:1}
+    .start-card h1{font-size:34px;margin:2px 0}
+    .start-card > p{font-size:14px;line-height:1.3;margin:0 auto 10px}
+    .student-profile-box{margin:10px auto 8px;padding:9px 11px}
+    .student-profile-box label{margin-bottom:4px}
+    .student-profile-box input{padding:8px 10px}
+    .student-profile-help{font-size:10px!important;margin-top:5px!important}
+    .play-btn{font-size:18px;padding:10px 24px;border-radius:17px;box-shadow:0 6px 0 #c85a21,0 10px 22px rgba(130,62,24,.20)}
+    .start-profile-row{margin-top:7px}
+    .profile-switch-btn{padding:7px 10px}
+    .start-divider{margin:10px auto 8px}
+    .load-game-btn{font-size:15px;padding:9px 16px;border-radius:14px}
+    .load-game-help{font-size:10px!important;line-height:1.3!important;margin:6px auto 0!important}
+    .load-game-status{margin-top:7px;padding:8px 10px}
+    .controls{margin-top:10px;font-size:11px}
+
+    .lesson-end-box{padding:14px}
+    .lesson-end-box .box-head h2{font-size:21px}
+    .lesson-end-box > p{margin:6px 0;font-size:13px}
+    .lesson-summary-grid{margin:9px 0;gap:7px}
+    .lesson-summary-item{padding:8px}
+    .lesson-summary-item b{font-size:16px}
+    .privacy-note{margin:8px 0;padding:9px 11px}
+    .lesson-actions{gap:7px}
+    .lesson-actions .primary,.lesson-actions .secondary{margin-top:4px;padding:9px 11px}
+    .lesson-end-box .info{margin-top:7px;padding:8px;font-size:10px}
+  }
+
+  @media (max-height:680px){
+    .start-card{width:min(700px,96vw);padding:12px 18px}
+    .hotel-logo{font-size:36px}
+    .start-card h1{font-size:29px}
+    .start-card > p{font-size:12px;margin-bottom:6px}
+    .student-profile-box{margin:6px auto;padding:7px 9px;max-width:430px}
+    .student-profile-help{display:none}
+    .play-btn{font-size:16px;padding:8px 20px}
+    .start-profile-row{margin-top:5px;font-size:12px}
+    .start-divider{margin:7px auto 6px}
+    .load-game-help{margin-top:4px!important}
+    .controls{display:none}
+  }
+
+  @media (max-width:620px){
+    #startScreen{place-items:start center}
+    .start-card{width:96vw;padding:18px 14px;border-width:3px;border-radius:22px}
+    .start-card h1{font-size:32px}
+    .hotel-logo{font-size:44px}
+    .play-btn{width:100%;font-size:17px;padding:11px 12px}
+    .load-game-btn{width:100%}
+    .student-profile-box{max-width:none}
+    .lesson-actions{display:grid;grid-template-columns:1fr}
+    .lesson-actions button{width:100%}
+  }
+
 </style>
 </head>
 <body>
@@ -768,7 +858,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-140</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-142</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span></div>
@@ -1118,6 +1208,11 @@
           <input type="file" id="studentResultFile" accept=".json,application/json">
           <button class="primary" id="readStudentResultBtn" type="button">Läs elevfil</button>
         </div>
+        <div class="teacher-result-code">
+          <label for="studentResultCode">Eller klistra in Hotel Manager-koden från ett mejl</label>
+          <textarea id="studentResultCode" spellcheck="false" placeholder="HM1...."></textarea>
+          <div class="teacher-result-code-actions"><button class="secondary" id="readStudentResultCodeBtn" type="button">📋 Läs kod från mejl</button></div>
+        </div>
         <div class="student-result-view" id="studentResultView" hidden></div>
       </div>
       <p><strong>Egna gästproblem</strong> · Ladda upp en JSON-fil med egna scenarier. De sparas lokalt i den här webbläsaren.</p>
@@ -1204,7 +1299,7 @@
   </div>
 </div>
 
-<div class="modal" id="lessonEndModal"><div class="box lesson-end-box"><div class="box-head"><h2>📤 Avsluta lektion</h2><button class="close" data-close="lessonEndModal">Stäng</button></div><p>Skapa elevens Hotel Manager-fil. Samma JSON innehåller både progression och en backup av spelet.</p><div class="lesson-summary-grid" id="lessonSummaryGrid"></div><div class="lesson-recipient" id="lessonRecipientInfo"></div><div class="privacy-note"><strong>Dataminimering:</strong> elevfilen använder elevkod och innehåller inte personnummer. Den skapas lokalt i webbläsaren. Om den skickas med e-post behandlas den även av skolans e-postsystem.</div><div class="lesson-actions"><button class="primary" id="shareProgressBtn" type="button">✉ Skicka elevfil till läraren</button><button class="secondary" id="downloadProgressBtn" type="button">⬇ Ladda ner elevfil</button></div><div class="info">Elevfilen heter exempelvis <strong>hotel_manager_OLAHRHOT_dag_1.json</strong>. Spelet försöker först dela filen direkt till e-postappen. Om det inte stöds skapas ett färdigt Outlook-mejl (.eml) där JSON-filen redan ligger som bilaga. Läraren öppnar JSON-filen via Lärarläge → Läs elevresultat.</div></div></div>
+<div class="modal" id="lessonEndModal"><div class="box lesson-end-box"><div class="box-head"><h2>📤 Avsluta lektion</h2><button class="close" data-close="lessonEndModal">Stäng</button></div><p>Skapa elevens Hotel Manager-fil. Samma JSON innehåller både progression och en backup av spelet.</p><div class="lesson-summary-grid" id="lessonSummaryGrid"></div><div class="lesson-recipient" id="lessonRecipientInfo"></div><div class="privacy-note"><strong>Dataminimering:</strong> elevfilen använder elevkod och innehåller inte personnummer. Den skapas lokalt i webbläsaren. Om den skickas med e-post behandlas den även av skolans e-postsystem.</div><div class="lesson-actions"><button class="primary" id="shareProgressBtn" type="button">✉ Skicka elevfil till läraren</button><button class="secondary" id="downloadProgressBtn" type="button">⬇ Ladda ner elevfil</button></div><div class="info">När eleven skickar öppnas e-postappen med lärarens adress, resultat och en säker Hotel Manager-resultatlänk. Elevens JSON komprimeras i länken och lagras inte på GitHub. När läraren klickar på länken läser Lärarläget tillbaka samma progression och spelbackup. Knappen <strong>Ladda ner elevfil</strong> finns kvar som vanlig JSON-backup.</div></div></div>
 
 <div id="startScreen">
   <div class="start-card">
@@ -1217,7 +1312,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-140 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-142 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1236,8 +1331,8 @@
   const TEACHER_UNLOCK_KEY = "index_hotell_teacher_unlocked_v1";
   const TEACHER_EMAIL_KEY = "index_hotell_teacher_email_v1";
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
-  const HOTEL_VERSION = "v.01-140";
-  const MASTER_CONTENT_VERSION = "v.01-140";
+  const HOTEL_VERSION = "v.01-142";
+  const MASTER_CONTENT_VERSION = "v.01-142";
   const TEACHER_PASSWORD = "password1234";
   function normalizeStudentCode(value){return String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,16);}
   function studentSaveKey(code){return `index_hotell_student_v115_${normalizeStudentCode(code)}`;}
@@ -6409,46 +6504,61 @@
     if(shareBtn){shareBtn.disabled=!isValidTeacherEmail(email);shareBtn.title=email?`Skicka till ${email}`:"Lärarens e-postadress saknas";}
     document.getElementById("lessonEndModal").classList.add("show");
   }
-  function utf8ToBase64(value){
-    const bytes=new TextEncoder().encode(String(value??""));
+  function bytesToBase64Url(bytes){
     let binary="";
     const chunk=0x8000;
     for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));
-    return btoa(binary);
+    return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
   }
-  function wrapMimeBase64(value){return String(value||"").replace(/.{1,76}/g,"$&\r\n").trimEnd();}
-  function createStudentEmailFile(email,pkg){
-    const code=normalizeStudentCode(currentStudentCode||state.studentCode||"ELEV")||"ELEV";
-    const day=Number(state.day||1);
-    const subject=`Hotel Manager progression · ${code} · Dag ${day}`;
-    const body=`Hej!\n\nHär kommer min Hotel Manager-fil med progression och backup.\nElevkod: ${code}\nDag: ${day}\nHotellpoäng: ${Number(state.score||0)}\n\nJSON-filen ligger bifogad i detta meddelande.`;
-    const jsonText=JSON.stringify(studentPackagePayload(),null,2);
-    const boundary=`HM_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const mime=[
-      `To: ${email}`,
-      `Subject: =?UTF-8?B?${utf8ToBase64(subject)}?=`,
-      `MIME-Version: 1.0`,
-      `X-Unsent: 1`,
-      `Content-Type: multipart/mixed; boundary="${boundary}"`,
-      ``,
-      `--${boundary}`,
-      `Content-Type: text/plain; charset="UTF-8"`,
-      `Content-Transfer-Encoding: base64`,
-      ``,
-      wrapMimeBase64(utf8ToBase64(body)),
-      ``,
-      `--${boundary}`,
-      `Content-Type: application/json; name="${pkg.name}"`,
-      `Content-Transfer-Encoding: base64`,
-      `Content-Disposition: attachment; filename="${pkg.name}"`,
-      ``,
-      wrapMimeBase64(utf8ToBase64(jsonText)),
-      ``,
-      `--${boundary}--`,
-      ``
-    ].join("\r\n");
-    const emlName=`hotel_manager_mail_${code}_dag_${day}.eml`;
-    return new File([mime],emlName,{type:"message/rfc822"});
+  function base64UrlToBytes(value){
+    let normalized=String(value||"").replace(/-/g,"+").replace(/_/g,"/");
+    while(normalized.length%4)normalized+="=";
+    const binary=atob(normalized),bytes=new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+    return bytes;
+  }
+  async function makeStudentTransferCode(payload=studentPackagePayload()){
+    const raw=new TextEncoder().encode(JSON.stringify(payload));
+    if(typeof CompressionStream==="function"){
+      const stream=new Blob([raw]).stream().pipeThrough(new CompressionStream("gzip"));
+      const packed=new Uint8Array(await new Response(stream).arrayBuffer());
+      return `HMG1.${bytesToBase64Url(packed)}`;
+    }
+    return `HMJ1.${bytesToBase64Url(raw)}`;
+  }
+  async function readStudentTransferCode(value){
+    let code=String(value||"").trim();
+    const embedded=code.match(/(?:HMG1|HMJ1)\.[A-Za-z0-9_-]+/);
+    if(embedded)code=embedded[0];
+    const dot=code.indexOf(".");
+    if(dot<1)throw new Error("Hotel Manager-kod saknas");
+    const kind=code.slice(0,dot),bytes=base64UrlToBytes(code.slice(dot+1));
+    let jsonText="";
+    if(kind==="HMG1"){
+      if(typeof DecompressionStream!=="function")throw new Error("Den här webbläsaren kan inte läsa komprimerad Hotel Manager-kod");
+      const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+      jsonText=await new Response(stream).text();
+    }else if(kind==="HMJ1"){
+      jsonText=new TextDecoder().decode(bytes);
+    }else throw new Error("Okänd Hotel Manager-kod");
+    return normalizeStudentResultPackage(JSON.parse(jsonText));
+  }
+  function resultUrlForCode(code){
+    if(!/^https?:$/i.test(location.protocol))return "";
+    const clean=`${location.origin}${location.pathname}${location.search}`;
+    return `${clean}#hmresult=${code}`;
+  }
+  function pendingTeacherResultCode(){return String(sessionStorage.getItem("hotel_manager_pending_teacher_result_v1")||"");}
+  function setPendingTeacherResultCode(code){
+    if(code)sessionStorage.setItem("hotel_manager_pending_teacher_result_v1",code);
+    else sessionStorage.removeItem("hotel_manager_pending_teacher_result_v1");
+  }
+  function captureTeacherResultFromUrl(){
+    const match=String(location.hash||"").match(/^#hmresult=((?:HMG1|HMJ1)\.[A-Za-z0-9_-]+)$/);
+    if(!match)return false;
+    setPendingTeacherResultCode(match[1]);
+    try{history.replaceState(null,"",`${location.pathname}${location.search}`);}catch(e){}
+    return true;
   }
   async function shareProgressJson(){
     const email=teacherEmail();
@@ -6456,27 +6566,20 @@
     if(!Array.isArray(state.sessionHistory))state.sessionHistory=[];
     state.sessionHistory.push({endedAt:new Date().toISOString(),day:Number(state.day||1),score:Number(state.score||0),hotelSatisfaction:Number(state.happiness||0)});
     saveState();
-    const pkg=studentPackageFile();
     const code=currentStudentCode||state.studentCode||"elev";
-    const subject=`Hotel Manager progression · ${code} · Dag ${state.day}`;
-    const text=`Här kommer min Hotel Manager-fil med progression och backup.\nElevkod: ${code}\nDag: ${state.day}\nHotellpoäng: ${state.score}`;
-
-    try{
-      if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[pkg.file]}))){
-        recordAssessment("lesson_export",{method:"native_file_share",fileName:pkg.name,recipient:email});saveState();
-        await navigator.share({title:subject,text:`Till: ${email}\n\n${text}`,files:[pkg.file]});
-        showTip("Elevfilen delades som en riktig fil. Välj e-postappen och kontrollera lärarens adress.");
-        return;
-      }
-    }catch(err){
-      if(err&&err.name==="AbortError")return;
-      console.warn("Direkt fildelning kunde inte användas. Skapar färdigt .eml-mejl i stället.",err);
-    }
-
-    const emlFile=createStudentEmailFile(email,pkg);
-    recordAssessment("lesson_export",{method:"eml_with_attachment",fileName:pkg.name,emailFileName:emlFile.name,recipient:email});saveState();
-    downloadFile(emlFile);
-    showTip("Ett färdigt Outlook-mejl skapades. Öppna .eml-filen som just hämtades – JSON-filen ligger redan bifogad i mejlet.");
+    const day=Number(state.day||1);
+    const subject=`Hotel Manager progression · ${code} · Dag ${day}`;
+    let transferCode="";
+    try{transferCode=await makeStudentTransferCode();}catch(err){console.error(err);showTip("Elevresultatet kunde inte packas för e-post.");return;}
+    const resultUrl=resultUrlForCode(transferCode);
+    const body=resultUrl
+      ? `Hej!\n\nHär kommer min progression från Hotel Manager.\nElevkod: ${code}\nDag: ${day}\nHotellpoäng: ${Number(state.score||0)}\n\nÖPPNA ELEVRESULTATET HÄR:\n${resultUrl}\n\nLänken innehåller elevens Hotel Manager-save och öppnas i Lärarläge efter lösenord. Ingen elevfil har laddats upp till GitHub.`
+      : `Hej!\n\nHär kommer min progression från Hotel Manager.\nElevkod: ${code}\nDag: ${day}\nHotellpoäng: ${Number(state.score||0)}\n\nHOTEL MANAGER-KOD – kopiera hela raden till Lärarläge → Läs elevresultat:\n${transferCode}`;
+    const mailto=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    recordAssessment("lesson_export",{method:resultUrl?"mailto_result_link":"mailto_transfer_code",recipient:email,day,transferLength:transferCode.length});
+    saveState();
+    try{window.location.href=mailto;showTip(resultUrl?"E-postappen öppnas med en klickbar elevresultatlänk.":"E-postappen öppnas med elevens Hotel Manager-kod i meddelandet.");}
+    catch(err){console.error(err);showTip("E-postappen kunde inte öppnas. Använd Ladda ner elevfil som reservväg.");}
   }
 
   let loadedStudentResultPackage=null;
@@ -6509,9 +6612,33 @@
     view.innerHTML=`<div class="student-result-head"><div><h4>${escapeHtml(code)} · Dag ${Number(summary.day||1)}</h4><span class="student-result-badge">${escapeHtml(pkg.hotelVersion||"okänd version")}</span></div><small>${escapeHtml(fileName||"")}<br>${escapeHtml(formatResultDate(pkg.exportedAt))}</small></div>
       <div class="student-result-grid"><div><span>Hotellpoäng</span><b>${Number(summary.score||0)}</b></div><div><span>Gästsnitt</span><b>${guestAvg}%</b></div><div><span>Hotellkassa</span><b>${Number(summary.money||0)}</b></div><div><span>Loggade beslut</span><b>${Number(summary.loggedDecisions||log.length)}</b></div></div>
       <div class="student-result-section"><h5>Senaste progressionen</h5><div class="student-result-log">${latest.length?latest.map(item=>{const type=String(item.type||item.event||item.action||"händelse"),label=assessmentLabels[type]||type.replaceAll("_"," ");const when=item.at||item.timestamp||item.time||item.createdAt||"";return `<div class="student-result-log-row"><b>${escapeHtml(label)}</b><span>${escapeHtml(type)}</span><small>${escapeHtml(formatResultDate(when))}</small></div>`;}).join(""):`<div class="info">Ingen bedömningslogg hittades i filen.</div>`}</div></div>
-      <div class="student-result-restore"><button class="secondary" id="restoreStudentResultBtn" type="button">↻ Återställ / öppna elevens spel från filen</button></div>`;
+      <div class="student-result-restore"><button class="secondary" id="restoreStudentResultBtn" type="button">↻ Återställ / öppna elevens spel</button><button class="secondary" id="downloadLoadedStudentResultBtn" type="button">⬇ Spara som JSON</button></div>`;
     view.hidden=false;
     document.getElementById("restoreStudentResultBtn")?.addEventListener("click",restoreLoadedStudentResult);
+    document.getElementById("downloadLoadedStudentResultBtn")?.addEventListener("click",downloadLoadedStudentResult);
+  }
+  function downloadLoadedStudentResult(){
+    const pkg=loadedStudentResultPackage;if(!pkg){showTip("Läs ett elevresultat först.");return;}
+    const code=normalizeStudentCode(pkg.student?.code||"ELEV")||"ELEV",day=Number(pkg.summary?.day||pkg.backup?.state?.day||1);
+    downloadFile(jsonFile(pkg,`hotel_manager_${code}_dag_${day}.json`));
+    showTip("Elevresultatet sparades som JSON.");
+  }
+  async function readStudentResultCode(value=null){
+    const textarea=document.getElementById("studentResultCode");
+    const source=value==null?String(textarea?.value||""):String(value||"");
+    if(!source.trim()){showTip("Klistra in Hotel Manager-koden från mejlet först.");return false;}
+    try{
+      const pkg=await readStudentTransferCode(source);
+      loadedStudentResultPackage=pkg;
+      if(textarea)textarea.value="";
+      renderStudentResultPackage(pkg,"Resultat från e-post");
+      showTip(`Elevresultatet för ${pkg.student?.code||"eleven"} är inläst från mejlet.`);
+      return true;
+    }catch(err){
+      console.error(err);loadedStudentResultPackage=null;
+      const view=document.getElementById("studentResultView");if(view){view.hidden=false;view.innerHTML='<div class="result bad"><strong>Koden kunde inte läsas.</strong><br>Kontrollera att hela Hotel Manager-koden kopierats.</div>';}
+      showTip("Hotel Manager-koden kunde inte läsas.");return false;
+    }
   }
   function readStudentResultFile(){
     const input=document.getElementById("studentResultFile"),file=input?.files?.[0];
@@ -6642,6 +6769,13 @@
     renderTeacherPhraseEditor();
     loadTeacherSettings();
     document.getElementById("teacherModal").classList.add("show");
+    const pending=pendingTeacherResultCode();
+    if(pending){
+      document.querySelectorAll("[data-teacher-tab]").forEach(x=>x.classList.toggle("active",x.dataset.teacherTab==="upload"));
+      document.querySelectorAll(".teacher-panel").forEach(x=>x.classList.toggle("active",x.id==="teacher-upload"));
+      setPendingTeacherResultCode("");
+      setTimeout(()=>readStudentResultCode(pending),0);
+    }
   }
   function requestTeacherMode(){
     if(sessionStorage.getItem(TEACHER_UNLOCK_KEY)==="1"){openTeacherMode();return;}
@@ -6671,7 +6805,10 @@
   document.getElementById("teacherPasswordInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitTeacherPassword();}});
   document.getElementById("saveTeacherSettingsBtn").onclick=saveTeacherSettings;
   document.getElementById("teacherEmailInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();saveTeacherSettings();}});
+  const incomingTeacherResult=captureTeacherResultFromUrl();
+  if(incomingTeacherResult)setTimeout(()=>{showTip("Elevresultat mottaget från e-post. Ange lärarlösenordet för att öppna det.");requestTeacherMode();},120);
   document.getElementById("readStudentResultBtn").onclick=readStudentResultFile;
+  document.getElementById("readStudentResultCodeBtn").onclick=()=>readStudentResultCode();
   document.getElementById("studentResultFile").addEventListener("change",()=>{const view=document.getElementById("studentResultView");if(view)view.hidden=true;loadedStudentResultPackage=null;});
   document.getElementById("managerPanelBtn").onclick=openHotelDevelopment;
   document.querySelectorAll("[data-development-tab]").forEach(button=>button.onclick=()=>{developmentTab=button.dataset.developmentTab;renderHotelDevelopment();});
