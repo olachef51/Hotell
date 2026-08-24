@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Index hotell v.01-142</title>
+<title>Index hotell v.01-166</title>
 <style>
   :root{
     --blue:#6678ed;
@@ -768,7 +768,9 @@
 
 
   /* v.01-141 · Skärmanpassning för laptop, mindre fönster och låg skärmhöjd. */
-  /* v.01-142 · E-post via komprimerad elevresultatlänk i stället för .eml-bilaga. */
+  /* v.01-143 · Robust elevutskick: skapa en JSON-fil lokalt och öppna ett kort, färdigadresserat mejl. */
+  /* v.01-144 · Automatisk lokal spelbackup vid stängning/bakgrund. */
+  /* v.01-145 · Progressions-JSON skrivs direkt i elevens mejl och kan klistras in i Lärarläge. */
   #startScreen{
     overflow-y:auto;
     overflow-x:hidden;
@@ -851,6 +853,34 @@
     .lesson-actions button{width:100%}
   }
 
+
+
+  /* v.01-166 · Scoreboard + testmodell för progression och gästresa */
+  .progress-scale{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin:10px 0}
+  .progress-scale-card{border:1px solid #dce4ea;border-radius:11px;background:#f8fafb;padding:9px;min-width:0}
+  .progress-scale-card span{display:block;font-size:9px;font-weight:1000;color:#73818b;text-transform:uppercase;line-height:1.25}
+  .progress-scale-card b{display:block;font-size:20px;color:#263d55;margin-top:3px}
+  .progress-scale-card small{display:block;font-size:9px;color:#75828b;margin-top:3px;line-height:1.25}
+  .scoreboard-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 11px}
+  .scoreboard-wrap{overflow:auto;border:1px solid #dce4ea;border-radius:13px;background:#fff}
+  .scoreboard-table{width:100%;border-collapse:collapse;min-width:900px;font-size:11px}
+  .scoreboard-table th,.scoreboard-table td{padding:9px 8px;border-bottom:1px solid #e5ebef;text-align:center;white-space:nowrap}
+  .scoreboard-table th{position:sticky;top:0;background:#f1f4f6;color:#596872;font-size:9px;text-transform:uppercase;z-index:1}
+  .scoreboard-table td:first-child,.scoreboard-table th:first-child{text-align:left;font-weight:1000;position:sticky;left:0;background:#fff;z-index:1}
+  .scoreboard-table th:first-child{background:#f1f4f6;z-index:2}
+  .scoreboard-level{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:50%;background:#e8efff;color:#315487;font-weight:1000}
+  .scoreboard-trend{font-weight:1000}.scoreboard-detail{margin-top:12px}
+  .scoreboard-note{background:#fff7e1;border:1px solid #efd38b;border-radius:12px;padding:10px 12px;color:#6b571f;font-size:11px;line-height:1.45}
+  .journey-card{border:2px solid #dce4f5;border-radius:15px;background:#f8faff;padding:13px;margin:10px 0}
+  .journey-card h3{margin:0 0 5px;color:#2d4163}.journey-card p{margin:5px 0;color:#64718a;font-size:12px;line-height:1.45}
+  .journey-stages{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}.journey-stage-chip{background:#e9efff;color:#39558b;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:1000}
+  .scenario-journey-meta{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 10px;padding:9px 11px;border-radius:12px;background:#eef3ff;color:#314f80;font-size:11px;font-weight:950}
+  .scenario-timer{border-radius:999px;padding:5px 9px;background:#fff;color:#8c571b;border:1px solid #edc77b;font-variant-numeric:tabular-nums}
+  .scenario-timer.urgent{background:#ffe9e6;color:#9c3b34;border-color:#efaaa5}
+  .journey-result-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}.journey-result-summary div{background:#f4f7fa;border-radius:10px;padding:9px}.journey-result-summary span{display:block;font-size:9px;color:#7a8790;font-weight:1000;text-transform:uppercase}.journey-result-summary b{display:block;margin-top:3px;font-size:16px;color:#2f4050}
+  @media(max-width:900px){.progress-scale{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:560px){.progress-scale{grid-template-columns:repeat(2,minmax(0,1fr))}.journey-result-summary{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -858,7 +888,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-142</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-166</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span></div>
@@ -1172,6 +1202,7 @@
 <div class="modal" id="scenarioModal">
   <div class="box">
     <div class="box-head"><h2 id="scenarioTitle">Gästproblem</h2><button class="close" data-close="scenarioModal">Stäng</button></div>
+    <div class="scenario-journey-meta" id="scenarioJourneyMeta" hidden><span id="scenarioJourneyLabel"></span><span class="scenario-timer" id="scenarioTimer"></span></div>
     <p id="scenarioProblem"></p>
     <div id="scenarioChoices"></div>
   </div>
@@ -1194,6 +1225,8 @@
     <div class="box-head"><h2>Lärarläge</h2><div class="teacher-head-actions"><button class="teacher-quick-reset" id="teacherQuickResetBtn" type="button">⚠ Starta om elevspel</button><button class="close" data-close="teacherModal">Stäng</button></div></div>
     <div class="tabs">
       <button class="active" data-teacher-tab="upload">Ladda upp</button>
+      <button data-teacher-tab="scoreboard">Scoreboard</button>
+      <button data-teacher-tab="journey">Gästresa</button>
       <button data-teacher-tab="create">Skapa problem</button>
       <button data-teacher-tab="phrases">Incheckningsfraser</button>
       <button data-teacher-tab="settings">Inställningar</button>
@@ -1209,9 +1242,12 @@
           <button class="primary" id="readStudentResultBtn" type="button">Läs elevfil</button>
         </div>
         <div class="teacher-result-code">
-          <label for="studentResultCode">Eller klistra in Hotel Manager-koden från ett mejl</label>
-          <textarea id="studentResultCode" spellcheck="false" placeholder="HM1...."></textarea>
-          <div class="teacher-result-code-actions"><button class="secondary" id="readStudentResultCodeBtn" type="button">📋 Läs kod från mejl</button></div>
+          <label for="studentProgressionPaste"><strong>📋 Klistra in progression från elevens mejl</strong></label>
+          <textarea id="studentProgressionPaste" spellcheck="false" placeholder="Kopiera JSON-blocket från elevens mejl och klistra in det här. Du kan även klistra in hela mejltexten."></textarea>
+          <div class="teacher-result-code-actions">
+            <button class="primary" id="readStudentProgressionPasteBtn" type="button">Läs progression</button>
+            <button class="secondary" id="clearStudentProgressionPasteBtn" type="button">Rensa</button>
+          </div>
         </div>
         <div class="student-result-view" id="studentResultView" hidden></div>
       </div>
@@ -1220,6 +1256,26 @@
       <button class="primary" id="importBtn">Importera scenarier</button>
       <button class="secondary" id="exampleBtn">Hämta exempelfil</button>
       <div class="info">Ett scenario behöver titel, problem, departement, minst två svar och ett korrekt svar.</div>
+    </section>
+
+    <section class="teacher-panel" id="teacher-scoreboard">
+      <h3>🏆 Scoreboard · progression</h3>
+      <p>Scoreboarden sparas lokalt på lärarens dator. När en elevprogression läses in uppdateras elevens dagshistorik automatiskt.</p>
+      <div class="scoreboard-note"><strong>Samplemodell:</strong> Hotellpoäng är spelets tävlingspoäng. Progressionsnivå 0–4 bygger på vad eleven faktiskt visar i sex yrkesområden. Vi testar modellen först och justerar viktningen efter hur den fungerar i klassrummet.</div>
+      <div class="scoreboard-tools"><button class="primary" id="loadScoreboardSampleBtn" type="button">🧪 Lägg in sampledata</button><button class="secondary" id="clearScoreboardBtn" type="button">Rensa scoreboard</button></div>
+      <div id="scoreboardView"></div>
+      <div class="scoreboard-detail" id="scoreboardDetail"></div>
+    </section>
+
+    <section class="teacher-panel" id="teacher-journey">
+      <h3>🧳 Gästresa · sampletest</h3>
+      <div class="journey-card">
+        <h3>Weekendgästen Sara Lind</h3>
+        <p>Följ samma gäst genom tre kontaktpunkter. Eleven får problem under vistelsen och måste välja hur situationen ska lösas. Rätt svar ger ordinarie poäng och en tidsbonus om eleven löser problemet snabbt.</p>
+        <div class="journey-stages"><span class="journey-stage-chip">1 · Reception</span><span class="journey-stage-chip">2 · Gästservice</span><span class="journey-stage-chip">3 · Frukost</span></div>
+        <button class="primary" id="startSampleJourneyBtn" type="button">▶ Starta sample-gästresa</button>
+      </div>
+      <div class="info"><strong>Nästa steg efter test:</strong> samma struktur blir en lärarredigerare där du kan skapa egen gäst, lägga till valfritt antal steg, problem, svar, tidsgräns och bonuspoäng. Scenarier jag skapar åt dig kan använda exakt samma JSON-struktur.</div>
     </section>
 
     <section class="teacher-panel" id="teacher-create">
@@ -1260,7 +1316,7 @@
         </div>
         <div class="teacher-settings-status" id="teacherSettingsStatus" aria-live="polite"></div>
       </div>
-      <div class="info"><strong>Vid elevens utskick:</strong> spelet skapar en enda Hotel Manager-fil med både progression och komplett spelbackup. Filen får elevkod och dag i filnamnet och kan läsas direkt här i Lärarläge.</div>
+      <div class="info"><strong>Vid elevens utskick:</strong> progressionen skrivs direkt som JSON i mejlets text. Läraren kopierar JSON-blocket och klistrar in det under <strong>Lärarläge → Läs elevresultat → Klistra in progression från elevens mejl</strong>. Elevens fullständiga hotell sparas automatiskt lokalt i elevens webbläsare.</div>
     </section>
 
     <section class="teacher-panel" id="teacher-status">
@@ -1299,7 +1355,7 @@
   </div>
 </div>
 
-<div class="modal" id="lessonEndModal"><div class="box lesson-end-box"><div class="box-head"><h2>📤 Avsluta lektion</h2><button class="close" data-close="lessonEndModal">Stäng</button></div><p>Skapa elevens Hotel Manager-fil. Samma JSON innehåller både progression och en backup av spelet.</p><div class="lesson-summary-grid" id="lessonSummaryGrid"></div><div class="lesson-recipient" id="lessonRecipientInfo"></div><div class="privacy-note"><strong>Dataminimering:</strong> elevfilen använder elevkod och innehåller inte personnummer. Den skapas lokalt i webbläsaren. Om den skickas med e-post behandlas den även av skolans e-postsystem.</div><div class="lesson-actions"><button class="primary" id="shareProgressBtn" type="button">✉ Skicka elevfil till läraren</button><button class="secondary" id="downloadProgressBtn" type="button">⬇ Ladda ner elevfil</button></div><div class="info">När eleven skickar öppnas e-postappen med lärarens adress, resultat och en säker Hotel Manager-resultatlänk. Elevens JSON komprimeras i länken och lagras inte på GitHub. När läraren klickar på länken läser Lärarläget tillbaka samma progression och spelbackup. Knappen <strong>Ladda ner elevfil</strong> finns kvar som vanlig JSON-backup.</div></div></div>
+<div class="modal" id="lessonEndModal"><div class="box lesson-end-box"><div class="box-head"><h2>📤 Avsluta lektion</h2><button class="close" data-close="lessonEndModal">Stäng</button></div><p>Skicka dagens progression till läraren. Progressions-JSON skrivs direkt i mejlets text och elevens fullständiga hotell fortsätter autosparas lokalt.</p><div class="lesson-summary-grid" id="lessonSummaryGrid"></div><div class="lesson-recipient" id="lessonRecipientInfo"></div><div class="privacy-note"><strong>Dataminimering:</strong> mejlet använder elevkod och innehåller inte personnummer. Progressions-JSON innehåller resultat och bedömningshändelser, men inte hela spelbackupen.</div><div class="lesson-actions"><button class="primary" id="shareProgressBtn" type="button">✉ Skicka progression via mejl</button><button class="secondary" id="downloadProgressBtn" type="button">⬇ Ladda ner full elevfil</button></div><div class="info"><strong>Så fungerar Skicka:</strong> e-postappen öppnas med lärarens adress och ett tydligt JSON-block. Läraren kopierar JSON-blocket och klistrar in det i <strong>Lärarläge → Läs elevresultat</strong>. Knappen <strong>Ladda ner full elevfil</strong> finns kvar om eleven behöver flytta sitt hotell till en annan dator.</div></div></div>
 
 <div id="startScreen">
   <div class="start-card">
@@ -1312,7 +1368,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-142 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-166 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1331,13 +1387,17 @@
   const TEACHER_UNLOCK_KEY = "index_hotell_teacher_unlocked_v1";
   const TEACHER_EMAIL_KEY = "index_hotell_teacher_email_v1";
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
-  const HOTEL_VERSION = "v.01-142";
-  const MASTER_CONTENT_VERSION = "v.01-142";
+  const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
+  const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
+  const HOTEL_VERSION = "v.01-166";
+  const MASTER_CONTENT_VERSION = "v.01-166";
   const TEACHER_PASSWORD = "password1234";
   function normalizeStudentCode(value){return String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,16);}
   function studentSaveKey(code){return `index_hotell_student_v115_${normalizeStudentCode(code)}`;}
+  function studentAutoBackupKey(code){const safe=normalizeStudentCode(code)||"LOCAL";return `${AUTO_BACKUP_PREFIX}${safe}`;}
   const currentStudentCode = normalizeStudentCode(localStorage.getItem(CURRENT_STUDENT_KEY)||"");
   const SAVE_KEY = currentStudentCode ? studentSaveKey(currentStudentCode) : LEGACY_SAVE_KEY;
+  const AUTO_BACKUP_KEY = studentAutoBackupKey(currentStudentCode);
 
   const baseScenarios = [
     {
@@ -1374,6 +1434,27 @@
       ]
     }
   ];
+
+  const SAMPLE_GUEST_JOURNEY = {
+    id:"sample-sara-weekend", title:"Weekendgästen Sara Lind", guest:"Sara Lind",
+    stages:[
+      {id:"arrival",area:"reception",department:"reception",title:"Bokningen hittas inte direkt",problem:"Sara kommer till receptionen och visar sin bokningsbekräftelse, men bokningen syns inte direkt i PMS. Vad gör du först?",timeLimitSeconds:45,bonusWindowSeconds:18,bonusPoints:60,choices:[
+        {text:"Kontrollera stavning, datum och bokningsbekräftelse innan jag föreslår en lösning.",correct:true,feedback:"Bra. Du arbetar metodiskt, lugnt och serviceinriktat."},
+        {text:"Säga att bokningen inte finns och be Sara boka ett nytt rum.",correct:false,feedback:"Du behöver kontrollera uppgifterna innan du gör en ny bokning."},
+        {text:"Ge Sara första lediga rumsnyckel så länge.",correct:false,feedback:"Rumsnyckel får inte lämnas ut utan korrekt boknings- och identitetskontroll."}
+      ]},
+      {id:"noise",area:"guestservice",department:"guestservice",title:"Störande ljud på kvällen",problem:"Senare under vistelsen ringer Sara och berättar att det är mycket högt ljud från rummet bredvid. Hur hanterar du situationen?",timeLimitSeconds:40,bonusWindowSeconds:16,bonusPoints:50,choices:[
+        {text:"Lyssna, be om ursäkt, kontrollera störningen och återkomma med en konkret lösning.",correct:true,feedback:"Bra. Du tar ansvar för gästens upplevelse och följer upp problemet."},
+        {text:"Säga att hon får vänta eftersom hotellet är fullt.",correct:false,feedback:"Det löser inte situationen och gästen känner sig inte tagen på allvar."},
+        {text:"Be Sara själv knacka på grannens dörr.",correct:false,feedback:"Hotellet ska hantera störningen, inte lägga ansvaret på gästen."}
+      ]},
+      {id:"breakfast",area:"breakfast",department:"breakfast",title:"Allergifråga vid frukosten",problem:"På morgonen frågar Sara om en produkt på buffén är säker för henne eftersom hon har en allergi. Du är inte helt säker på innehållet. Vad gör du?",timeLimitSeconds:35,bonusWindowSeconds:14,bonusPoints:40,choices:[
+        {text:"Kontrollera produktinformationen och rutinerna innan jag ger ett säkert svar.",correct:true,feedback:"Rätt. Vid allergifrågor ska du kontrollera fakta och inte gissa."},
+        {text:"Säga att det nog är säkert eftersom ingen annan har klagat.",correct:false,feedback:"Vid allergi får du inte chansa."},
+        {text:"Be Sara välja något annat utan att kontrollera produkten.",correct:false,feedback:"Det är inte ett tillräckligt serviceinriktat eller säkert svar."}
+      ]}
+    ]
+  };
 
   const defaultCheckinPhrases = [
     {text:"God morgon och varmt välkommen till vårt hotell. Vad kan jag hjälpa er med idag?",effect:10,feedback:"Mycket bra. Ett professionellt, vänligt och öppet välkomnande. En redan nöjd gäst stannar på 100 %."},
@@ -1439,8 +1520,10 @@
   const FACILITY_CATALOG={
     kitchen:{label:"Större restaurangkök",cost:1200,revenue:0,icon:"👨‍🍳",requires:[],description:"Krävs för att kunna börja servera lunch."},
     lunch:{label:"Lunchservering",cost:1500,revenue:250,icon:"🍽️",requires:["kitchen"],minTables:6,description:"Öppnar lunchservering och ger nya restauranguppgifter."},
+    terrace:{label:"Uteservering / café",cost:1200,revenue:160,icon:"☕",requires:["lunch"],description:"Öppnar café och uteservering i hotellets utomhusområde."},
     laundry:{label:"Tvättavdelning",cost:2000,revenue:120,icon:"🧺",requires:[],description:"Egen tvätt ger en daglig driftbesparing och kan senare kopplas till HSK."},
     bar:{label:"Hotellbar",cost:2200,revenue:180,icon:"🍸",requires:[],description:"Ger kvällsintäkter och kan senare skapa barservice."},
+    concierge:{label:"Concierge",cost:2600,revenue:220,satisfactionBonus:6,icon:"🛎️",requires:[],description:"Personlig service, bokningshjälp och lokala tips som ökar både intäkter och gästnöjdhet."},
     pool:{label:"Pool",cost:5000,revenue:100,icon:"🏊",requires:[],description:"Höjer hotellets attraktivitet och låser upp poolbar."},
     poolbar:{label:"Poolbar",cost:1800,revenue:150,icon:"🍹",requires:["pool","bar"],description:"Kräver både pool och hotellbar."},
     conference:{label:"Konferensrum",cost:3500,revenue:300,icon:"🧑‍💼",requires:[],description:"Öppnar framtida konferensbokningar och konferensservice."}
@@ -1449,7 +1532,7 @@
   function makeDefaultHotelDevelopment(){
     const roomUpgrades={},roomOwnedUpgrades={};
     for(let id=101;id<=112;id++){roomUpgrades[id]=blankRoomUpgrade();roomOwnedUpgrades[id]=blankRoomUpgrade();}
-    return {version:119,builtRooms:[101,102,103,104],roomUpgrades,roomOwnedUpgrades,restaurantTables:4,facilities:{kitchen:false,lunch:false,laundry:false,bar:false,pool:false,poolbar:false,conference:false},totalInvested:0};
+    return {version:120,builtRooms:[101,102,103,104],roomUpgrades,roomOwnedUpgrades,restaurantTables:4,facilities:{kitchen:false,lunch:false,terrace:false,laundry:false,bar:false,concierge:false,pool:false,poolbar:false,conference:false},totalInvested:0};
   }
   function makeLegacyHotelDevelopment(laundryBuilt=false){
     const dev=makeDefaultHotelDevelopment();dev.builtRooms=Array.from({length:12},(_,i)=>101+i);dev.restaurantTables=9;dev.facilities.laundry=Boolean(laundryBuilt);
@@ -1469,15 +1552,15 @@
     }
     base.restaurantTables=Math.max(4,Math.min(9,Number(src.restaurantTables||4)));
     base.facilities=Object.assign({},base.facilities,src.facilities||{});
-    base.totalInvested=Math.max(0,Number(src.totalInvested||0));base.version=119;return base;
+    base.totalInvested=Math.max(0,Number(src.totalInvested||0));base.version=120;return base;
   }
   function ensureHotelDevelopmentState(){
     if(!state.hotelDevelopment)state.hotelDevelopment=makeDefaultHotelDevelopment();
     const dev=state.hotelDevelopment;
-    const needsMigration=Number(dev.version||0)!==119 || !dev.roomUpgrades || !dev.roomOwnedUpgrades || !Array.isArray(dev.builtRooms) || !dev.facilities;
+    const needsMigration=Number(dev.version||0)!==120 || !dev.roomUpgrades || !dev.roomOwnedUpgrades || !Array.isArray(dev.builtRooms) || !dev.facilities;
     if(needsMigration){
       state.hotelDevelopment=normalizeHotelDevelopment(dev,false);
-      state.hotelDevelopment.version=119;
+      state.hotelDevelopment.version=120;
     }
     return state.hotelDevelopment;
   }
@@ -1493,6 +1576,14 @@
   function restaurantTableCapacity(){ensureHotelDevelopmentState();return Math.max(4,Math.min(9,Number(state.hotelDevelopment.restaurantTables||4)));}
   function activeBreakfastTables(){return state.breakfastTables.filter(t=>Number(t.id)<=restaurantTableCapacity());}
   function facilityDailyRevenue(){ensureHotelDevelopmentState();return Object.entries(FACILITY_CATALOG).reduce((sum,[key,item])=>sum+(state.hotelDevelopment.facilities[key]?Number(item.revenue||0):0),0);}
+  function facilityDailySatisfactionBonus(){ensureHotelDevelopmentState();return Object.entries(FACILITY_CATALOG).reduce((sum,[key,item])=>sum+(state.hotelDevelopment.facilities[key]?Number(item.satisfactionBonus||0):0),0);}
+  function applyGuestSatisfactionLift(points,reason="facility_satisfaction"){
+    const delta=Math.max(0,Number(points||0));if(!delta)return;
+    let changed=0;
+    Object.keys(state.guestMoods||{}).forEach(id=>{const before=Number(state.guestMoods[id]??100),after=Math.max(0,Math.min(100,before+delta));if(after!==before){state.guestMoods[id]=after;changed++;}});
+    state.happiness=Math.max(0,Math.min(100,Number(state.happiness||100)+Math.max(1,Math.round(delta/2))));
+    recordAssessment(reason,{satisfactionBonus:delta,affectedGuests:changed,hotelSatisfaction:Number(state.happiness||0)});
+  }
   function occupiedRoomDailyRevenue(){return state.bookings.filter(b=>b.status==="inhouse"&&b.roomId&&isRoomBuilt(b.roomId)).reduce((sum,b)=>sum+roomNightlyRate(b.roomId),0);}
   function projectedDailyIncome(){return occupiedRoomDailyRevenue()+facilityDailyRevenue();}
   function calculateReservationTotalForRoom(roomId,start,nights){let total=0;for(let i=0;i<Math.max(1,Number(nights||1));i++)total+=roomNightlyRate(roomId);return total;}
@@ -1528,6 +1619,9 @@
     breakfastCleaning:{tableId:null,finishAt:0,staffId:null},
     breakfastTablesDay:1,
     breakfastTableLogicVersion:109,
+    ambientGuestsSpawned:0,
+    ambientActivityDay:1,
+    ambientLitter:[],
     guestQueue:0,
     noShowCallCount:0,
     phoneTaskDay:1,
@@ -1807,6 +1901,14 @@
     state.phoneCallBranch="";
     state.phoneCallAlternativeStart=null;
     state.pendingPhoneReservation=null;
+    state.ambientGuestsSpawned=0;
+    state.ambientActivityDay=Number(state.day||1);
+    state.ambientLitter=[];
+    if(typeof guestAgents!=="undefined"){
+      for(let i=guestAgents.length-1;i>=0;i--)if(guestAgents[i]?.ambient)guestAgents.splice(i,1);
+    }
+    nextAmbientGuestAt=performance.now()+7000;
+    nextAmbientPhoneAt=performance.now()+9000;
     refreshDailyTaskCompletion();
   }
 
@@ -1848,6 +1950,8 @@
   let lastStaffPaint = 0;
   let guestFlowStarted = false;
   let nextGuestReleaseAt = 0;
+  let nextAmbientGuestAt = 0;
+  let nextAmbientPhoneAt = 0;
   let started = false;
   let selectedMissionTaskKey = null;
   // v.01-115: aktiv HSK-rutin; stayover-städning väntar tills gästen lämnat rummet.
@@ -1866,7 +1970,7 @@
   // Logiska yttergränser för hotell, entré och väntande gäster.
   // Dessa räknas genom HOTEL_AREA_SCALE när kamerans scrollområde skapas.
   const CAMERA_CONTENT_BOUNDS = {
-    minX:70,
+    minX:-560,
     minY:35,
     maxX:1990,
     maxY:2550
@@ -1889,7 +1993,7 @@
     {
       id:"receptionist", name:"Lina", role:"Receptionist", icon:"🛎️",
       shirt:"#536dde", skill:"Bokning, incheckning, betalning och gästservice.",
-      homeX:890,homeY:1408,stationX:890,stationY:1388
+      homeX:940,homeY:1248,stationX:940,stationY:1228
     },
     {
       id:"housekeeper", name:"Omar", role:"Housekeeping", icon:"🧹",
@@ -2048,7 +2152,8 @@
   }
   function pendingDndManagerRoomId(){return pendingDndManagerRoomIds()[0]||null;}
   function hskDailyWorkComplete(){
-    return (!Array.isArray(state.hskQueue)||state.hskQueue.length===0)&&pendingDndManagerRoomIds().length===0;
+    const litterCount=Array.isArray(state.ambientLitter)?state.ambientLitter.length:0;
+    return (!Array.isArray(state.hskQueue)||state.hskQueue.length===0)&&pendingDndManagerRoomIds().length===0&&litterCount===0;
   }
   function requireDndManagerCheck(roomId){
     ensureDndManagerChecks();
@@ -2295,10 +2400,10 @@
   }
 
   const entrancePoint={x:880,y:2335};
-  const receptionQueuePoint={x:890,y:1515};
+  const receptionQueuePoint={x:940,y:1365};
   // Hela personalsidan bakom receptionsdisken är en aktiv receptionszon.
   // Valfri personal kan stå var som helst här och nå Reservationer, C/I och C/O.
-  const receptionAccessZone={xMin:760,xMax:1015,yMin:1285,yMax:1455};
+  const receptionAccessZone={xMin:775,xMax:1085,yMin:1130,yMax:1315};
   function isInReceptionAccessZone(x=player.x,y=player.y){
     return x>=receptionAccessZone.xMin && x<=receptionAccessZone.xMax &&
            y>=receptionAccessZone.yMin && y<=receptionAccessZone.yMax;
@@ -2432,9 +2537,147 @@
     }
   ];
 
+  const AMBIENT_GUEST_PROFILES=[
+    {name:"Sofia Nyberg",shirt:"#d5686d"},{name:"Ali Hassan",shirt:"#568bb8"},
+    {name:"Emma Sjöberg",shirt:"#8c65b9"},{name:"Viktor Lund",shirt:"#59a07c"},
+    {name:"Nora Ek",shirt:"#d89d43"},{name:"Leo Martin",shirt:"#5e73c4"}
+  ];
+  const AMBIENT_LOBBY_POINTS=[
+    {x:238,y:1918},{x:565,y:1918},{x:238,y:2070},{x:565,y:2070},{x:410,y:2210}
+  ];
+
+  function ensureAmbientActivityState(){
+    if(!Array.isArray(state.ambientLitter))state.ambientLitter=[];
+    if(Number(state.ambientActivityDay||0)!==Number(state.day||1)){
+      state.ambientActivityDay=Number(state.day||1);
+      state.ambientGuestsSpawned=0;
+      state.ambientLitter=[];
+    }
+    if(!Number.isFinite(Number(state.ambientGuestsSpawned)))state.ambientGuestsSpawned=0;
+  }
+
+  function maybeDropAmbientLitter(guest){
+    ensureAmbientActivityState();
+    if(state.ambientLitter.length>=4||Math.random()>.72)return;
+    const icons=["🧻","🥤","☕","🍬"];
+    state.ambientLitter.push({
+      id:`litter_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
+      x:Math.round(Number(guest.x||420)+(Math.random()*34-17)),
+      y:Math.round(Number(guest.y||2050)+(Math.random()*28-14)),
+      icon:icons[Math.floor(Math.random()*icons.length)],
+      day:Number(state.day||1)
+    });
+    state.tasks.clean=false;
+    recordAssessment("guest_litter_created",{guest:guest.name,count:state.ambientLitter.length});
+    saveState();
+    updateMission();
+  }
+
+  function ambientLitterAtPoint(x,y,maxDistance=28){
+    ensureAmbientActivityState();
+    return state.ambientLitter.find(item=>Math.hypot(Number(item.x)-x,Number(item.y)-y)<=maxDistance)||null;
+  }
+
+  function cleanAmbientLitter(item){
+    if(!item)return;
+    if(state.activeStaffId!=="housekeeper"){
+      showTip("Det här är en housekeepinguppgift. Välj Omar först.");
+      return;
+    }
+    const distance=Math.hypot(player.x-Number(item.x),player.y-Number(item.y));
+    if(distance>70){
+      player.targetX=Number(item.x);player.targetY=Number(item.y);player.moving=true;
+      showTip("Omar går fram till skräpet. Klicka på det igen när han är nära.");
+      return;
+    }
+    state.ambientLitter=state.ambientLitter.filter(x=>x.id!==item.id);
+    state.score+=25;state.money+=5;
+    recordAssessment("public_area_litter_cleaned",{staffId:"housekeeper",points:25,remaining:state.ambientLitter.length});
+    refreshDailyTaskCompletion();saveState();updateMission();
+    showTip("Omar plockade skräpet. +25 poäng.");
+  }
+
+  function drawAmbientLitter(){
+    ensureAmbientActivityState();
+    state.ambientLitter.forEach(item=>{
+      drawShadow(Number(item.x),Number(item.y)+8,12,4,.1);
+      ctx.save();ctx.font="18px Arial";ctx.textAlign="center";ctx.fillText(item.icon||"🧻",Number(item.x),Number(item.y));ctx.restore();
+    });
+  }
+
+  function ambientEntrancePathToLobby(point){
+    return [{x:880,y:2335},{x:880,y:2180},{x:760,y:2050},{x:650,y:1900},point];
+  }
+
+  function ambientEntrancePathToRestaurant(seat){
+    return [{x:880,y:2335},{x:880,y:2050},{x:760,y:1850},restaurantDoorPoint,{x:650,y:1490},seat];
+  }
+
+  function ambientExitPathFromLobby(){
+    return [{x:650,y:2050},{x:760,y:2180},{x:880,y:2335},{x:880,y:2460}];
+  }
+
+  function ambientExitPathFromRestaurant(){
+    return [{x:650,y:1490},restaurantDoorPoint,{x:760,y:1850},{x:880,y:2180},{x:880,y:2460}];
+  }
+
+  function spawnAmbientHotelGuest(){
+    ensureAmbientActivityState();
+    if(Number(state.ambientGuestsSpawned||0)>=4)return false;
+    if(dailyTasksComplete())return false;
+    const profile=AMBIENT_GUEST_PROFILES[Number(state.ambientGuestsSpawned||0)%AMBIENT_GUEST_PROFILES.length];
+    const guest={
+      id:`ambient_${state.day}_${state.ambientGuestsSpawned}_${Date.now()}`,
+      name:profile.name,x:880,y:2460,shirt:profile.shirt,state:"walking",path:[],pathIndex:0,speed:88+Math.random()*18,
+      roomId:null,nextActionAt:0,waitOffset:Math.random()*2,lastIrritationAt:0,ambient:true,ambientVisit:true
+    };
+    if(!state.guestMoods)state.guestMoods={};
+    state.guestMoods[guest.id]=92+Math.floor(Math.random()*9);
+
+    const canEat=Boolean(state.breakfastReady)&&cleanBreakfastTables().length>0&&Math.random()<.6;
+    if(canEat){
+      const tableId=assignBreakfastTable(guest);
+      if(tableId){
+        guest.ambientKind="restaurant";
+        guest.breakfastTableId=tableId;
+        queueGuestPath(guest,ambientEntrancePathToRestaurant(restaurantSeatPoints[tableId-1]),"inRestaurant");
+      }
+    }
+    if(!guest.ambientKind){
+      guest.ambientKind="lobby";
+      const point=AMBIENT_LOBBY_POINTS[Number(state.ambientGuestsSpawned||0)%AMBIENT_LOBBY_POINTS.length];
+      queueGuestPath(guest,ambientEntrancePathToLobby(point),"inLobby");
+    }
+    guestAgents.push(guest);
+    state.ambientGuestsSpawned=Number(state.ambientGuestsSpawned||0)+1;
+    recordAssessment("ambient_guest_visit",{guest:guest.name,area:guest.ambientKind,visitNumber:state.ambientGuestsSpawned});
+    saveState();
+    return true;
+  }
+
+  function updateAmbientHotelLife(now){
+    ensureAmbientActivityState();
+    if(!nextAmbientGuestAt)nextAmbientGuestAt=now+6000;
+    if(!nextAmbientPhoneAt)nextAmbientPhoneAt=now+8500;
+
+    if(now>=nextAmbientPhoneAt){
+      if(!state.tasks.phoneBooking&&phoneCallStatus()==="idle"){
+        startIncomingPhoneCall();
+        nextAmbientPhoneAt=Number.POSITIVE_INFINITY;
+      }else if(!state.tasks.phoneBooking){
+        nextAmbientPhoneAt=now+5000;
+      }
+    }
+
+    if(now>=nextAmbientGuestAt&&Number(state.ambientGuestsSpawned||0)<4&&!dailyTasksComplete()){
+      spawnAmbientHotelGuest();
+      nextAmbientGuestAt=now+17000+Math.random()*10000;
+    }
+  }
+
   const tasks = [
-    {id:"checkin",label:"Checka in en gäst",x:890,y:1410,department:"reception",icon:"🛎️",requiredRole:"receptionist"},
-    {id:"phoneBooking",label:"Receptionstelefonen ringer – ta en bokning",x:1015,y:1395,department:"reception",icon:"☎️",requiredRole:"receptionist"},
+    {id:"checkin",label:"Checka in en gäst",x:940,y:1258,department:"reception",icon:"🛎️",requiredRole:"receptionist"},
+    {id:"phoneBooking",label:"Receptionstelefonen ringer – ta en bokning",x:1060,y:1248,department:"reception",icon:"☎️",requiredRole:"receptionist"},
     {id:"clean",label:"Städa rum 102 enligt HSK-rutin",x:1370,y:1625,department:"housekeeping",icon:"🧹",requiredRole:"housekeeper"},
     {id:"breakfast",label:"Starta frukostbuffén",x:390,y:1355,department:"breakfast",icon:"🥐",requiredRole:"breakfast"},
     {id:"problem",label:"Lös ett gästproblem",x:790,y:1915,department:"guestservice",icon:"💬",requiredRole:"receptionist"}
@@ -2474,10 +2717,22 @@
       missionCollapsed:Boolean(parsed.missionCollapsed)
     });
   }
+  function loadAutoBackupState(){
+    try{
+      const raw=localStorage.getItem(AUTO_BACKUP_KEY);
+      if(!raw)return null;
+      const payload=JSON.parse(raw);
+      const backupState=payload&&payload.state&&typeof payload.state==="object"?payload.state:null;
+      if(!backupState)return null;
+      const migrated=mergeStudentProgressWithCurrentMaster(backupState,currentStudentCode||payload.studentCode||backupState.studentCode||"");
+      try{localStorage.setItem(SAVE_KEY,JSON.stringify(migrated));}catch(e){}
+      return migrated;
+    }catch(e){return null;}
+  }
   function loadState(){
     try{
       const raw=localStorage.getItem(SAVE_KEY);
-      if(!raw)return clone(defaultState);
+      if(!raw)return loadAutoBackupState()||clone(defaultState);
       const parsed=JSON.parse(raw);
       const migrated=mergeStudentProgressWithCurrentMaster(parsed,currentStudentCode||parsed.studentCode||"");
       // Om HTML-masterversionen har uppdaterats sparas den migrerade elevprofilen direkt.
@@ -2485,7 +2740,7 @@
         try{localStorage.setItem(SAVE_KEY,JSON.stringify(migrated));}catch(e){}
       }
       return migrated;
-    }catch(e){return clone(defaultState);}
+    }catch(e){return loadAutoBackupState()||clone(defaultState);}
   }
   function reconcileRoomOccupancyFromBookings(){
     if(!state||!Array.isArray(state.rooms)||!Array.isArray(state.bookings))return;
@@ -2519,6 +2774,31 @@
     localStorage.setItem(SAVE_KEY,JSON.stringify(state));
     updateHud();
   }
+  function saveLocalAutoBackup(reason="autosave"){
+    try{
+      if(!state||typeof state!=="object")return false;
+      const code=normalizeStudentCode(currentStudentCode||state.studentCode||"");
+      state.studentCode=code||state.studentCode||"";
+      // Sista ordinarie save och en separat rullande lokal backup. Inga filer laddas ner.
+      localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+      localStorage.setItem(studentAutoBackupKey(code),JSON.stringify({
+        schema:"hotel-manager-local-autobackup-v1",
+        savedAt:new Date().toISOString(),
+        reason:String(reason||"autosave"),
+        hotelVersion:HOTEL_VERSION,
+        masterContentVersion:MASTER_CONTENT_VERSION,
+        studentCode:code,
+        state:state
+      }));
+      return true;
+    }catch(e){return false;}
+  }
+
+  // v.01-144: precis som ett vanligt spel gör Hotel Manager en sista lokal save när sidan lämnas.
+  // pagehide fungerar vid stängd flik/navigering, visibilitychange fångar även när sidan går i bakgrunden.
+  addEventListener("pagehide",()=>saveLocalAutoBackup("pagehide"));
+  addEventListener("beforeunload",()=>saveLocalAutoBackup("beforeunload"));
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")saveLocalAutoBackup("hidden");});
   function recordAssessment(type,details={}){
     if(!Array.isArray(state.assessmentLog))state.assessmentLog=[];
     state.assessmentLog.push(Object.assign({time:new Date().toISOString(),day:Number(state.day||1),type:String(type||"event")},details||{}));
@@ -2757,13 +3037,17 @@
       });
     });
 
+    drawOutdoorLeisureArea();
     drawBreakfastRestaurant();
     drawManagerOffice();
     drawReception();
+    drawConciergeArea();
     drawLargeLobby();
+    drawLobbyBar();
     drawHskOffice();
     drawLuggageRoom();
-    drawExpansion();
+    drawLaundryArea();
+    drawConferenceArea();
     drawMainEntrance();
   }
 
@@ -2876,6 +3160,100 @@
     roundRect(x+w/2-82,y+h/2-45,164,90,16,"rgba(255,255,255,.88)","#8b8176");ctx.fillStyle="#6e655d";ctx.font="1000 28px Arial";ctx.textAlign="center";ctx.fillText("🏗",x+w/2,y+h/2-8);ctx.font="1000 13px Arial";ctx.fillText(`BYGG RUM ${roomId}`,x+w/2,y+h/2+18);ctx.font="800 10px Arial";ctx.fillText(`${ROOM_BUILD_COST} kr · chefens panel`,x+w/2,y+h/2+37);ctx.textAlign="left";ctx.restore();
   }
 
+  function drawUpgradeGhostSlot(x,y,w,h,icon,label){
+    ctx.save();
+    ctx.fillStyle="rgba(108,120,135,.09)";
+    ctx.strokeStyle="rgba(106,118,132,.55)";
+    ctx.lineWidth=2;
+    ctx.setLineDash([6,5]);
+    ctx.beginPath();
+    ctx.roundRect(x,y,w,h,10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle="rgba(64,74,86,.72)";
+    ctx.font="900 12px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(icon,x+w/2,y+h/2-4);
+    ctx.font="800 8px Arial";
+    const slotLabel=String(label||"").toUpperCase();
+    ctx.fillText(slotLabel,x+w/2,y+h-8);
+    ctx.textAlign="left";
+    ctx.restore();
+  }
+
+  function drawFacilityGhostSlot(x,y,w,h,icon,label,subLabel="Köp i chefspanelen"){
+    ctx.save();
+    roundRect(x,y,w,h,12,"rgba(255,255,255,.42)","rgba(112,124,136,.55)");
+    ctx.setLineDash([7,6]);
+    ctx.strokeStyle="rgba(104,116,128,.72)";
+    ctx.lineWidth=2;
+    ctx.strokeRect(x+4,y+4,w-8,h-8);
+    ctx.setLineDash([]);
+    ctx.fillStyle="rgba(54,67,79,.76)";
+    ctx.font="1000 19px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(icon,x+w/2,y+27);
+    ctx.font="900 10px Arial";
+    ctx.fillText(String(label||"").toUpperCase(),x+w/2,y+45);
+    ctx.font="800 8px Arial";
+    ctx.fillText(subLabel,x+w/2,y+h-10);
+    ctx.textAlign="left";
+    ctx.restore();
+  }
+
+  function drawMiniPoolZone(x,y,w,h,hasPool,hasPoolbar){
+    roundRect(x,y,w,h,12,hasPool?"#e9f7fb":"#eef1f3",hasPool?"#69a8be":"#a2afb7");
+    const poolX=x+10,poolY=y+10,poolW=w-(hasPoolbar?86:20),poolH=h-20;
+    if(hasPool){
+      roundRect(poolX,poolY,poolW,poolH,14,"#6cc4e5","#377e9e");
+      ctx.fillStyle="rgba(255,255,255,.35)";
+      ctx.fillRect(poolX+10,poolY+12,poolW-20,8);
+      drawShadow(poolX+poolW/2,poolY+poolH+7,poolW*.35,7,.1);
+      // solstolar
+      roundRect(poolX+8,poolY+poolH-22,28,10,4,"#f3ddb3","#9f8354");
+      roundRect(poolX+44,poolY+poolH-22,28,10,4,"#f3ddb3","#9f8354");
+      if(hasPoolbar){
+        const bx=x+w-70,by=y+12;
+        roundRect(bx,by,58,h-24,10,"#d6b17a","#8f6f44");
+        ctx.fillStyle="#6b4d2e";ctx.fillRect(bx+8,by+14,42,8);
+        ctx.font="16px Arial";ctx.textAlign="center";ctx.fillText("🍹",bx+29,by+37);ctx.textAlign="left";
+        ctx.fillStyle="#5f4628";ctx.fillRect(bx+12,by+46,10,14);ctx.fillRect(bx+36,by+46,10,14);
+      }else if(hasPool){
+        drawFacilityGhostSlot(x+w-70,y+12,58,h-24,"🍹","poolbar","kräver pool + bar");
+      }
+    }else{
+      drawFacilityGhostSlot(poolX,poolY,poolW,poolH,"🏊","pool","byggbar hotellzon");
+      if(hasPoolbar) drawFacilityGhostSlot(x+w-70,y+12,58,h-24,"🍹","poolbar","kräver pool först");
+    }
+  }
+
+  function drawMiniConferenceZone(x,y,w,h,built){
+    if(!built){drawFacilityGhostSlot(x,y,w,h,"🧑‍💼","konferens","möte & event");return;}
+    roundRect(x,y,w,h,12,"#f1e4c8","#a88d5f");
+    roundRect(x+18,y+20,w-36,22,10,"#9c6d4d","#694833");
+    [[x+24,y+10],[x+w-42,y+10],[x+24,y+48],[x+w-42,y+48]].forEach(([cx,cy])=>roundRect(cx,cy,18,10,4,"#6e8eb3","#466079"));
+    ctx.fillStyle="#42556a";ctx.fillRect(x+w/2-16,y+52,32,10);
+    ctx.fillStyle="#fbfcfd";ctx.fillRect(x+w/2-12,y+18,24,14);
+  }
+
+  function drawMiniLaundryZone(x,y,w,h,built){
+    if(!built){drawFacilityGhostSlot(x,y,w,h,"🧺","tvätt","drift & besparing");return;}
+    roundRect(x,y,w,h,12,"#eef4f6","#8ca1aa");
+    [x+18,x+60].forEach(cx=>{roundRect(cx,y+14,28,38,7,"#d9e3e8","#768792");ctx.beginPath();ctx.fillStyle="#87bfd8";ctx.arc(cx+14,y+33,9,0,Math.PI*2);ctx.fill();});
+    ctx.fillStyle="#6d8089";ctx.fillRect(x+18,y+58,w-36,8);
+  }
+
+  function drawMiniBarZone(x,y,w,h,built){
+    if(!built){drawFacilityGhostSlot(x,y,w,h,"🍸","hotellbar","lobby / kvällsservice");return;}
+    roundRect(x,y,w,h,12,"#f1dfc0","#a78756");
+    roundRect(x+12,y+28,w-24,16,7,"#936241","#64412d");
+    ctx.fillStyle="#5f412f";ctx.fillRect(x+22,y+18,8,12);ctx.fillRect(x+42,y+18,8,12);ctx.fillRect(x+62,y+18,8,12);
+    ctx.font="15px Arial";ctx.textAlign="center";ctx.fillText("🍾",x+w/2,y+17);ctx.textAlign="left";
+    roundRect(x+18,y+48,12,10,4,"#6a8eb2","#47607a");
+    roundRect(x+w-30,y+48,12,10,4,"#6a8eb2","#47607a");
+  }
+
   function drawRoom(x,y,w,h,num,status,doorSide="bottom"){
     const roomStatus=status||"available";
     const roomType=roomTypeForId(Number(num));
@@ -2886,7 +3264,6 @@
     const accentColor=isDirty?"#9f7c6f":"#6d89a7";
     const linenColor=isDirty?"#d3b3a2":"#f8fbfd";
     const duvetColor=isDirty?"#c9a492":"#e8eef2";
-    const woodLight="#c79a68";
     const woodDark="#8c6545";
     const tile="#dfe8ec";
 
@@ -2896,13 +3273,16 @@
     ctx.lineWidth=4;
     ctx.strokeRect(x,y,w,h);
 
-    // Enkel fondvägg och golvlist.
     ctx.fillStyle=accentColor;
     ctx.fillRect(x+16,y+16,w-32,12);
     ctx.fillStyle="rgba(255,255,255,.28)";
     ctx.fillRect(x+16,y+30,w-32,6);
     ctx.fillStyle="#d8b98d";
     ctx.fillRect(x+10,y+h-54,w-20,8);
+
+    // Lugnare grundlayout: en tydlig matta och fasta zoner gör rummet lättare att läsa.
+    roundRect(x+20,y+146,Math.min(164,w-108),74,18,isDirty?"rgba(214,189,173,.26)":"rgba(255,255,255,.28)","rgba(164,170,176,.28)");
+    drawShadow(x+w*0.33,y+h-68,74,11,.08);
 
     // Badrum / toalett i högra delen av rummet.
     const bathW=Math.min(86,Math.max(64,w*0.24));
@@ -2916,7 +3296,6 @@
         ctx.fillRect(tx,ty,10,10);
       }
     }
-    // Toalett.
     roundRect(bathX+bathW/2-16,bathY+bathH-44,32,26,10,"#f7fafc","#a9bbc6");
     roundRect(bathX+bathW/2-13,bathY+bathH-66,26,22,10,"#f7fafc","#a9bbc6");
     ctx.fillStyle="#d9e4ea";
@@ -2925,15 +3304,16 @@
     ctx.fill();
     roundRect(bathX+bathW/2-12,bathY+14,24,18,4,"#8fa1af","#6d7b86");
     if(upgrade.bathroom){
-      // Uppgraderat badrum: duschglas, handduk och tydligare premiumdetaljer.
       ctx.strokeStyle="#6ba8b8";ctx.lineWidth=3;
       ctx.beginPath();ctx.moveTo(bathX+10,bathY+10);ctx.lineTo(bathX+10,bathY+bathH-12);ctx.lineTo(bathX+bathW*.48,bathY+bathH-12);ctx.stroke();
       ctx.fillStyle="rgba(177,222,232,.42)";ctx.fillRect(bathX+12,bathY+12,bathW*.36,bathH-26);
       roundRect(bathX+bathW-29,bathY+42,18,28,3,"#ffffff","#7f9fab");
       ctx.fillStyle="#4c7380";ctx.font="900 8px Arial";ctx.textAlign="center";ctx.fillText("SPA",bathX+bathW/2,bathY+bathH-7);ctx.textAlign="left";
+    }else{
+      drawUpgradeGhostSlot(bathX+8,bathY+8,bathW-16,26,"🚿","spa bad");
     }
 
-    // Queen är visuellt mindre. King size-säng blir tydligt bredare när den köps.
+    // Tydlig sängzon.
     const bedX=x+14;
     const bedY=y+44;
     const bedW=upgrade.kingBed?Math.max(190,w-bathW-34):Math.min(158,Math.max(132,w-bathW-76));
@@ -2944,68 +3324,82 @@
     roundRect(bedX+12,bedY+35,bedW-24,bedH-47,12,duvetColor,"#b99f8f");
     roundRect(bedX+bedW*.12,bedY-2,bedW*.76,18,8,isDirty?"#b89080":"#ceb1a0","#8c6a58");
     if(upgrade.kingBed){
-      // Två separata kuddar och KING-markering gör uppgraderingen synlig i själva rummet.
       roundRect(bedX+15,bedY+8,(bedW-38)/2,20,9,"#ffffff","#aabdc6");
       roundRect(bedX+23+(bedW-38)/2,bedY+8,(bedW-38)/2,20,9,"#ffffff","#aabdc6");
       roundRect(bedX+bedW/2-25,bedY+bedH-18,50,14,5,"#e8c96a","#8d6f2e");
       ctx.fillStyle="#5d4a1d";ctx.font="900 8px Arial";ctx.textAlign="center";ctx.fillText("KING",bedX+bedW/2,bedY+bedH-8);ctx.textAlign="left";
     }
 
-    // Ett sängbord. Telefonen visas alltid på samma plats när den är installerad.
+    // Fast sängbord / telefon-slot.
     roundRect(bedX+bedW-18,bedY+24,20,30,5,woodDark,"#634632");
     ctx.fillStyle="#ffd25c";
-    ctx.beginPath();
-    ctx.arc(bedX+bedW-8,bedY+33,3,0,Math.PI*2);
-    ctx.fill();
+    ctx.beginPath();ctx.arc(bedX+bedW-8,bedY+33,3,0,Math.PI*2);ctx.fill();
     if(upgrade.phone){
       roundRect(bedX+bedW-17,bedY+18,18,12,4,"#313f55","#1d2633");
       ctx.strokeStyle="#e6edf4";ctx.lineWidth=2;ctx.beginPath();ctx.arc(bedX+bedW-8,bedY+24,5,Math.PI*.1,Math.PI*.9);ctx.stroke();
+    }else{
+      drawUpgradeGhostSlot(bedX+bedW-22,bedY+14,24,20,"☎","tel");
     }
 
-    // Sittgrupp ersätter den lilla fåtöljen med en tydlig tvåsitssoffa.
-    const chairX=x+28;
-    const chairY=y+h-104;
+    // Fasta slot-positioner för köpbara tillägg. Ger samma ordning i alla rum.
+    const sittingSlot={x:x+24,y:y+h-108,w:100,h:60};
+    const tvSlot={x:x+118,y:y+h-151,w:72,h:42};
+    const lampSlot={x:x+141,y:y+h-112,w:28,h:60};
+    const minibarSlot={x:x+188,y:y+h-103,w:42,h:58};
+    const coffeeSlot={x:x+184,y:y+h-124,w:51,h:21};
+    const safeSlot={x:x+w-72,y:y+h-101,w:43,h:39};
+
     if(upgrade.sitting){
+      const chairX=sittingSlot.x,chairY=sittingSlot.y;
       roundRect(chairX,chairY+10,94,38,11,isDirty?"#a97b69":"#5f9e91","#416f67");
       roundRect(chairX+6,chairY-2,82,22,9,isDirty?"#bb8d79":"#73b1a4","#416f67");
       ctx.fillStyle="#e8d3a6";ctx.beginPath();ctx.arc(chairX+47,chairY+54,8,0,Math.PI*2);ctx.fill();
     }else{
-      roundRect(chairX,chairY+12,52,36,10,isDirty?"#b78169":"#d79274","#905f49");
-      roundRect(chairX+4,chairY,44,20,9,isDirty?"#c89178":"#f06c62","#905f49");
-      ctx.fillStyle="#6aa75e";ctx.beginPath();ctx.arc(chairX+60,chairY+44,10,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle="#8b6a49";ctx.beginPath();ctx.arc(chairX+22,chairY+54,7,0,Math.PI*2);ctx.fill();
+      drawUpgradeGhostSlot(sittingSlot.x,sittingSlot.y,sittingSlot.w,sittingSlot.h,"🛋","sittgrupp");
     }
 
-    // Övriga uppgraderingar har fasta platser så förändringen känns fysisk i rummet.
     if(upgrade.tv){
-      roundRect(x+118,y+h-151,72,42,5,"#263744","#101923");
-      ctx.fillStyle="#7fb1c7";ctx.fillRect(x+125,y+h-144,58,28);
-      ctx.fillStyle="#263744";ctx.fillRect(x+151,y+h-109,7,10);ctx.fillRect(x+139,y+h-101,31,4);
-    }
-    if(upgrade.minibar){
-      roundRect(x+188,y+h-103,42,58,6,"#5e7180","#394751");
-      ctx.fillStyle="#a9d4dc";ctx.fillRect(x+194,y+h-96,30,19);
-      ctx.fillStyle="#dbe5e8";ctx.fillRect(x+194,y+h-71,30,18);
-      ctx.fillStyle="#2f3b43";ctx.beginPath();ctx.arc(x+218,y+h-75,2,0,Math.PI*2);ctx.fill();
-    }
-    if(upgrade.coffee){
-      roundRect(x+184,y+h-124,51,21,5,"#9c6a47","#684631");
-      ctx.fillStyle="#f6f0e8";ctx.beginPath();ctx.arc(x+198,y+h-114,6,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle="#f6f0e8";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x+205,y+h-114,4,-Math.PI/2,Math.PI/2);ctx.stroke();
-      ctx.fillStyle="#303b43";ctx.fillRect(x+216,y+h-120,11,12);
-    }
-    if(upgrade.safe){
-      roundRect(x+w-72,y+h-101,43,39,5,"#4f5c64","#2d363c");
-      ctx.fillStyle="#c7d0d4";ctx.beginPath();ctx.arc(x+w-51,y+h-82,6,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle="#2d363c";ctx.font="900 7px Arial";ctx.textAlign="center";ctx.fillText("SAFE",x+w-51,y+h-67);ctx.textAlign="left";
-    }
-    if(upgrade.lamps){
-      ctx.strokeStyle="#6f5941";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x+155,y+h-92);ctx.lineTo(x+155,y+h-53);ctx.stroke();
-      poly([[x+141,y+h-93],[x+169,y+h-93],[x+163,y+h-111],[x+147,y+h-111]],"#ffd76e","#8e7440",2);
-      ctx.fillStyle="#7b6246";ctx.fillRect(x+143,y+h-54,24,5);
+      roundRect(tvSlot.x,tvSlot.y,tvSlot.w,tvSlot.h,5,"#263744","#101923");
+      ctx.fillStyle="#7fb1c7";ctx.fillRect(tvSlot.x+7,tvSlot.y+7,58,28);
+      ctx.fillStyle="#263744";ctx.fillRect(tvSlot.x+33,tvSlot.y+42,7,10);ctx.fillRect(tvSlot.x+21,tvSlot.y+50,31,4);
+    }else{
+      drawUpgradeGhostSlot(tvSlot.x,tvSlot.y,tvSlot.w,tvSlot.h,"📺","tv");
     }
 
-    // Dörr mot korridor.
+    if(upgrade.minibar){
+      roundRect(minibarSlot.x,minibarSlot.y,minibarSlot.w,minibarSlot.h,6,"#5e7180","#394751");
+      ctx.fillStyle="#a9d4dc";ctx.fillRect(minibarSlot.x+6,minibarSlot.y+7,30,19);
+      ctx.fillStyle="#dbe5e8";ctx.fillRect(minibarSlot.x+6,minibarSlot.y+32,30,18);
+      ctx.fillStyle="#2f3b43";ctx.beginPath();ctx.arc(minibarSlot.x+30,minibarSlot.y+28,2,0,Math.PI*2);ctx.fill();
+    }else{
+      drawUpgradeGhostSlot(minibarSlot.x,minibarSlot.y,minibarSlot.w,minibarSlot.h,"🥤","minibar");
+    }
+
+    if(upgrade.coffee){
+      roundRect(coffeeSlot.x,coffeeSlot.y,coffeeSlot.w,coffeeSlot.h,5,"#9c6a47","#684631");
+      ctx.fillStyle="#f6f0e8";ctx.beginPath();ctx.arc(coffeeSlot.x+14,coffeeSlot.y+10,6,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle="#f6f0e8";ctx.lineWidth=2;ctx.beginPath();ctx.arc(coffeeSlot.x+21,coffeeSlot.y+10,4,-Math.PI/2,Math.PI/2);ctx.stroke();
+      ctx.fillStyle="#303b43";ctx.fillRect(coffeeSlot.x+32,coffeeSlot.y+4,11,12);
+    }else{
+      drawUpgradeGhostSlot(coffeeSlot.x,coffeeSlot.y,coffeeSlot.w,coffeeSlot.h,"☕","kaffe");
+    }
+
+    if(upgrade.safe){
+      roundRect(safeSlot.x,safeSlot.y,safeSlot.w,safeSlot.h,5,"#4f5c64","#2d363c");
+      ctx.fillStyle="#c7d0d4";ctx.beginPath();ctx.arc(safeSlot.x+21,safeSlot.y+19,6,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#2d363c";ctx.font="900 7px Arial";ctx.textAlign="center";ctx.fillText("SAFE",safeSlot.x+21,safeSlot.y+34);ctx.textAlign="left";
+    }else{
+      drawUpgradeGhostSlot(safeSlot.x,safeSlot.y,safeSlot.w,safeSlot.h,"🔒","safe");
+    }
+
+    if(upgrade.lamps){
+      ctx.strokeStyle="#6f5941";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(lampSlot.x+14,lampSlot.y+20);ctx.lineTo(lampSlot.x+14,lampSlot.y+59);ctx.stroke();
+      poly([[lampSlot.x,lampSlot.y+19],[lampSlot.x+28,lampSlot.y+19],[lampSlot.x+22,lampSlot.y+1],[lampSlot.x+6,lampSlot.y+1]],"#ffd76e","#8e7440",2);
+      ctx.fillStyle="#7b6246";ctx.fillRect(lampSlot.x+2,lampSlot.y+58,24,5);
+    }else{
+      drawUpgradeGhostSlot(lampSlot.x,lampSlot.y,lampSlot.w,lampSlot.h,"💡","lampa");
+    }
+
     if(doorSide==="right"){
       drawDoor(x+w-14,y+h/2-35,28,70,"RUM "+num,"vertical",true);
     }else if(doorSide==="left"){
@@ -3014,7 +3408,6 @@
       drawDoor(x+w/2-32,y+h-14,64,28,"RUM "+num);
     }
 
-    // Diskret knackzon framför dörren: ligger nu tydligt närmare respektive dörr så två rum inte delar samma zon.
     const doorMarker=roomDoorMarkerForId(Number(num));
     if(doorMarker){
       ctx.save();
@@ -3035,7 +3428,6 @@
       ctx.restore();
     }
 
-    // Titelrad med tydligt rumsnummer.
     ctx.fillStyle="#26334c";
     ctx.font="900 15px Arial";
     ctx.fillText(`RUM ${num} · ${isDirty?"BEHÖVER STÄDAS":"GÄSTRUM"}`,x+14,y+h-36);
@@ -3045,7 +3437,6 @@
     const upgradeIcons=Object.entries(ROOM_UPGRADE_CATALOG).filter(([key])=>upgrade[key]).map(([key,item])=>item.icon).slice(0,6).join(" ");
     if(upgradeIcons){ctx.font="14px Arial";ctx.fillText(upgradeIcons,x+14,y+h-58);}
 
-    // Dörrskylt visas även direkt på rumskartan.
     const sign=String(roomState?.doorSign||"none").toUpperCase();
     if(sign==="DND"||sign==="PMUR"){
       const signX=doorSide==="left"?x+12:doorSide==="right"?x+w-54:x+w/2-22;
@@ -3055,7 +3446,6 @@
       ctx.font="900 10px Arial";ctx.textAlign="center";ctx.fillText(sign,signX+22,signY+14);ctx.textAlign="left";
     }
 
-    // Under ett aktivt HSK-moment visas tre faktiska skräp som Omar måste plocka.
     drawHskRoomTrash(Number(num));
 
     if(isDirty){
@@ -3086,6 +3476,93 @@
     ctx.textAlign="center";
     ctx.fillText(title,x+w/2,y+h-13);
     ctx.textAlign="left";
+  }
+
+  function drawOutdoorLeisureArea(){
+    ensureHotelDevelopmentState();
+    const f=state.hotelDevelopment.facilities||{};
+    const x=-520,y=1120,w=560,h=760;
+
+    // Grön utezon med gångar och avgränsning mot hotellet.
+    roundRect(x,y,w,h,24,"#bcd8ac","#7ea06e");
+    roundRect(x+18,y+18,w-36,h-36,22,"#d7ebca","#98b788");
+    ctx.fillStyle="#6d9b63";
+    ctx.font="1000 20px Arial";ctx.textAlign="center";
+    ctx.fillText("POOL & UTESERVERING",x+w/2,y+34);
+    ctx.textAlign="left";
+
+    // Gångstråk som leder mot restaurangen.
+    roundRect(x+w-92,y+58,58,h-118,16,"#e7d7be","#b89d77");
+    ctx.fillStyle="rgba(255,255,255,.25)";
+    ctx.fillRect(x+w-76,y+78,24,h-158);
+
+    // Pooldelen överst.
+    roundRect(x+28,y+58,w-146,320,18,"#e8f4f8","#8fb7c6");
+    ctx.fillStyle="#44606d";ctx.font="900 12px Arial";ctx.fillText("POOLZON",x+44,y+80);
+    if(f.pool){
+      roundRect(x+48,y+96,w-186,196,22,"#70c7ea","#3b86a6");
+      ctx.fillStyle="rgba(255,255,255,.34)";
+      ctx.fillRect(x+72,y+118,w-234,10);
+      ctx.fillRect(x+86,y+142,w-262,6);
+      drawShadow(x+(w-146)/2,y+304,120,12,.1);
+      // stege
+      ctx.strokeStyle="#dadfe2";ctx.lineWidth=5;
+      ctx.beginPath();ctx.moveTo(x+w-152,y+156);ctx.lineTo(x+w-152,y+222);ctx.moveTo(x+w-132,y+156);ctx.lineTo(x+w-132,y+222);ctx.moveTo(x+w-156,y+170);ctx.lineTo(x+w-128,y+170);ctx.moveTo(x+w-156,y+202);ctx.lineTo(x+w-128,y+202);ctx.stroke();
+      // solstolar
+      roundRect(x+68,y+304,52,18,6,"#f2ddb2","#ab8c58");
+      roundRect(x+134,y+304,52,18,6,"#f2ddb2","#ab8c58");
+      roundRect(x+200,y+304,52,18,6,"#f2ddb2","#ab8c58");
+    }else{
+      drawFacilityGhostSlot(x+48,y+96,w-186,196,"🏊","pool","utomhuspool");
+    }
+
+    // Poolbar till höger om poolen.
+    roundRect(x+w-108,y+58,64,320,16,"#f1e2c9","#b79767");
+    ctx.fillStyle="#6d5638";ctx.font="900 11px Arial";ctx.textAlign="center";ctx.fillText("POOLBAR",x+w-76,y+80);ctx.textAlign="left";
+    if(f.poolbar){
+      roundRect(x+w-100,y+104,48,92,10,"#c99862","#895d3f");
+      ctx.fillStyle="#80553a";ctx.fillRect(x+w-94,y+122,36,8);
+      ctx.font="18px Arial";ctx.textAlign="center";ctx.fillText("🍹",x+w-76,y+154);ctx.fillText("🍸",x+w-76,y+180);ctx.textAlign="left";
+      roundRect(x+w-98,y+222,44,18,6,"#6f8fb2","#4a627b");
+      roundRect(x+w-98,y+254,44,18,6,"#6f8fb2","#4a627b");
+    }else{
+      drawFacilityGhostSlot(x+w-100,y+104,48,168,"🍹","poolbar","kräver pool + bar");
+    }
+
+    // Uteservering / café nederst. Egen investering, separat från lunchserveringen.
+    const terraceBuilt=Boolean(f.terrace);
+    roundRect(x+28,y+410,w-56,314,18,terraceBuilt?"#f3ead7":"#dfe4e7",terraceBuilt?"#c6ae87":"#98a4ac");
+    ctx.fillStyle=terraceBuilt?"#5b4e40":"#56626b";ctx.font="900 12px Arial";ctx.fillText("UTESERVERING / CAFÉ",x+44,y+432);
+    if(terraceBuilt){
+      // Disk/caféstation
+      roundRect(x+48,y+454,118,58,12,"#a56f4c","#714b35");
+      ctx.fillStyle="#e0be86";ctx.fillRect(x+60,y+468,94,10);
+      ctx.font="16px Arial";ctx.textAlign="center";ctx.fillText("☕ 🥪 🧁",x+107,y+500);ctx.textAlign="left";
+      // fyra utebord
+      const cafeTables=[[230,488],[360,488],[230,612],[360,612]];
+      cafeTables.forEach(([tx,ty])=>{
+        ctx.fillStyle="#b77d4b";ctx.beginPath();ctx.ellipse(x+tx,y+ty,34,22,0,0,Math.PI*2);ctx.fill();
+        [[0,-34],[0,34],[-44,0],[44,0]].forEach(([dx,dy])=>roundRect(x+tx+dx-11,y+ty+dy-9,22,18,5,"#e27165","#af564f"));
+        drawShadow(x+tx,y+ty+32,45,8,.08);
+      });
+      // parasoller
+      [x+230,x+360].forEach(px=>{ctx.fillStyle="#7bb6a7";ctx.beginPath();ctx.arc(px,y+560,32,Math.PI,Math.PI*2);ctx.fill();ctx.fillStyle="#6a5544";ctx.fillRect(px-3,y+560,6,54);});
+      // Växter blir färgade först när uteserveringen är byggd.
+      drawPlant(x+44,y+716); drawPlant(x+w-126,y+724); drawPlant(x+188,y+726); drawPlant(x+326,y+726);
+    }else{
+      ctx.fillStyle="#65717a";ctx.font="800 9px Arial";
+      ctx.fillText(f.lunch?"Köp Uteservering / café i Hotellutveckling.":"Kräver först Lunchservering.",x+44,y+446);
+      drawFacilityGhostSlot(x+48,y+454,118,58,"☕","café",f.lunch?"ej köpt":"kräver lunchservering");
+      [[230,488],[360,488],[230,612],[360,612]].forEach(([tx,ty],idx)=>drawFacilityGhostSlot(x+tx-44,y+ty-36,88,72,"🪑",`bord ${idx+1}`,"ej köpt"));
+      // Ghost-parasoller och växtplatser – inget i full färg före köp.
+      [x+230,x+360].forEach(px=>drawFacilityGhostSlot(px-34,y+526,68,88,"⛱","parasoll","ej köpt"));
+      [x+44,x+188,x+326,x+w-126].forEach(px=>{
+        ctx.save();ctx.fillStyle="rgba(115,126,134,.14)";ctx.strokeStyle="rgba(105,116,124,.55)";ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();ctx.arc(px,y+716,22,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.setLineDash([]);ctx.fillStyle="rgba(81,91,99,.65)";ctx.font="13px Arial";ctx.textAlign="center";ctx.fillText("🌿",px,y+721);ctx.textAlign="left";ctx.restore();
+      });
+    }
+
+    // Övre gröna växter hör till poolområdet, inte till caféköpet.
+    drawPlant(x+46,y+384); drawPlant(x+w-138,y+392);
   }
 
   function drawBreakfastRestaurant(){
@@ -3131,12 +3608,13 @@
     let breakfastTableIndex=0;
     tableYs.forEach(ty=>tableXs.forEach(tx=>{
       breakfastTableIndex++;
-      if(breakfastTableIndex>restaurantTableCapacity())return;
+      if(breakfastTableIndex>restaurantTableCapacity()){
+        drawFacilityGhostSlot(tx-54,ty-48,108,94,"🪑","extra bord",`bord ${breakfastTableIndex} / 9`);
+        return;
+      }
       drawDiningTable(tx,ty);
       const table=breakfastTableById(breakfastTableIndex);
       if(table?.status==="dirty"&&table.dirtyAfterGuest===true){
-        // Disk och skräp visas ENDAST efter att gästen har ätit och lämnat bordet.
-        // Tydlig disk och skräp som ligger kvar tills personalen dukar av.
         ctx.fillStyle="#fff";ctx.strokeStyle="#697b86";ctx.lineWidth=2;
         ctx.beginPath();ctx.arc(tx-10,ty-2,12,0,Math.PI*2);ctx.fill();ctx.stroke();
         ctx.beginPath();ctx.arc(tx+9,ty+4,9,0,Math.PI*2);ctx.fill();ctx.stroke();
@@ -3297,29 +3775,158 @@
     ctx.textAlign="left";
   }
 
-  function drawReception(){
-    drawShadow(885,1485,185,26,.2);
-    roundRect(715,1380,340,88,9,"#8d593f","#553627");
-    ctx.fillStyle="#a86b48";
-    ctx.fillRect(728,1364,314,28);
+  function drawLobbyBar(){
+    ensureHotelDevelopmentState();
+    const built=Boolean(state.hotelDevelopment.facilities?.bar);
+    // Flyttad mot kanten vid restaurangen enligt senaste skissen.
+    const x=700,y=1590,w=145,h=195;
+    if(!built){
+      drawFacilityGhostSlot(x,y,w,h,"🍸","lobbybar","flyttad nedanför reception");
+      return;
+    }
+    roundRect(x,y,w,h,16,"#ead7bd","#a88558");
+    roundRect(x+18,y+20,w-36,30,10,"#8b5b3f","#5f3c2a");
+    ctx.fillStyle="#71482f";
+    ctx.fillRect(x+28,y+14,14,8);ctx.fillRect(x+54,y+14,14,8);ctx.fillRect(x+80,y+14,14,8);ctx.fillRect(x+106,y+14,14,8);
+    roundRect(x+24,y+58,w-48,24,6,"#f7efe3","#b59a79");
+    ctx.font="14px Arial";ctx.textAlign="center";
+    ctx.fillText("🍾 🍷 🍹",x+w/2,y+75);
+    ctx.textAlign="left";
+    roundRect(x+14,y+96,w-28,42,10,"#9c6a47","#684631");
+    ctx.fillStyle="#d7b07c";ctx.fillRect(x+22,y+108,w-44,8);
+    [[x+30,y+147],[x+64,y+147],[x+98,y+147]].forEach(([sx,sy])=>{roundRect(sx,sy,18,18,5,"#6e8eb3","#49627b");ctx.fillStyle="#70543f";ctx.fillRect(sx+7,sy+18,4,16);});
+    roundRect(x+26,y+168,w-52,16,6,"#fff8ea","#9a835f");
+    ctx.fillStyle="#405160";ctx.font="900 9px Arial";ctx.textAlign="center";ctx.fillText("LOBBYBAR · KVÄLLSSERVICE",x+w/2,y+180);ctx.textAlign="left";
+  }
 
-    roundRect(790,1312,56,44,6,"#304a5b","#243743");
-    roundRect(925,1312,56,44,6,"#304a5b","#243743");
+  function drawLaundryArea(){
+    ensureHotelDevelopmentState();
+    const built=Boolean(state.hotelDevelopment.facilities?.laundry);
+    // Flyttad till golvytan mellan bagagerum och hotellutveckling.
+    const x=1305,y=1860,w=250,h=165;
+    if(!built){
+      drawFacilityGhostSlot(x,y,w,h,"🧺","tvätt","kant i kant med HSK office");
+      return;
+    }
+    roundRect(x,y,w,h,16,"#e8f0f3","#8aa0aa");
+    ctx.fillStyle="#415868";ctx.font="1000 13px Arial";ctx.textAlign="center";ctx.fillText("TVÄTT / LINNE",x+w/2,y+22);ctx.textAlign="left";
+    // Tvättmaskiner
+    [[x+22,y+38],[x+88,y+38],[x+154,y+38]].forEach(([mx,my])=>{roundRect(mx,my,48,56,8,"#dce5ea","#788994");ctx.fillStyle="#8cc0d7";ctx.beginPath();ctx.arc(mx+24,my+28,14,0,Math.PI*2);ctx.fill();ctx.fillStyle="#5e717d";ctx.fillRect(mx+10,my+8,28,8);});
+    // Arbetsbänk och linneskåp
+    roundRect(x+18,y+112,120,30,8,"#cda67f","#8d6c4b");
+    roundRect(x+154,y+102,76,40,8,"#93b7a8","#5f8376");
+    ctx.fillStyle="#f6f1e8";ctx.fillRect(x+168,y+110,18,18);ctx.fillRect(x+198,y+110,18,18);
+    ctx.fillStyle="#516572";ctx.font="900 9px Arial";ctx.textAlign="center";ctx.fillText("TVÄTTAR & VIKER",x+78,y+131);ctx.fillText("REN TVÄTT",x+192,y+131);ctx.textAlign="left";
+  }
+
+  function drawConferenceArea(){
+    ensureHotelDevelopmentState();
+    const built=Boolean(state.hotelDevelopment.facilities?.conference);
+    // Ny placering: i zonen till höger om bagagerummet.
+    const x=1275,y=2055,w=335,h=250;
+    if(!built){
+      drawFacilityGhostSlot(x,y,w,h,"🧑‍💼","konferens","flyttad under tvättzonen");
+      return;
+    }
+    drawRoomShell(x,y,w,h,"KONFERENSRUM","#ddd8cc");
+
+    // Konferensbord
+    roundRect(x+72,y+74,196,50,14,"#9d6d4c","#6a4833");
+    // stolar
+    [[x+90,y+56],[x+146,y+56],[x+202,y+56],[x+258,y+56],[x+90,y+130],[x+146,y+130],[x+202,y+130],[x+258,y+130]].forEach(([sx,sy])=>{
+      roundRect(sx,sy,26,18,5,"#6d8eb1","#4a627b");
+    });
+
+    // Projektorduk / skärm
+    roundRect(x+104,y+18,128,38,8,"#fbfaf5","#9ea7ad");
+    ctx.fillStyle="#556270";ctx.fillRect(x+152,y+56,32,8);
+
+    // Kaffestation / service
+    roundRect(x+26,y+166,92,46,8,"#d1ae84","#89684a");
+    ctx.fillStyle="#704c34";ctx.fillRect(x+36,y+176,72,8);
+    ctx.font="16px Arial";ctx.textAlign="center";ctx.fillText("☕ 🧁 💧",x+72,y+197);ctx.textAlign="left";
+
+    // Whiteboard / agenda
+    roundRect(x+222,y+158,84,54,8,"#f8fbfd","#9dadb6");
+    ctx.fillStyle="#495e72";ctx.font="900 10px Arial";ctx.textAlign="center";ctx.fillText("AGENDA",x+264,y+176);
+    ctx.font="800 8px Arial";
+    ctx.fillText("• Incheckning",x+264,y+191);
+    ctx.fillText("• Möte",x+264,y+201);
+    ctx.fillText("• Fika",x+264,y+211);
+    ctx.textAlign="left";
+
+    // Serviceyta framtill
+    roundRect(x+34,y+220,w-68,18,8,"#f0e7d8","#b39e86");
+    ctx.fillStyle="#4c6072";ctx.font="900 10px Arial";ctx.textAlign="center";ctx.fillText("KONFERENSSERVICE / MOTTAGNING",x+w/2,y+233);ctx.textAlign="left";
+
+    drawDoor(x-13,y+94,28,84,"KONF","vertical",true);
+  }
+
+  function drawReception(){
+    // Flyttad uppåt och lite åt höger enligt senaste skissen.
+    const x=760,y=1210,w=360,h=88;
+    const centerX=x+w/2;
+    drawShadow(centerX,y+105,195,26,.2);
+    roundRect(x,y,w,88,9,"#8d593f","#553627");
+    ctx.fillStyle="#a86b48";
+    ctx.fillRect(x+13,y-16,w-26,28);
+
+    roundRect(x+78,y-68,56,44,6,"#304a5b","#243743");
+    roundRect(x+212,y-68,56,44,6,"#304a5b","#243743");
     ctx.fillStyle="#fff";
-    ctx.fillRect(800,1321,36,23);
-    ctx.fillRect(935,1321,36,23);
+    ctx.fillRect(x+88,y-59,36,23);
+    ctx.fillRect(x+222,y-59,36,23);
 
     ctx.fillStyle="#ffd34d";
     ctx.beginPath();
-    ctx.arc(1000,1356,9,0,Math.PI*2);
+    ctx.arc(x+182,y+44,9,0,Math.PI*2);
     ctx.fill();
-    roundRect(745,1330,30,20,4,"#e77a55","#9e4d36");
+    roundRect(x+28,y-50,30,20,4,"#e77a55","#9e4d36");
 
     ctx.fillStyle="#242d49";
     ctx.font="1000 20px Arial";
     ctx.textAlign="center";
-    ctx.fillText("RECEPTION",885,1488);
+    ctx.fillText("RECEPTION",centerX,y+124);
     ctx.textAlign="left";
+  }
+
+  function drawConciergeArea(){
+    ensureHotelDevelopmentState();
+    const built=Boolean(state.hotelDevelopment.facilities?.concierge);
+    // Flyttad ned mellan vägen och receptionen så den inte överlappar byggrutorna ovanför.
+    const x=1345,y=1090,w=265,h=128;
+    if(!built){
+      drawFacilityGhostSlot(x,y,w,h,"🛎️","concierge","premiumservice nära receptionen");
+      return;
+    }
+    roundRect(x,y,w,h,16,"#e7dcc8","#b79c75");
+    ctx.fillStyle="#44576a";
+    ctx.font="1000 15px Arial";
+    ctx.textAlign="center";
+    ctx.fillText("CONCIERGE",x+w/2,y+20);
+    ctx.textAlign="left";
+
+    // bakre servicevägg
+    roundRect(x+16,y+28,w-32,24,8,"#f5efe4","#baa486");
+    roundRect(x+28,y+34,30,10,3,"#d57a53","#9d5438");
+    roundRect(x+74,y+32,42,14,4,"#4d6e87","#32495a");
+    ctx.fillStyle="#e9f0f4";ctx.fillRect(x+82,y+36,24,7);
+    ctx.font="12px Arial";ctx.fillText("🗝️",x+138,y+44);ctx.fillText("🗺️",x+162,y+44);ctx.fillText("🎟️",x+186,y+44);
+
+    // concierge-disk
+    roundRect(x+28,y+62,132,40,10,"#9a6548","#674331");
+    ctx.fillStyle="#d5b07a";ctx.fillRect(x+40,y+74,108,8);
+    ctx.font="16px Arial";ctx.textAlign="center";ctx.fillText("🛎️",x+94,y+92);ctx.textAlign="left";
+
+    // gästyta / premiumtjänster
+    roundRect(x+182,y+58,76,26,8,"#fff9ee","#a58f72");
+    ctx.fillStyle="#53697d";ctx.font="900 8px Arial";ctx.textAlign="center";ctx.fillText("VIP / TIPS",x+220,y+69);ctx.font="800 7px Arial";ctx.fillText("taxi · utflykt",x+220,y+79);ctx.textAlign="left";
+    roundRect(x+182,y+90,80,18,7,"#7bbaaa","#4f8375");
+    ctx.fillStyle="#f7fffc";ctx.font="900 8px Arial";ctx.textAlign="center";ctx.fillText("MERFÖRSÄLJNING",x+222,y+102);ctx.textAlign="left";
+
+    // växter
+    drawPlant(x+16,y+112);
+    drawPlant(x+w-34,y+112);
   }
 
   function drawManagerOffice(){
@@ -3388,23 +3995,20 @@
   }
 
   function drawLuggageRoom(){
-    // Flyttat bagagerummet upp i den markerade rutan inne i hotellet nere till höger.
-    const x=1280,y=1885,w=315,h=405;
+    // Flyttat bagagerummet till den nya positionen närmare lobbyn enligt kartjusteringen.
+    const x=955,y=1885,w=315,h=405;
     drawRoomShell(x,y,w,h,"BAGAGERUM","#ddd2c3");
 
-    // Fyra stora bagagehyllor längs väggarna.
     const shelfY=[55,132,209,286];
     shelfY.forEach((offset,row)=>{
       ctx.fillStyle="#80634e";
       ctx.fillRect(x+22,y+offset+34,w-44,8);
-
       const suitcaseColors=[
         ["#d45d55","#d6a34d","#4d83b4"],
         ["#5b9b75","#7c5ba8","#bd6f4e"],
         ["#4d83b4","#d6a34d","#d45d55"],
         ["#7c5ba8","#5b9b75","#bd6f4e"]
       ][row];
-
       suitcaseColors.forEach((color,col)=>{
         const sx=x+34+col*82;
         roundRect(sx,y+offset,58,42,6,color,"#55483f");
@@ -3419,9 +4023,11 @@
       });
     });
 
-    // Markerad bagagevagn och arbetsbänk borttagna.
+    // Tydlig serviceyta framför bagagehyllorna.
+    roundRect(x+24,y+338,w-48,44,8,"#f0e6d8","#b29c87");
+    ctx.fillStyle="#4b5f71";ctx.font="900 10px Arial";ctx.textAlign="center";ctx.fillText("BAGAGEINLÄMNING / UTLÄMNING",x+w/2,y+365);ctx.textAlign="left";
 
-    // Dörr mot hotellets inre gång.
+    // Dörr mot hotellets inre gång på vänstra sidan.
     drawDoor(x-13,y+152,28,88,"BAGAGE","vertical",true);
   }
 
@@ -3488,15 +4094,6 @@
     ctx.fill();
   }
 
-  function drawExpansion(){
-    ensureHotelDevelopmentState();
-    const x=1735,y=1720,w=230,h=570;roundRect(x,y,w,h,18,"#d9e0d5","#829184");
-    ctx.fillStyle="#2d4250";ctx.font="1000 15px Arial";ctx.textAlign="center";ctx.fillText("HOTELLUTVECKLING",x+w/2,y+28);ctx.font="800 10px Arial";ctx.fillText("Byggs via Alex chefspanel",x+w/2,y+44);ctx.textAlign="left";
-    const rows=[
-      ["laundry","🧺 TVÄTT"],["bar","🍸 BAR"],["pool","🏊 POOL"],["poolbar","🍹 POOLBAR"],["conference","🧑‍💼 KONFERENS"]
-    ];
-    rows.forEach(([key,label],i)=>{const built=Boolean(state.hotelDevelopment.facilities[key]);roundRect(x+18,y+62+i*91,w-36,72,12,built?"#dff4e7":"#eceff0",built?"#5aa67b":"#9ca7ac");ctx.fillStyle=built?"#285b43":"#68747a";ctx.font="1000 13px Arial";ctx.fillText(built?`${label} · KLAR`:`${label} · EJ BYGGD`,x+32,y+90+i*91);ctx.font="800 10px Arial";ctx.fillText(built?`+${Number(FACILITY_CATALOG[key]?.revenue||0)} kr/dag`:"Öppna chefens panel",x+32,y+110+i*91);});
-  }
 
   function drawMainEntrance(){
     roundRect(810,2310,140,54,10,"rgba(200,235,248,.86)","#557c8c");
@@ -3617,8 +4214,68 @@
     return guest;
   }
 
+  function walkInGuestProfileForRoom(roomId,todayIndex){
+    const firstNames=["Adam","Ella","Leo","Maja","Noah","Saga","Hugo","Alma","Axel","Wilma","Nils","Julia"];
+    const lastNames=["Nilsson","Svensson","Berg","Holm","Lind","Ek","Dahl","Sjöberg","Wallin","Blom"];
+    const seed=Number(todayIndex||0)*37+Number(roomId||0)*11;
+    const first=firstNames[seed%firstNames.length];
+    const last=lastNames[(seed*3)%lastNames.length];
+    const phone=`070-${String(100+((seed*7)%900)).padStart(3,'0')} ${String(10+((seed*5)%90)).padStart(2,'0')} ${String(10+((seed*9)%90)).padStart(2,'0')}`;
+    const cities=["Malmö","Lund","Helsingborg","Eslöv","Ystad","Kristianstad"];
+    return {guest:`${first} ${last}`,phone,city:cities[seed%cities.length],address:`Hotellgatan ${1+(seed%24)}`};
+  }
+
+  function bookingCoversToday(booking,todayIndex){
+    if(!booking || ["departed","no_show"].includes(booking.status))return false;
+    const roomId=Number(booking.roomId||booking.preferredRoomId||0);
+    if(!roomId)return false;
+    const start=Number(booking.start||0),end=bookingEndIndex(booking);
+    return start<=todayIndex && end>=todayIndex;
+  }
+
+  function ensureWalkInOccupancyForToday(){
+    const todayIndex=getTodayIndex();
+    const colors=["#f7c873","#7bc0e6","#8fd39d","#f59e8b","#b799f2"];
+    let created=0;
+    builtRoomIds().forEach(roomId=>{
+      const alreadyCovered=state.bookings.some(booking=>Number(booking.roomId||booking.preferredRoomId||0)===Number(roomId)&&bookingCoversToday(booking,todayIndex));
+      if(alreadyCovered)return;
+      const profile=walkInGuestProfileForRoom(roomId,todayIndex);
+      const id=Math.max(26000,...state.bookings.map(b=>Number(b.id)||0))+1+created;
+      const nights=1;
+      const booking={
+        id,
+        guest:profile.guest,
+        phone:profile.phone,
+        city:profile.city,
+        address:profile.address,
+        roomId:Number(roomId),
+        preferredRoomId:Number(roomId),
+        roomType:roomTypeForId(roomId),
+        start:todayIndex,
+        nights,
+        status:"inhouse",
+        source:"Walk-in",
+        rate:roomNightlyRate(roomId),
+        total:calculateReservationTotalForRoom(roomId,todayIndex,nights),
+        paid:false,
+        checkedInCompleted:true,
+        color:colors[(roomId+todayIndex)%colors.length]
+      };
+      state.bookings.push(booking);
+      const room=state.rooms.find(item=>Number(item.id)===Number(roomId));
+      if(room){
+        room.status=room.status==="dirty"?"occupied_dirty":"occupied_clean";
+        room.doorSign="none";
+      }
+      created++;
+    });
+    if(created>0)recordAssessment("walk_in_rooms_filled",{day:todayIndex,createdRooms:created,builtRooms:builtRoomIds().length});
+  }
+
   function syncGuestsAndBookingsForDay({advance=false}={}){
     const todayIndex=getTodayIndex();
+    ensureWalkInOccupancyForToday();
     // Gäster utan en aktiv bokning för dagens ankomst ska inte stå i kön.
     guestAgents.forEach(guest=>{
       const booking=state.bookings.find(item=>Number(item.id)===Number(guest.bookingId)) || state.bookings.find(item=>String(item.guest||"").trim().toLowerCase()===String(guest.name||"").trim().toLowerCase());
@@ -3665,6 +4322,8 @@
     if(autoDayAdvanceTimer){clearTimeout(autoDayAdvanceTimer);autoDayAdvanceTimer=null;}
     const roomIncome=occupiedRoomDailyRevenue(),facilityIncome=facilityDailyRevenue(),managementIncome=roomIncome+facilityIncome;
     if(managementIncome>0){state.money+=managementIncome;recordAssessment("hotel_daily_income",{roomIncome,facilityIncome,total:managementIncome,builtRooms:builtRoomIds().length});}
+    const facilitySatisfaction=facilityDailySatisfactionBonus();
+    if(facilitySatisfaction>0)applyGuestSatisfactionLift(Math.max(1,Math.round(facilitySatisfaction/2)),"facility_daily_guest_satisfaction");
     state.day=Number(state.day||1)+1;
     state.phoneTaskDay=Number(state.day||1);
     resetDailyTasksForNewDay();
@@ -3684,6 +4343,9 @@
     guestFlowStarted=true;
     syncGuestsAndBookingsForDay({advance:false});
     nextGuestReleaseAt=performance.now()+1000;
+    ensureAmbientActivityState();
+    nextAmbientGuestAt=performance.now()+6000;
+    nextAmbientPhoneAt=performance.now()+8500;
 
     const resident=guestAgents.find(guest=>guest.id==="resident101");
     if(resident){resident.nextActionAt=performance.now()+6000;}
@@ -3814,6 +4476,7 @@
     if(!guestFlowStarted) return;
 
     const now=performance.now();
+    updateAmbientHotelLife(now);
 
     if(now>=nextGuestReleaseAt){
       releaseNextGuest();
@@ -3835,12 +4498,12 @@
           if(guest.state==="inRoom"){
             guest.nextActionAt=now+7000+index*900;
           }else if(guest.state==="inLobby"){
-            guest.nextActionAt=now+7000+index*700;
+            guest.nextActionAt=now+(guest.ambient?9000:7000)+index*700;
           }else if(guest.state==="inRestaurant"){
             const table=breakfastTableById(guest.breakfastTableId);
             if(table){table.status="occupied";table.guestId=guest.id;table.dirtyAfterGuest=false;}
             // Gästen sitter och äter. Bordet ser fortfarande rent ut; synlig disk skapas först när gästen lämnar.
-            guest.nextActionAt=now+12000+index*700;
+            guest.nextActionAt=now+(guest.ambient?10000:12000)+index*700;
             saveState();
           }else if(guest.state==="waitingBreakfastBuffet"){
             if(state.breakfastReady){
@@ -3911,8 +4574,14 @@
         }
       }
       if(guest.state==="inLobby" && now>=guest.nextActionAt){
-        guest.dailyPhase="sleeping";
-        queueGuestPath(guest,roomPath(guest.roomId),"inRoom");
+        // Gäster som sitter i lobbyn kan lämna muggar, papper eller annat småskräp efter sig.
+        maybeDropAmbientLitter(guest);
+        if(guest.ambient){
+          queueGuestPath(guest,ambientExitPathFromLobby(),"departed");
+        }else{
+          guest.dailyPhase="sleeping";
+          queueGuestPath(guest,roomPath(guest.roomId),"inRoom");
+        }
       }
       if(guest.state==="waitingBreakfastBuffet"){
         if(state.breakfastReady){
@@ -3950,9 +4619,14 @@
           }
         }
       }
-      if(guest.state==="inRestaurant" && now>=guest.nextActionAt && guest.departureDue){
+      if(guest.state==="inRestaurant" && now>=guest.nextActionAt && (guest.departureDue||guest.ambient)){
         leaveBreakfastTableDirty(guest);
-        queueGuestPath(guest,restaurantToReceptionPath(),"waitingCheckout");
+        if(guest.ambient){
+          if(Math.random()<.35)maybeDropAmbientLitter(guest);
+          queueGuestPath(guest,ambientExitPathFromRestaurant(),"departed");
+        }else{
+          queueGuestPath(guest,restaurantToReceptionPath(),"waitingCheckout");
+        }
         updateMission();
       }
     });
@@ -3984,11 +4658,12 @@
       }else if(guest.state==="waitingBreakfastTable"){
         speech(guest.x,guest.y-62,"Finns det inget rent bord?");
       }else if(guest.state==="inRestaurant"){
-        speech(guest.x,guest.y-62,"Frukosten är fin!");
+        if(!guest.ambient||Math.sin(performance.now()/1900+index)>0.65)speech(guest.x,guest.y-62,guest.ambient?"Vi tar en fika här.":"Frukosten är fin!");
       }else if(guest.state==="inLobby"){
-        speech(guest.x,guest.y-62,"Jag kopplar av en stund.");
+        if(!guest.ambient||Math.sin(performance.now()/2100+index)>0.7)speech(guest.x,guest.y-62,guest.ambient?"Vi sitter här en stund.":"Jag kopplar av en stund.");
       }
     });
+    drawAmbientLitter();
   }
 
   function speech(x,y,text){
@@ -4987,7 +5662,7 @@
   function facilityRequirementsText(key){const item=FACILITY_CATALOG[key],parts=[];item.requires.forEach(req=>{if(!state.hotelDevelopment.facilities[req])parts.push(FACILITY_CATALOG[req]?.label||req);});if(item.minTables&&restaurantTableCapacity()<item.minTables)parts.push(`minst ${item.minTables} restaurangbord`);return parts.join(" + ");}
   function renderDevelopmentFacilities(){
     const f=state.hotelDevelopment.facilities;let html=`<div class="dev-grid"><div class="dev-card facility-card"><span class="facility-status ${restaurantTableCapacity()>=9?"built":""}">${restaurantTableCapacity()}/9</span><h3>🪑 Restaurangbord</h3><p>Hotellet börjar med fyra bord. Fler bord ger större frukostkapacitet och krävs för lunch.</p><span class="dev-price">250 kr per bord</span><div class="dev-actions"><button class="dev-buy" data-add-table ${restaurantTableCapacity()>=9||Number(state.money)<250?"disabled":""}>+ Bygg ett bord</button></div></div>`;
-    Object.entries(FACILITY_CATALOG).forEach(([key,item])=>{const built=Boolean(f[key]),req=facilityRequirementsText(key),can=facilityRequirementsMet(key)&&Number(state.money)>=Number(item.cost);html+=`<div class="dev-card facility-card"><span class="facility-status ${built?"built":""}">${built?"BYGGD":"EJ BYGGD"}</span><h3>${item.icon} ${escapeHtml(item.label)}</h3><p>${escapeHtml(item.description)}</p><div class="facility-effect">${item.revenue?`Effekt: +${item.revenue} kr per hotell-dag`:"Effekt: låser upp nästa utvecklingssteg"}</div>${!built&&req?`<div class="dev-requirements">Kräver: ${escapeHtml(req)}</div>`:""}<div class="dev-actions"><button class="dev-buy" data-buy-facility="${key}" ${built||!can?"disabled":""}>${built?"Redan byggd":`Bygg · ${item.cost} kr`}</button></div></div>`;});return html+`</div>`;
+    Object.entries(FACILITY_CATALOG).forEach(([key,item])=>{const built=Boolean(f[key]),req=facilityRequirementsText(key),can=facilityRequirementsMet(key)&&Number(state.money)>=Number(item.cost);html+=`<div class="dev-card facility-card"><span class="facility-status ${built?"built":""}">${built?"BYGGD":"EJ BYGGD"}</span><h3>${item.icon} ${escapeHtml(item.label)}</h3><p>${escapeHtml(item.description)}</p><div class="facility-effect">${item.revenue||item.satisfactionBonus?`Effekt: ${item.revenue?`+${item.revenue} kr per hotell-dag`:""}${item.revenue&&item.satisfactionBonus?" · ":""}${item.satisfactionBonus?`+${item.satisfactionBonus} gästnöjdhet`:""}`:"Effekt: låser upp nästa utvecklingssteg"}</div>${!built&&req?`<div class="dev-requirements">Kräver: ${escapeHtml(req)}</div>`:""}<div class="dev-actions"><button class="dev-buy" data-buy-facility="${key}" ${built||!can?"disabled":""}>${built?"Redan byggd":`Bygg · ${item.cost} kr`}</button></div></div>`;});return html+`</div>`;
   }
   function renderDevelopmentEconomy(){return `<div class="dev-grid"><div class="dev-card"><h3>🏨 Rumsintäkt</h3><p>Beräknad intäkt från gäster som just nu bor i hotellets byggda rum.</p><div class="dev-room-rate">JUST NU<b>+${occupiedRoomDailyRevenue()} kr/dag</b></div></div><div class="dev-card"><h3>🍽 Facilitetsintäkt</h3><p>Daglig intäkt/besparing från aktiva investeringar.</p><div class="dev-room-rate">JUST NU<b>+${facilityDailyRevenue()} kr/dag</b></div></div><div class="dev-card"><h3>💰 Investerat</h3><p>Totalt kapital som elevprofilen har lagt på hotellutveckling.</p><div class="dev-room-rate">TOTALT<b>${Math.round(Number(state.hotelDevelopment.totalInvested||0))} kr</b></div></div><div class="dev-card"><h3>📌 Princip</h3><p>Dyrare rum ger högre pris per natt. Faciliteter kan både skapa intäkter och låsa upp nya arbetsuppgifter.</p></div></div>`;}
   function spendDevelopment(cost,type,details={}){cost=Math.max(0,Number(cost||0));if(Number(state.money)<cost){showTip(`Hotellet saknar ${cost-Number(state.money)} kr för investeringen.`);return false;}state.money-=cost;state.hotelDevelopment.totalInvested=Number(state.hotelDevelopment.totalInvested||0)+cost;recordAssessment("hotel_investment",Object.assign({investmentType:type,cost,moneyAfter:Number(state.money)},details));return true;}
@@ -5027,7 +5702,7 @@
     syncFutureBookingsForRoom(id);state.score+=100;recordAssessment("suite_completed",{roomId:id,newPurchaseCost:cost});saveState();renderHotelDevelopment();renderReceptionPms();showTip(`Rum ${id} uppfyller nu Master Suite-kraven. Pris ${roomNightlyRate(id)} kr/natt.`);
   }
   function addRestaurantTable(){if(restaurantTableCapacity()>=9)return;if(!spendDevelopment(250,"restaurant_table",{tableNumber:restaurantTableCapacity()+1}))return;state.hotelDevelopment.restaurantTables=restaurantTableCapacity()+1;saveState();renderHotelDevelopment();showTip(`Restaurangen har nu ${restaurantTableCapacity()} bord.`);}
-  function buyFacility(key){const item=FACILITY_CATALOG[key];if(!item||state.hotelDevelopment.facilities[key])return;if(!facilityRequirementsMet(key)){showTip(`Investeringen är låst. Kräver ${facilityRequirementsText(key)}.`);return;}if(!spendDevelopment(item.cost,"facility",{facility:key,label:item.label,dailyRevenue:item.revenue}))return;state.hotelDevelopment.facilities[key]=true;if(key==="laundry")state.expansionBuilt=true;state.score+=80;saveState();renderHotelDevelopment();updateMission();showTip(`${item.label} är nu byggd.`);}
+  function buyFacility(key){const item=FACILITY_CATALOG[key];if(!item||state.hotelDevelopment.facilities[key])return;if(!facilityRequirementsMet(key)){showTip(`Investeringen är låst. Kräver ${facilityRequirementsText(key)}.`);return;}if(!spendDevelopment(item.cost,"facility",{facility:key,label:item.label,dailyRevenue:item.revenue,satisfactionBonus:item.satisfactionBonus||0}))return;state.hotelDevelopment.facilities[key]=true;if(key==="laundry")state.expansionBuilt=true;if(item.satisfactionBonus)applyGuestSatisfactionLift(item.satisfactionBonus,"facility_built_guest_satisfaction");state.score+=80;saveState();renderHotelDevelopment();updateMission();showTip(`${item.label} är nu byggd.`);}
   function bindDevelopmentActions(){const body=document.getElementById("hotelDevelopmentBody");if(!body)return;body.querySelectorAll("[data-build-room]").forEach(b=>b.onclick=()=>buildHotelRoom(b.dataset.buildRoom));body.querySelectorAll("[data-room-upgrade]").forEach(i=>i.addEventListener("change",()=>{const [room,key]=i.dataset.roomUpgrade.split("|");toggleRoomUpgrade(Number(room),key,Boolean(i.checked));}));body.querySelectorAll("[data-suite-room]").forEach(b=>b.onclick=()=>buySuitePackage(Number(b.dataset.suiteRoom)));body.querySelectorAll("[data-add-table]").forEach(b=>b.onclick=addRestaurantTable);body.querySelectorAll("[data-buy-facility]").forEach(b=>b.onclick=()=>buyFacility(b.dataset.buyFacility));}
 
   function getArrivalBooking(){
@@ -6147,44 +6822,49 @@
     saveState();updateMission();renderReceptionPms();document.getElementById("receptionModal").classList.remove("show");document.getElementById("bookingDetailModal").classList.remove("show");document.getElementById("roomChoiceModal").classList.remove("show");showCheckinFeedback(booking,room,feedbackItems,scoreBefore);
   }
 
-  function openRandomScenario(department,completeTask,assignment=null){
-    const arr=state.scenarios.filter(s=>s.department===department);
-    if(!arr.length){showTip("Läraren har ännu inte lagt in ett problem för den här avdelningen.");return}
-    activeScenario=clone(arr[Math.floor(Math.random()*arr.length)]);
-    activeScenario._completeTask=completeTask;
-    activeScenario._assignment=assignment;
-    document.getElementById("scenarioTitle").textContent=activeScenario.title;
-    document.getElementById("scenarioProblem").textContent=activeScenario.problem;
-    const box=document.getElementById("scenarioChoices");box.innerHTML="";
-    activeScenario.choices.forEach((c,i)=>{
-      const b=document.createElement("button");b.className="choice";b.textContent=c.text;
-      b.onclick=()=>answerScenario(i);box.appendChild(b);
-    });
-    document.getElementById("scenarioModal").classList.add("show");
+  let activeGuestJourney=null;
+  let guestJourneyStageIndex=0;
+  let guestJourneyResults=[];
+  let scenarioTimerInterval=null;
+  function stopScenarioTimer(){if(scenarioTimerInterval){clearInterval(scenarioTimerInterval);scenarioTimerInterval=null;}}
+  function renderScenarioTimer(){
+    const meta=document.getElementById("scenarioJourneyMeta"),label=document.getElementById("scenarioJourneyLabel"),timer=document.getElementById("scenarioTimer");
+    if(!activeScenario?.timeLimitSeconds){if(meta)meta.hidden=true;return;}
+    if(meta)meta.hidden=false;const elapsed=Math.max(0,(Date.now()-Number(activeScenario._startedAt||Date.now()))/1000),left=Math.max(0,Math.ceil(Number(activeScenario.timeLimitSeconds)-elapsed));
+    if(label)label.textContent=activeGuestJourney?`${activeGuestJourney.guest} · steg ${guestJourneyStageIndex+1}/${activeGuestJourney.stages.length}`:`Tidsutmaning`;
+    if(timer){timer.textContent=`⏱ ${left} s`;timer.classList.toggle("urgent",left<=10);}
   }
-
+  function prepareScenarioModal(scenario){
+    activeScenario=clone(scenario);activeScenario._startedAt=Date.now();document.getElementById("scenarioTitle").textContent=activeScenario.title;document.getElementById("scenarioProblem").textContent=activeScenario.problem;
+    const box=document.getElementById("scenarioChoices");box.innerHTML="";activeScenario.choices.forEach((c,i)=>{const b=document.createElement("button");b.className="choice";b.textContent=c.text;b.onclick=()=>answerScenario(i);box.appendChild(b);});
+    renderScenarioTimer();stopScenarioTimer();if(activeScenario.timeLimitSeconds)scenarioTimerInterval=setInterval(renderScenarioTimer,250);document.getElementById("scenarioModal").classList.add("show");
+  }
+  function openRandomScenario(department,completeTask,assignment=null){
+    const arr=state.scenarios.filter(s=>s.department===department);if(!arr.length){showTip("Läraren har ännu inte lagt in ett problem för den här avdelningen.");return}
+    activeGuestJourney=null;guestJourneyResults=[];const scenario=clone(arr[Math.floor(Math.random()*arr.length)]);scenario._completeTask=completeTask;scenario._assignment=assignment;prepareScenarioModal(scenario);
+  }
+  function startSampleGuestJourney(){
+    activeGuestJourney=clone(SAMPLE_GUEST_JOURNEY);guestJourneyStageIndex=0;guestJourneyResults=[];recordAssessment("journey_started",{journeyId:activeGuestJourney.id,journeyTitle:activeGuestJourney.title,guest:activeGuestJourney.guest});openGuestJourneyStage();
+  }
+  function openGuestJourneyStage(){if(!activeGuestJourney)return;const stage=clone(activeGuestJourney.stages[guestJourneyStageIndex]);stage._journeyStage=true;prepareScenarioModal(stage);}
+  function finishGuestJourney(){
+    stopScenarioTimer();const correct=guestJourneyResults.filter(x=>x.correct).length,bonus=guestJourneyResults.reduce((sum,x)=>sum+Number(x.bonus||0),0);recordAssessment("journey_completed",{journeyId:activeGuestJourney.id,journeyTitle:activeGuestJourney.title,guest:activeGuestJourney.guest,correctStages:correct,totalStages:guestJourneyResults.length,bonusPoints:bonus});saveState();
+    const target=document.getElementById("scenarioChoices");document.getElementById("scenarioTitle").textContent=`Gästresan klar · ${activeGuestJourney.guest}`;document.getElementById("scenarioProblem").textContent="Du har följt gästen genom hela sample-resan.";document.getElementById("scenarioJourneyMeta").hidden=true;
+    target.innerHTML=`<div class="result"><strong>Gästresan är avslutad.</strong><div class="journey-result-summary"><div><span>Rätt lösta</span><b>${correct}/${guestJourneyResults.length}</b></div><div><span>Tidsbonus</span><b>+${bonus}</b></div><div><span>Hotellpoäng</span><b>${Number(state.score||0)}</b></div></div></div><button class="primary" id="continueScenario">Stäng</button>`;
+    document.getElementById("continueScenario").onclick=()=>{document.getElementById("scenarioModal").classList.remove("show");activeGuestJourney=null;};
+  }
   function answerScenario(i){
-    const c=activeScenario.choices[i];
-    recordAssessment("scenario_choice",{scenarioId:activeScenario.id,title:activeScenario.title,department:activeScenario.department,choice:c.text,correct:Boolean(c.correct)});
-    const target=document.getElementById("scenarioChoices");
-    target.innerHTML=`<div class="result ${c.correct?"":"bad"}"><strong>${c.correct?"Bra hanterat!":"Det valet behöver förbättras."}</strong><p>${escapeHtml(c.feedback||"")}</p></div>
-      <button class="primary" id="continueScenario">Fortsätt spela</button>`;
-    if(c.correct){
-      state.money+=120;state.score+=150;state.happiness=Math.min(100,state.happiness+5);
-      if(activeScenario._completeTask){
-        state.tasks.problem=true;
-        const assignment=activeScenario._assignment;
-        const mode=assignment?.mode||"ideal";
-        const multiplier=mode==="ideal"?1:mode==="reassigned"?.9:.65;
-        state.score+=Math.round(100*multiplier);
-        state.money+=Math.round(90*multiplier);
-      }
-      state.completed.push(activeScenario.id);
-    }else{
-      state.happiness=Math.max(0,state.happiness-4);
+    const c=activeScenario.choices[i],elapsed=Math.round((Date.now()-Number(activeScenario._startedAt||Date.now()))/1000),withinBonus=Boolean(c.correct&&activeScenario.bonusWindowSeconds&&elapsed<=Number(activeScenario.bonusWindowSeconds)),bonus=withinBonus?Number(activeScenario.bonusPoints||0):0;stopScenarioTimer();
+    if(activeScenario._journeyStage){
+      const basePoints=c.correct?120:0;if(c.correct){state.money+=100;state.score+=basePoints+bonus;state.happiness=Math.min(100,state.happiness+4);}else state.happiness=Math.max(0,state.happiness-5);
+      guestJourneyResults.push({stageId:activeScenario.id,area:activeScenario.area,correct:Boolean(c.correct),elapsedSeconds:elapsed,bonus});recordAssessment("journey_stage",{journeyId:activeGuestJourney?.id,guest:activeGuestJourney?.guest,stageId:activeScenario.id,title:activeScenario.title,area:activeScenario.area,department:activeScenario.department,choice:c.text,correct:Boolean(c.correct),elapsedSeconds:elapsed,timeLimitSeconds:Number(activeScenario.timeLimitSeconds||0),bonusPoints:bonus,points:basePoints+bonus});saveState();updateMission();
+      const target=document.getElementById("scenarioChoices");target.innerHTML=`<div class="result ${c.correct?"":"bad"}"><strong>${c.correct?"Bra hanterat!":"Det valet behöver förbättras."}</strong><p>${escapeHtml(c.feedback||"")}</p>${c.correct?`<p><strong>Poäng:</strong> +${basePoints}${bonus?` + ${bonus} tidsbonus`:""} · svarstid ${elapsed} s</p>`:`<p>Svarstid: ${elapsed} s</p>`}</div><button class="primary" id="continueScenario">${guestJourneyStageIndex<activeGuestJourney.stages.length-1?"Nästa del av gästresan":"Visa resultat"}</button>`;
+      document.getElementById("continueScenario").onclick=()=>{guestJourneyStageIndex++;if(guestJourneyStageIndex<activeGuestJourney.stages.length)openGuestJourneyStage();else finishGuestJourney();};return;
     }
-    saveState();updateMission();
-    document.getElementById("continueScenario").onclick=()=>document.getElementById("scenarioModal").classList.remove("show");
+    recordAssessment("scenario_choice",{scenarioId:activeScenario.id,title:activeScenario.title,department:activeScenario.department,choice:c.text,correct:Boolean(c.correct),elapsedSeconds:elapsed,bonusPoints:bonus});
+    const target=document.getElementById("scenarioChoices");target.innerHTML=`<div class="result ${c.correct?"":"bad"}"><strong>${c.correct?"Bra hanterat!":"Det valet behöver förbättras."}</strong><p>${escapeHtml(c.feedback||"")}</p>${bonus?`<p><strong>Tidsbonus:</strong> +${bonus} poäng</p>`:""}</div><button class="primary" id="continueScenario">Fortsätt spela</button>`;
+    if(c.correct){state.money+=120;state.score+=150+bonus;state.happiness=Math.min(100,state.happiness+5);if(activeScenario._completeTask){state.tasks.problem=true;const assignment=activeScenario._assignment;const mode=assignment?.mode||"ideal";const multiplier=mode==="ideal"?1:mode==="reassigned"?.9:.65;state.score+=Math.round(100*multiplier);state.money+=Math.round(90*multiplier);}state.completed.push(activeScenario.id);}else state.happiness=Math.max(0,state.happiness-4);
+    saveState();updateMission();document.getElementById("continueScenario").onclick=()=>document.getElementById("scenarioModal").classList.remove("show");
   }
 
   function showTip(text){
@@ -6198,7 +6878,7 @@
     document.getElementById("happyText").textContent=state.happiness;
     document.getElementById("dayText").textContent=state.day;
     document.getElementById("scenarioStatus").textContent=
-      `Spelet innehåller ${state.scenarios.length} scenarier. Eleven har löst ${state.completed.length} problem med rätt svar.`;
+      `Spelet innehåller ${state.scenarios.length} scenarier + 1 sample-gästresa. Eleven har löst ${state.completed.length} problem med rätt svar.`;
     renderStaffBar();
   }
 
@@ -6243,13 +6923,17 @@
     if(taskKey==="phoneBooking")staffId=null;
     if(taskKey==="clean"&&pendingDndManagerRoomId()){staffId="manager";task=tasks.find(t=>t.id==="clean")||task;}
     if(staffId&&getStaff(staffId))setActiveStaff(staffId,false);
-    if(task){
+    const litterTarget=taskKey==="clean"&&!pendingDndManagerRoomId()&&!currentHskRoomId()&&Array.isArray(state.ambientLitter)&&state.ambientLitter.length?state.ambientLitter[0]:null;
+    if(litterTarget){
+      player.targetX=Number(litterTarget.x);player.targetY=Number(litterTarget.y);player.moving=true;
+      focusCameraOnWorldPoint(player.targetX,player.targetY);
+    }else if(task){
       player.targetX=task.x;player.targetY=task.y;player.moving=true;
       focusCameraOnWorldPoint(task.x,task.y);
     }
     const phoneStatus=phoneCallStatus();
     const phoneName=phoneStatus==="idle"?"Telefonsamtalet kopplas fram. Vänta i 10 sekunder.":phoneStatus==="arming"?`Telefonsamtalet kopplas fram. ${phoneCallCountdownSeconds()} sekunder kvar.`:phoneStatus==="ringing"?"Telefonen ringer. Gå till receptionstelefonen och svara.":"Telefonsamtalet pågår. Fortsätt samtalet.";
-    const names={breakfast:"Frukostbuffén är vald. Elsa är redo vid restaurangen – använd UTFÖR UPPGIFT.",checkin:"Reception är vald. Lina är redo bakom disken.",phoneBooking:phoneName,clean:pendingDndManagerRoomId()?"DND-kontrollen är vald. Alex är redo – använd HSK-tavlan.":"Housekeeping är vald. Omar är redo vid HSK-office.",problem:"Gästserviceproblemet är valt. Lina är redo."};
+    const names={breakfast:"Frukostbuffén är vald. Elsa är redo vid restaurangen – använd UTFÖR UPPGIFT.",checkin:"Reception är vald. Lina är redo bakom disken.",phoneBooking:phoneName,clean:pendingDndManagerRoomId()?"DND-kontrollen är vald. Alex är redo – använd HSK-tavlan.":(Array.isArray(state.ambientLitter)&&state.ambientLitter.length?"Housekeeping är vald. Omar går mot skräpet – klicka på skräpet när han är nära.":"Housekeeping är vald. Omar är redo vid HSK-office."),problem:"Gästserviceproblemet är valt. Lina är redo."};
     showTip(names[taskKey]||"Arbetsuppgiften är vald.");
     updateMission();
   }
@@ -6263,7 +6947,7 @@
       breakfast:!state.breakfastReady?"PRIORITET: Starta frukostbuffén innan gästerna kommer":dirtyBreakfastTables().length?`Frukost: duka av ${dirtyBreakfastTables().length} smutsiga bord`:activeBreakfastTables().some(t=>["reserved","occupied"].includes(t.status))?"Frukost: gäster äter – håll borden under uppsikt":breakfastGuestsPendingToday()?"Frukost: invänta dagens frukostgäster":"Frukost: buffén är klar",
       checkin:state.tasks.checkin?"Reception: dagens C/I, C/O och No Show är klara":"Reception: hantera dagens C/I, C/O och No Show",
       phoneBooking:state.tasks.phoneBooking?"Reception: dagens telefonbokning är klar":phoneStatus==="idle"?"Reception: tryck SVARA för att koppla fram ett inkommande samtal":phoneStatus==="arming"?`Reception: samtalet kopplas fram (${phoneCountdown} sek)`:phoneStatus==="ringing"?"Receptionstelefonen ringer – gå till telefonen och svara":"Telefonsamtal pågår – fortsätt samtalet",
-      clean:pendingDndManagerRoomId()?`HSK: rum ${pendingDndManagerRoomId()} · DND rapporterad`:currentHskRoomId()?(isGuestPhysicallyInRoom(currentHskRoomId())?`HSK: rum ${currentHskRoomId()} väntar – gästen är på rummet`:`HSK: hantera rum ${currentHskRoomId()} – gästen är ute`):"HSK: inga väntande rum",
+      clean:pendingDndManagerRoomId()?`HSK: rum ${pendingDndManagerRoomId()} · DND rapporterad`:currentHskRoomId()?(isGuestPhysicallyInRoom(currentHskRoomId())?`HSK: rum ${currentHskRoomId()} väntar – gästen är på rummet`:`HSK: hantera rum ${currentHskRoomId()} – gästen är ute`):(Array.isArray(state.ambientLitter)&&state.ambientLitter.length?`HSK: plocka ${state.ambientLitter.length} skräp i allmänna ytor`:"HSK: inga väntande rum"),
       problem:"Lös dagens gästserviceproblem"
     };
     if(selectedMissionTaskKey&&state.tasks[selectedMissionTaskKey])selectedMissionTaskKey=null;
@@ -6378,6 +7062,8 @@
     }
 
     const p=screenToWorld(e.clientX,e.clientY);
+    const litterHit=ambientLitterAtPoint(p.x,p.y);
+    if(litterHit){cleanAmbientLitter(litterHit);return;}
     const clickedRoomId=roomIdAtPoint(p.x,p.y);
     if(clickedRoomId && !roomIdAtPoint(player.x,player.y) && !hskWorkflow && !dndWorkflow){
       routePlayerToDoorMarker(clickedRoomId);
@@ -6560,26 +7246,174 @@
     try{history.replaceState(null,"",`${location.pathname}${location.search}`);}catch(e){}
     return true;
   }
+  function compactAssessmentEvent(item){
+    const source=item&&typeof item==="object"?item:{};
+    const keep=["time","day","type","guest","roomId","choice","correct","points","effect","satisfactionBefore","satisfactionAfter","identityConfirmed","informationGiven","paymentConfirmed","guestSatisfaction","action","outcome","title","department","investmentType","upgrade","label","score","reason","staffId"];
+    const result={};
+    keep.forEach(key=>{
+      if(source[key]!==undefined&&source[key]!==null&&source[key]!=="")result[key]=source[key];
+    });
+    return result;
+  }
+  const PROGRESSION_AREAS=[
+    {key:"reception",label:"Reception",short:"REC"},
+    {key:"phone",label:"Telefon & reservation",short:"TEL"},
+    {key:"housekeeping",label:"Housekeeping",short:"HSK"},
+    {key:"breakfast",label:"Frukost & servering",short:"FRU"},
+    {key:"guestservice",label:"Gästservice & problem",short:"SER"},
+    {key:"management",label:"Management & ekonomi",short:"MGT"}
+  ];
+  function assessmentArea(item){
+    const type=String(item?.type||"");
+    if(type==="journey_stage"&&item?.area)return String(item.area);
+    if(type.startsWith("checkin_")||type==="id_check")return "reception";
+    if(type.startsWith("phone_")||type.includes("reservation"))return "phone";
+    if(type.startsWith("housekeeping_")||type.startsWith("dnd_"))return "housekeeping";
+    if(type.startsWith("breakfast_"))return "breakfast";
+    if(type==="scenario_choice")return item?.department==="breakfast"?"breakfast":item?.department==="housekeeping"?"housekeeping":item?.department==="reception"?"reception":"guestservice";
+    if(type==="service_choice"||type.startsWith("guest_"))return "guestservice";
+    if(type.startsWith("hotel_")||type.startsWith("room_upgrade")||type==="suite_completed")return "management";
+    return "";
+  }
+  function assessmentEvidenceValue(item){
+    const type=String(item?.type||"");
+    if(item?.correct===true)return 2;
+    if(item?.correct===false)return -1;
+    if(type==="checkin_completed"){
+      const done=[item.identityConfirmed,item.informationGiven,item.paymentConfirmed].filter(Boolean).length;
+      return done===3?3:done===2?2:done===1?1:-1;
+    }
+    if(type==="checkin_welcome")return Number(item.effect||0)>=0?1:-1;
+    if(type==="phone_booking_no_sale")return -1;
+    if(type==="housekeeping_wrong_room"||type==="breakfast_not_ready")return -1;
+    if(type==="housekeeping_completed"||type==="dnd_manager_check_completed"||type==="breakfast_buffet_prepared")return 2;
+    if(type==="hotel_investment"||type==="room_upgrade_installed"||type==="suite_completed")return 1;
+    if(type==="journey_stage")return item.correct?2:-1;
+    return 1;
+  }
+  function progressionProfileFromEvents(events){
+    const result={};PROGRESSION_AREAS.forEach(area=>result[area.key]={key:area.key,label:area.label,level:0,evidence:0,positive:0,needsWork:0,raw:0});
+    (Array.isArray(events)?events:[]).forEach(item=>{
+      const key=assessmentArea(item);if(!key||!result[key])return;
+      const value=assessmentEvidenceValue(item),bucket=result[key];bucket.evidence++;bucket.raw+=value;if(value>0)bucket.positive++;if(value<0)bucket.needsWork++;
+    });
+    Object.values(result).forEach(bucket=>{
+      if(!bucket.evidence){bucket.level=0;return;}
+      const success=bucket.positive/Math.max(1,bucket.evidence);
+      if(bucket.raw>=10&&bucket.evidence>=5&&success>=.75)bucket.level=4;
+      else if(bucket.raw>=6&&bucket.evidence>=3&&success>=.6)bucket.level=3;
+      else if(bucket.raw>=3&&bucket.evidence>=2)bucket.level=2;
+      else bucket.level=1;
+    });
+    return result;
+  }
+  function progressionProfileForPackage(pkg){return progressionProfileFromEvents(Array.isArray(pkg?.assessmentLog)?pkg.assessmentLog:[]);}
+  function scoreboardLoad(){try{const v=JSON.parse(localStorage.getItem(TEACHER_SCOREBOARD_KEY)||"{}");return v&&typeof v==="object"?v:{students:{}};}catch(e){return {students:{}};}}
+  function scoreboardSave(board){try{localStorage.setItem(TEACHER_SCOREBOARD_KEY,JSON.stringify(board));}catch(e){console.warn("Scoreboard kunde inte sparas",e);}}
+  function progressionAverage(profile){const vals=PROGRESSION_AREAS.map(a=>Number(profile?.[a.key]?.level||0));return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10:0;}
+  function saveScoreboardSnapshot(pkg){
+    if(!pkg||!pkg.student)return;
+    const code=normalizeStudentCode(pkg.student.code||"");if(!code)return;
+    const board=scoreboardLoad();if(!board.students)board.students={};if(!board.students[code])board.students[code]={code,history:[]};
+    const profile=(pkg.progressionSummary?.domains&&typeof pkg.progressionSummary.domains==="object")?pkg.progressionSummary.domains:progressionProfileForPackage(pkg),summary=pkg.summary||{},day=Number(summary.day||1);
+    const snapshot={day,exportedAt:pkg.exportedAt||new Date().toISOString(),score:Number(summary.score||0),guestAverage:resultGuestAverage(pkg),money:Number(summary.money||0),domains:profile,progressAverage:progressionAverage(profile)};
+    const history=Array.isArray(board.students[code].history)?board.students[code].history:[];const index=history.findIndex(x=>Number(x.day)===day);
+    if(index>=0)history[index]=snapshot;else history.push(snapshot);history.sort((a,b)=>Number(a.day)-Number(b.day));board.students[code].history=history.slice(-40);scoreboardSave(board);renderTeacherScoreboard();
+  }
+  function trendForHistory(history){if(!Array.isArray(history)||history.length<2)return "→";const a=Number(history[history.length-2]?.progressAverage||0),b=Number(history[history.length-1]?.progressAverage||0);return b>a?"↑":b<a?"↓":"→";}
+  function renderTeacherScoreboard(){
+    const root=document.getElementById("scoreboardView");if(!root)return;const board=scoreboardLoad(),students=Object.values(board.students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);
+    if(!students.length){root.innerHTML='<div class="info">Scoreboarden är tom. Läs in en elevprogression eller tryck <strong>Lägg in sampledata</strong>.</div>';return;}
+    students.sort((a,b)=>Number(b.history.at(-1)?.score||0)-Number(a.history.at(-1)?.score||0));
+    root.innerHTML=`<div class="scoreboard-wrap"><table class="scoreboard-table"><thead><tr><th>Elev</th><th>Dag</th><th>Hotellpoäng</th><th>Gäst</th>${PROGRESSION_AREAS.map(a=>`<th>${a.short}</th>`).join("")}<th>Snitt</th><th>Trend</th></tr></thead><tbody>${students.map(s=>{const latest=s.history.at(-1),d=latest.domains||{};return `<tr data-score-student="${escapeHtml(s.code)}"><td>${escapeHtml(s.code)}</td><td>${Number(latest.day||1)}</td><td>${Number(latest.score||0)}</td><td>${Number(latest.guestAverage||0)}%</td>${PROGRESSION_AREAS.map(a=>`<td><span class="scoreboard-level">${Number(d[a.key]?.level||0)}</span></td>`).join("")}<td>${Number(latest.progressAverage||0).toFixed(1)}</td><td class="scoreboard-trend">${trendForHistory(s.history)}</td></tr>`;}).join("")}</tbody></table></div>`;
+    root.querySelectorAll("[data-score-student]").forEach(row=>row.addEventListener("click",()=>renderScoreboardStudentDetail(row.dataset.scoreStudent)));
+  }
+  function renderScoreboardStudentDetail(code){
+    const detail=document.getElementById("scoreboardDetail"),student=scoreboardLoad().students?.[code];if(!detail||!student?.history?.length)return;const latest=student.history.at(-1),domains=latest.domains||{};
+    detail.innerHTML=`<div class="student-result-view"><div class="student-result-head"><div><h4>${escapeHtml(code)} · progression till Dag ${Number(latest.day||1)}</h4><span class="student-result-badge">Testmodell 0–4</span></div><small>${student.history.length} sparade dag(ar)</small></div><div class="progress-scale">${PROGRESSION_AREAS.map(a=>{const x=domains[a.key]||{};return `<div class="progress-scale-card"><span>${escapeHtml(a.label)}</span><b>${Number(x.level||0)}/4</b><small>${Number(x.evidence||0)} evidens · ${Number(x.needsWork||0)} att utveckla</small></div>`;}).join("")}</div><div class="info"><strong>Historik:</strong> ${student.history.map(h=>`Dag ${h.day}: ${Number(h.progressAverage||0).toFixed(1)}/4`).join(" · ")}</div></div>`;
+  }
+  function loadScoreboardSample(){
+    const board=scoreboardLoad();board.students=Object.assign({},board.students||{});
+    const make=(code,rows)=>board.students[code]={code,history:rows.map(r=>{const domains={};PROGRESSION_AREAS.forEach((a,i)=>domains[a.key]={key:a.key,label:a.label,level:r.levels[i],evidence:Math.max(1,r.levels[i]+1),positive:r.levels[i],needsWork:r.levels[i]<3?1:0,raw:r.levels[i]*2});return {day:r.day,exportedAt:new Date().toISOString(),score:r.score,guestAverage:r.guest,money:r.money,domains,progressAverage:Math.round(r.levels.reduce((a,b)=>a+b,0)/6*10)/10};})};
+    make("SAMPLE-A",[{day:1,score:650,guest:82,money:6750,levels:[1,1,2,1,1,0]},{day:2,score:1420,guest:88,money:7340,levels:[2,2,3,2,2,1]},{day:3,score:2360,guest:94,money:8120,levels:[3,3,3,3,3,2]}]);
+    make("SAMPLE-B",[{day:1,score:780,guest:90,money:6800,levels:[2,1,1,2,2,1]},{day:2,score:1280,guest:84,money:7210,levels:[2,1,2,2,2,2]},{day:3,score:2010,guest:89,money:7900,levels:[3,2,2,3,3,2]}]);scoreboardSave(board);renderTeacherScoreboard();showTip("Sampledata är inlagd i scoreboarden.");
+  }
+
+  function progressionEmailPayload(){
+    const day=Number(state.day||1),allLog=Array.isArray(state.assessmentLog)?state.assessmentLog:[];
+    const dayLog=allLog.filter(item=>Number(item?.day||day)===day&&String(item?.type||"")!=="lesson_export");
+    const typeCounts={};
+    dayLog.forEach(item=>{const type=String(item?.type||"event");typeCounts[type]=Number(typeCounts[type]||0)+1;});
+    const compactEvents=dayLog.map(compactAssessmentEvent);
+    const moods=Object.entries(state.guestMoods||{}).map(([id,value])=>{const guest=guestAgents.find(g=>g.id===id);return {guestId:id,guestName:guest?.name||id,satisfaction:Number(value)};});
+    const payload={
+      schema:"hotel-manager-progression-email-v1",
+      hotelVersion:HOTEL_VERSION,
+      exportedAt:new Date().toISOString(),
+      student:{code:currentStudentCode||state.studentCode||"UNKNOWN"},
+      summary:{day,score:Number(state.score||0),hotelSatisfaction:Number(state.happiness||0),money:Number(state.money||0),completedProblems:Number(state.completed?.length||0),loggedDecisions:dayLog.length,totalLoggedDecisions:allLog.length},
+      guestSatisfaction:moods,
+      progression:{day,eventCount:dayLog.length,correctChoices:dayLog.filter(item=>item?.correct===true).length,incorrectChoices:dayLog.filter(item=>item?.correct===false).length,typeCounts,domains:progressionProfileFromEvents(allLog),dayDomains:progressionProfileFromEvents(dayLog),events:compactEvents}
+    };
+    // Skydda mailto-flödet mot extremt långa dagar. Sammanställningen finns alltid kvar,
+    // men detaljlistan begränsas om den annars skulle bli för stor för e-postklienten.
+    let text=JSON.stringify(payload,null,2);
+    if(text.length>9000){payload.progression.events=compactEvents.slice(-40);payload.progression.truncated=true;payload.progression.includedEvents=payload.progression.events.length;text=JSON.stringify(payload,null,2);}
+    if(text.length>9000){payload.progression.events=compactEvents.slice(-24);payload.progression.truncated=true;payload.progression.includedEvents=payload.progression.events.length;}
+    return payload;
+  }
+  function progressionJsonFromMailText(value){
+    const source=String(value||"").trim();
+    if(!source)throw new Error("Tom progression");
+    const startMarker="--- HOTEL MANAGER PROGRESSION JSON ---",endMarker="--- SLUT JSON ---";
+    let jsonText=source;
+    const markerStart=source.indexOf(startMarker),markerEnd=source.indexOf(endMarker);
+    if(markerStart>=0&&markerEnd>markerStart)jsonText=source.slice(markerStart+startMarker.length,markerEnd).trim();
+    else{
+      const schemaStart=source.indexOf('{\n  "schema"');
+      const first=schemaStart>=0?schemaStart:source.indexOf("{");
+      const last=source.lastIndexOf("}");
+      if(first>=0&&last>first)jsonText=source.slice(first,last+1);
+    }
+    return JSON.parse(jsonText);
+  }
+  function readStudentProgressionPaste(){
+    const textarea=document.getElementById("studentProgressionPaste"),view=document.getElementById("studentResultView");
+    try{
+      const raw=progressionJsonFromMailText(textarea?.value||"");
+      const pkg=normalizeStudentResultPackage(raw);
+      loadedStudentResultPackage=pkg;
+      renderStudentResultPackage(pkg,"Progression från mejl");
+      showTip(`Progressionen för ${pkg.student?.code||"eleven"} är inläst.`);
+    }catch(err){
+      console.error(err);loadedStudentResultPackage=null;
+      if(view){view.hidden=false;view.innerHTML='<div class="result bad"><strong>Progressionen kunde inte läsas.</strong><br>Kopiera hela JSON-blocket från elevens mejl och försök igen.</div>';}
+      showTip("Progressions-JSON kunde inte läsas.");
+    }
+  }
+
   async function shareProgressJson(){
     const email=teacherEmail();
     if(!isValidTeacherEmail(email)){showTip("Lärarens e-postadress saknas. Ange den i Lärarläge → Inställningar.");return;}
-    if(!Array.isArray(state.sessionHistory))state.sessionHistory=[];
-    state.sessionHistory.push({endedAt:new Date().toISOString(),day:Number(state.day||1),score:Number(state.score||0),hotelSatisfaction:Number(state.happiness||0)});
-    saveState();
     const code=currentStudentCode||state.studentCode||"elev";
     const day=Number(state.day||1);
-    const subject=`Hotel Manager progression · ${code} · Dag ${day}`;
-    let transferCode="";
-    try{transferCode=await makeStudentTransferCode();}catch(err){console.error(err);showTip("Elevresultatet kunde inte packas för e-post.");return;}
-    const resultUrl=resultUrlForCode(transferCode);
-    const body=resultUrl
-      ? `Hej!\n\nHär kommer min progression från Hotel Manager.\nElevkod: ${code}\nDag: ${day}\nHotellpoäng: ${Number(state.score||0)}\n\nÖPPNA ELEVRESULTATET HÄR:\n${resultUrl}\n\nLänken innehåller elevens Hotel Manager-save och öppnas i Lärarläge efter lösenord. Ingen elevfil har laddats upp till GitHub.`
-      : `Hej!\n\nHär kommer min progression från Hotel Manager.\nElevkod: ${code}\nDag: ${day}\nHotellpoäng: ${Number(state.score||0)}\n\nHOTEL MANAGER-KOD – kopiera hela raden till Lärarläge → Läs elevresultat:\n${transferCode}`;
-    const mailto=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    recordAssessment("lesson_export",{method:resultUrl?"mailto_result_link":"mailto_transfer_code",recipient:email,day,transferLength:transferCode.length});
+    const progressPayload=progressionEmailPayload();
+    const progressionJson=JSON.stringify(progressPayload,null,2);
+    if(!Array.isArray(state.sessionHistory))state.sessionHistory=[];
+    state.sessionHistory.push({endedAt:new Date().toISOString(),day,score:Number(state.score||0),hotelSatisfaction:Number(state.happiness||0)});
+    recordAssessment("lesson_export",{method:"progression_json_in_email",recipient:email,day,progressionEvents:Number(progressPayload.progression?.eventCount||0)});
     saveState();
-    try{window.location.href=mailto;showTip(resultUrl?"E-postappen öppnas med en klickbar elevresultatlänk.":"E-postappen öppnas med elevens Hotel Manager-kod i meddelandet.");}
-    catch(err){console.error(err);showTip("E-postappen kunde inte öppnas. Använd Ladda ner elevfil som reservväg.");}
+
+    const subject=`Hotel Manager progression · ${code} · Dag ${day}`;
+    const body=`Hej!\n\nHär kommer min progression från Hotel Manager.\nElevkod: ${code}\nDag: ${day}\nHotellpoäng: ${Number(state.score||0)}\n\nKopiera JSON-blocket nedan och klistra in det i Hotel Manager: Lärarläge → Läs elevresultat → Klistra in progression från elevens mejl.\n\n--- HOTEL MANAGER PROGRESSION JSON ---\n${progressionJson}\n--- SLUT JSON ---\n\nMvh`;
+    const mailto=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    try{
+      window.location.href=mailto;
+      showTip("Progressions-JSON har skrivits direkt i mejlet. Eleven behöver bara trycka Skicka.");
+    }catch(err){
+      console.error(err);
+      showTip("E-postappen kunde inte öppnas.");
+    }
   }
 
   let loadedStudentResultPackage=null;
@@ -6588,12 +7422,15 @@
     phone_booking_no_sale:"Telefonbokning · ingen försäljning",breakfast_buffet_prepared:"Frukostbuffé klar",breakfast_not_ready:"Frukost inte klar",
     housekeeping_started:"Housekeeping startad",housekeeping_completed:"Housekeeping klar",housekeeping_knock:"Knackning",housekeeping_announce:"HOUSEKEEPING",
     housekeeping_enter:"Inträde på rum",housekeeping_wrong_room:"Fel rum",housekeeping_dnd_reported:"DND rapporterad",housekeeping_wait_guest_inside:"Väntade på gäst",
-    dnd_manager_check_completed:"DND chefskontroll klar",scenario_choice:"Gästproblem",service_choice:"Serviceval",hotel_investment:"Hotellinvestering",
+    dnd_manager_check_completed:"DND chefskontroll klar",scenario_choice:"Gästproblem",journey_started:"Gästresa startad",journey_stage:"Gästresa · problem",journey_completed:"Gästresa klar",service_choice:"Serviceval",hotel_investment:"Hotellinvestering",
     room_upgrade_installed:"Rumsuppgradering",suite_completed:"Suite färdig",lesson_export:"Elevfil skapad"
   };
   function normalizeStudentResultPackage(payload){
     if(!payload||typeof payload!=="object")throw new Error("Tom fil");
     if(["hotel-manager-student-package-v3","hotel-manager-student-package-v2"].includes(payload.schema)&&payload.backup?.state)return payload;
+    if(payload.schema==="hotel-manager-progression-email-v1"){
+      return {schema:payload.schema,resultKind:"progression-email",hotelVersion:payload.hotelVersion||"okänd version",exportedAt:payload.exportedAt,student:payload.student||{},summary:payload.summary||{},guestSatisfaction:payload.guestSatisfaction||[],assessmentLog:clone(payload.progression?.events||[]),sessionHistory:[],progressionSummary:clone(payload.progression||{}),backup:{state:null}};
+    }
     if(payload.schema==="hotel-manager-student-progress-v1"){
       return {schema:"hotel-manager-student-package-v1-compat",hotelVersion:payload.hotelVersion||"äldre version",exportedAt:payload.exportedAt,student:payload.student||{},summary:payload.summary||{},guestSatisfaction:payload.guestSatisfaction||[],assessmentLog:payload.assessmentLog||[],sessionHistory:payload.sessionHistory||[],backup:{state:payload.progression||null}};
     }
@@ -6607,21 +7444,26 @@
   function formatResultDate(value){if(!value)return "—";try{return new Date(value).toLocaleString("sv-SE");}catch(e){return String(value);}}
   function renderStudentResultPackage(pkg,fileName=""){
     const view=document.getElementById("studentResultView");if(!view)return;
-    const summary=pkg.summary||{},code=normalizeStudentCode(pkg.student?.code||"UNKNOWN")||"UNKNOWN",log=Array.isArray(pkg.assessmentLog)?pkg.assessmentLog:[],guestAvg=resultGuestAverage(pkg);
-    const latest=log.slice(-12).reverse();
+    const summary=pkg.summary||{},code=normalizeStudentCode(pkg.student?.code||"UNKNOWN")||"UNKNOWN",log=Array.isArray(pkg.assessmentLog)?pkg.assessmentLog:[],guestAvg=resultGuestAverage(pkg),progress=pkg.progressionSummary||{};
+    const latest=log.slice(-12).reverse(),hasBackup=Boolean(pkg.backup?.state);
+    const domainProfile=progress.domains&&typeof progress.domains==="object"?progress.domains:progressionProfileForPackage(pkg);
+    const progressNote=pkg.resultKind==="progression-email"?`<div class="info"><strong>Dagens progression:</strong> ${Number(progress.eventCount||log.length)} händelser · ${Number(progress.correctChoices||0)} rätta val · ${Number(progress.incorrectChoices||0)} val att utveckla${progress.truncated?` · detaljlistan visar ${Number(progress.includedEvents||log.length)} senaste händelser`:""}.</div>`:"";
+    const domainHtml=`<div class="student-result-section"><h5>Progressionsnivå 0–4 · samplemodell</h5><div class="progress-scale">${PROGRESSION_AREAS.map(a=>{const x=domainProfile[a.key]||{};return `<div class="progress-scale-card"><span>${escapeHtml(a.label)}</span><b>${Number(x.level||0)}/4</b><small>${Number(x.evidence||0)} evidens · ${Number(x.needsWork||0)} att utveckla</small></div>`;}).join("")}</div></div>`;
     view.innerHTML=`<div class="student-result-head"><div><h4>${escapeHtml(code)} · Dag ${Number(summary.day||1)}</h4><span class="student-result-badge">${escapeHtml(pkg.hotelVersion||"okänd version")}</span></div><small>${escapeHtml(fileName||"")}<br>${escapeHtml(formatResultDate(pkg.exportedAt))}</small></div>
-      <div class="student-result-grid"><div><span>Hotellpoäng</span><b>${Number(summary.score||0)}</b></div><div><span>Gästsnitt</span><b>${guestAvg}%</b></div><div><span>Hotellkassa</span><b>${Number(summary.money||0)}</b></div><div><span>Loggade beslut</span><b>${Number(summary.loggedDecisions||log.length)}</b></div></div>
-      <div class="student-result-section"><h5>Senaste progressionen</h5><div class="student-result-log">${latest.length?latest.map(item=>{const type=String(item.type||item.event||item.action||"händelse"),label=assessmentLabels[type]||type.replaceAll("_"," ");const when=item.at||item.timestamp||item.time||item.createdAt||"";return `<div class="student-result-log-row"><b>${escapeHtml(label)}</b><span>${escapeHtml(type)}</span><small>${escapeHtml(formatResultDate(when))}</small></div>`;}).join(""):`<div class="info">Ingen bedömningslogg hittades i filen.</div>`}</div></div>
-      <div class="student-result-restore"><button class="secondary" id="restoreStudentResultBtn" type="button">↻ Återställ / öppna elevens spel</button><button class="secondary" id="downloadLoadedStudentResultBtn" type="button">⬇ Spara som JSON</button></div>`;
+      <div class="student-result-grid"><div><span>Hotellpoäng</span><b>${Number(summary.score||0)}</b></div><div><span>Gästsnitt</span><b>${guestAvg}%</b></div><div><span>Hotellkassa</span><b>${Number(summary.money||0)}</b></div><div><span>Loggade beslut</span><b>${Number(summary.loggedDecisions||log.length)}</b></div></div>${progressNote}${domainHtml}
+      <div class="student-result-section"><h5>Senaste progressionen</h5><div class="student-result-log">${latest.length?latest.map(item=>{const type=String(item.type||item.event||item.action||"händelse"),label=assessmentLabels[type]||type.replaceAll("_"," ");const when=item.at||item.timestamp||item.time||item.createdAt||"";return `<div class="student-result-log-row"><b>${escapeHtml(label)}</b><span>${escapeHtml(type)}</span><small>${escapeHtml(formatResultDate(when))}</small></div>`;}).join(""):`<div class="info">Ingen bedömningslogg hittades i underlaget.</div>`}</div></div>
+      <div class="student-result-restore">${hasBackup?`<button class="secondary" id="restoreStudentResultBtn" type="button">↻ Återställ / öppna elevens spel</button>`:""}<button class="secondary" id="downloadLoadedStudentResultBtn" type="button">⬇ Spara ${hasBackup?"elevfil":"progression"} som JSON</button></div>`;
     view.hidden=false;
     document.getElementById("restoreStudentResultBtn")?.addEventListener("click",restoreLoadedStudentResult);
     document.getElementById("downloadLoadedStudentResultBtn")?.addEventListener("click",downloadLoadedStudentResult);
+    saveScoreboardSnapshot(pkg);
   }
   function downloadLoadedStudentResult(){
     const pkg=loadedStudentResultPackage;if(!pkg){showTip("Läs ett elevresultat först.");return;}
-    const code=normalizeStudentCode(pkg.student?.code||"ELEV")||"ELEV",day=Number(pkg.summary?.day||pkg.backup?.state?.day||1);
-    downloadFile(jsonFile(pkg,`hotel_manager_${code}_dag_${day}.json`));
-    showTip("Elevresultatet sparades som JSON.");
+    const code=normalizeStudentCode(pkg.student?.code||"ELEV")||"ELEV",day=Number(pkg.summary?.day||pkg.backup?.state?.day||1),hasBackup=Boolean(pkg.backup?.state);
+    const name=hasBackup?`hotel_manager_${code}_dag_${day}.json`:`hotel_manager_progression_${code}_dag_${day}.json`;
+    downloadFile(jsonFile(pkg,name));
+    showTip(hasBackup?"Elevresultatet sparades som JSON.":"Progressionen sparades som JSON.");
   }
   async function readStudentResultCode(value=null){
     const textarea=document.getElementById("studentResultCode");
@@ -6695,7 +7537,7 @@
     reader.onerror=()=>{setLoadGameStatus("Filen kunde inte läsas.","bad");showTip("Filen kunde inte läsas.");};
     reader.readAsText(file);
   }
-  function startOrContinueStudent(){const input=document.getElementById("studentCodeInput");const code=normalizeStudentCode(input?.value||"");if(!code){showTip("Skriv elevkoden innan hotellet startas.");input?.focus();return;}if(code!==currentStudentCode){localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");location.reload();return;}started=true;document.getElementById("startScreen").style.display="none";startGuestFlow();focusCameraOnWorldPoint(880,960);recordAssessment("session_started",{studentCode:code});saveState();const loadNotice=localStorage.getItem(LOAD_NOTICE_KEY);if(loadNotice){localStorage.removeItem(LOAD_NOTICE_KEY);try{const info=JSON.parse(loadNotice);showTip(`✓ ${info.code||code} laddad från ${info.fromVersion||"äldre version"} till ${info.toVersion||HOTEL_VERSION}. Fortsätter på Dag ${Number(info.day||state.day||1)}.`);}catch(e){showTip("✓ Elevens sparade hotell är laddat i den nya spelversionen.");}}else{showTip("Elevprofilen sparas automatiskt lokalt. Avsluta lektionen för att skapa JSON-underlaget.");}}
+  function startOrContinueStudent(){const input=document.getElementById("studentCodeInput");const code=normalizeStudentCode(input?.value||"");if(!code){showTip("Skriv elevkoden innan hotellet startas.");input?.focus();return;}if(code!==currentStudentCode){localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");location.reload();return;}started=true;document.getElementById("startScreen").style.display="none";startGuestFlow();focusCameraOnWorldPoint(880,960);recordAssessment("session_started",{studentCode:code});saveState();const loadNotice=localStorage.getItem(LOAD_NOTICE_KEY);if(loadNotice){localStorage.removeItem(LOAD_NOTICE_KEY);try{const info=JSON.parse(loadNotice);showTip(`✓ ${info.code||code} laddad från ${info.fromVersion||"äldre version"} till ${info.toVersion||HOTEL_VERSION}. Fortsätter på Dag ${Number(info.day||state.day||1)}.`);}catch(e){showTip("✓ Elevens sparade hotell är laddat i den nya spelversionen.");}}else{showTip("Elevprofilen sparas automatiskt lokalt. Avsluta lektionen för att skicka progressionsunderlaget till läraren.");}}
 
   canvas.addEventListener("contextmenu",e=>e.preventDefault());
 
@@ -6757,6 +7599,7 @@
     if(modalId==="breakfastTaskModal"){document.getElementById("breakfastTaskModal").classList.remove("docked");document.body.classList.remove("breakfast-task-docked");}
     if(modalId==="guestContactModal"){document.getElementById("guestContactModal").classList.remove("docked");document.body.classList.remove("guest-contact-docked");}
     if(modalId==="bookingDetailModal"&&Number(state.checkoutReservationReturnId||0)){state.checkoutReservationReturnId=0;saveState();}
+    if(modalId==="scenarioModal"){stopScenarioTimer();activeGuestJourney=null;}
     if(modalId==="checkoutModal"){
       const booking=selectedCheckoutBooking();
       const guest=guestAgentForBooking(booking);
@@ -6768,6 +7611,7 @@
   function openTeacherMode(){
     renderTeacherPhraseEditor();
     loadTeacherSettings();
+    renderTeacherScoreboard();
     document.getElementById("teacherModal").classList.add("show");
     const pending=pendingTeacherResultCode();
     if(pending){
@@ -6808,7 +7652,12 @@
   const incomingTeacherResult=captureTeacherResultFromUrl();
   if(incomingTeacherResult)setTimeout(()=>{showTip("Elevresultat mottaget från e-post. Ange lärarlösenordet för att öppna det.");requestTeacherMode();},120);
   document.getElementById("readStudentResultBtn").onclick=readStudentResultFile;
-  document.getElementById("readStudentResultCodeBtn").onclick=()=>readStudentResultCode();
+  document.getElementById("readStudentProgressionPasteBtn")?.addEventListener("click",readStudentProgressionPaste);
+  document.getElementById("clearStudentProgressionPasteBtn")?.addEventListener("click",()=>{const box=document.getElementById("studentProgressionPaste");if(box)box.value="";});
+  document.getElementById("readStudentResultCodeBtn")?.addEventListener("click",()=>readStudentResultCode());
+  document.getElementById("loadScoreboardSampleBtn")?.addEventListener("click",loadScoreboardSample);
+  document.getElementById("clearScoreboardBtn")?.addEventListener("click",()=>{if(confirm("Rensa hela den lokala scoreboarden på lärardatorn?")){localStorage.removeItem(TEACHER_SCOREBOARD_KEY);renderTeacherScoreboard();const d=document.getElementById("scoreboardDetail");if(d)d.innerHTML="";}});
+  document.getElementById("startSampleJourneyBtn")?.addEventListener("click",startSampleGuestJourney);
   document.getElementById("studentResultFile").addEventListener("change",()=>{const view=document.getElementById("studentResultView");if(view)view.hidden=true;loadedStudentResultPackage=null;});
   document.getElementById("managerPanelBtn").onclick=openHotelDevelopment;
   document.querySelectorAll("[data-development-tab]").forEach(button=>button.onclick=()=>{developmentTab=button.dataset.developmentTab;renderHotelDevelopment();});
@@ -6842,6 +7691,7 @@
     document.getElementById("teacher-"+b.dataset.teacherTab).classList.add("active");
     if(b.dataset.teacherTab==="phrases") renderTeacherPhraseEditor();
     if(b.dataset.teacherTab==="settings") loadTeacherSettings();
+    if(b.dataset.teacherTab==="scoreboard") renderTeacherScoreboard();
   });
 
   document.getElementById("startBtn").onclick=startOrContinueStudent;
