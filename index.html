@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Index hotell v.01-188</title>
+<title>Index hotell v.01-189</title>
 <style>
   :root{
     --blue:#6678ed;
@@ -899,7 +899,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-188</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-189</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span></div>
@@ -1413,7 +1413,7 @@
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
   const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
-  const HOTEL_VERSION = "v.01-188";
+  const HOTEL_VERSION = "v.01-189";
   const MASTER_CONTENT_VERSION = "v.01-188";
   const TEACHER_PASSWORD = "password1234";
   function normalizeStudentCode(value){return String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,16);}
@@ -2820,7 +2820,7 @@
       booking.guestLifeOutingDoneDay=0;
       booking.stayoverOpportunityDay=0;
     }
-    saveState();updateMission();renderReceptionPms();renderHud();
+    saveState();updateMission();renderReceptionPms();updateHud();
   }
   function restaurantToLobbyPath(){
     return [{x:610,y:600},restaurantDoorPoint,{x:697,y:675},{x:610,y:1120},{x:520,y:1730}];
@@ -2869,7 +2869,7 @@
     guest.lastDirectionIrritationAt=0;
     queueGuestPath(guest,receptionToRoomPath(guest.roomId),"inRoom");
     activeDirectionGuest=null;
-    saveState();renderHud();
+    saveState();updateHud();
     showTip(`${choice.feedback} ${Number(choice.points||0)>=0?"+":""}${Number(choice.points||0)} poäng.`);
   }
 
@@ -4770,7 +4770,7 @@
     sanitizeReservationStatuses();
     refreshDailyTaskCompletion();
     nextGuestReleaseAt=performance.now()+500;
-    renderHud();
+    updateHud();
     renderReceptionPms();
     updateMission();
     showTip(`Dag ${state.day}. Nya ankomster, avresor och arbetsuppgifter är aktiva.`);
@@ -7882,15 +7882,29 @@
     ctx.restore();
   }
 
+  // v.01-189: stabilitetsvakt. Ett enstaka runtime-fel får inte döda hela requestAnimationFrame-loopen.
+  let lastLoopErrorMessage="";
+  let lastLoopErrorAt=0;
   function loop(now){
-    const dt=Math.min(.033,(now-last)/1000);last=now;
-    if(started) update(dt);
-    if(now-lastStaffPaint>250){
-      renderStaffBar();
-      lastStaffPaint=now;
+    try{
+      const dt=Math.min(.033,(now-last)/1000);last=now;
+      if(started) update(dt);
+      if(now-lastStaffPaint>250){
+        renderStaffBar();
+        lastStaffPaint=now;
+      }
+      render();
+    }catch(error){
+      const message=String(error?.stack||error?.message||error||"Okänt spelfel");
+      const errorNow=performance.now();
+      if(message!==lastLoopErrorMessage || errorNow-lastLoopErrorAt>5000){
+        console.error("Hotel Manager spel-loop återhämtade sig från ett fel:",error);
+        lastLoopErrorMessage=message;
+        lastLoopErrorAt=errorNow;
+      }
+    }finally{
+      requestAnimationFrame(loop);
     }
-    render();
-    requestAnimationFrame(loop);
   }
 
   function escapeHtml(s){
