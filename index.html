@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Index hotell v.01-189</title>
+<title>Index hotell v.01-193</title>
 <style>
   :root{
     --blue:#6678ed;
@@ -90,6 +90,10 @@
   .mission-fix.selected{background:#3c986e;box-shadow:0 2px 0 #28704f}
   .check{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#ffd66d;color:#543800;flex:0 0 22px}
   .check.done{background:#57ce79;color:#fff}
+  .period-status{margin:8px 0 3px;padding:9px 10px;border-radius:12px;background:#f2f5ff;border:2px solid #d8e0ff;color:#35456f;font-size:11px;font-weight:850;line-height:1.35}
+  .period-status.ready{background:#e2f5e8;border-color:#add8ba;color:#286846}
+  .period-status strong{display:block;font-size:12px;margin-bottom:2px}
+  .period-focus{display:block;margin-top:3px;color:#6b7593;font-weight:750}
 
   .mission-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .mission-head h2{margin:0}
@@ -532,6 +536,13 @@
   .payment-confirm-row input{width:24px;height:24px;margin:0}
   .payment-status-line{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
   .payment-status-pill{border-radius:999px;padding:6px 9px;font-size:11px;font-weight:950;background:#eef3f6;color:#41515d}
+  .payment-charge-area{margin-top:14px}
+  .payment-charge-card{border:2px solid #d8e2ef;border-radius:15px;padding:13px 14px;background:#f8fbff;color:#30445b}
+  .payment-charge-card strong{display:block;font-size:17px;margin-bottom:4px}
+  .payment-charge-card small{display:block;color:#6b7b8a;line-height:1.35;margin-bottom:10px}
+  .payment-charge-button{width:100%;border:0;border-radius:13px;padding:12px 14px;background:#536ddd;color:#fff;font-weight:1000;box-shadow:0 3px 0 #354aa6}
+  .payment-charge-card.paid{background:#e4f6ea;border-color:#abd9bb;color:#286846}
+  .guest-contact-check{margin:12px 0 10px}
   .booking-detail-hint{margin:10px 0 0;padding:9px 11px;border-radius:10px;background:#eef5ff;color:#41566c;font-size:12px;font-weight:800}
   .room-choice-box{width:min(950px,96vw);max-height:92vh;overflow:auto;padding:0;background:#fff;border-radius:19px}
   .room-choice-head{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#293646;color:#fff;padding:14px 16px}
@@ -576,6 +587,17 @@
   .dialogue-choice{width:100%;text-align:left;border:2px solid #dfe4f3;background:#fff;border-radius:14px;padding:13px 14px;margin:7px 0;font-weight:850;color:#253061}.dialogue-choice:hover{border-color:#6d7feb;background:#f3f5ff}
   .information-speech{background:#fff8df;border:2px solid #edd894;border-radius:16px;padding:14px 16px;margin:10px 0 14px;color:#4c442c;font-size:15px;font-weight:800;line-height:1.4}
   .information-speech:before{content:"Gäst:";display:block;font-size:11px;font-weight:1000;letter-spacing:.08em;color:#8c7130;margin-bottom:4px;text-transform:uppercase}
+
+  /* v.01-191: samtal ligger dockade till vänster så eleven kan se PMS/hotellet samtidigt. */
+  .conversation-docked{display:block!important;background:transparent!important;backdrop-filter:none!important;pointer-events:none!important;padding:0!important;z-index:95!important}
+  .conversation-docked>.box{position:fixed;left:14px;top:86px;width:370px!important;max-width:34vw;max-height:calc(100vh - 100px);margin:0;overflow:auto;border-radius:20px;pointer-events:auto;box-shadow:0 18px 60px rgba(15,24,55,.32);border:4px solid #fff}
+  .conversation-docked>.box>.box-head{position:sticky;top:0;z-index:3;background:#fff;padding-bottom:9px}
+  .conversation-docked .dialogue-choice,.conversation-docked .phone-dialogue-choices button,.conversation-docked .checkout-dialogue-choices button{font-size:12px;padding:9px 10px}
+  body.reception-conversation-docked #receptionModal .pms-box,body.reception-conversation-docked #bookingDetailModal .booking-detail-box,body.reception-conversation-docked #checkoutModal>.box{max-width:calc(100vw - 430px);transform:translateX(195px)}
+  .delay-note{margin:9px 0;padding:10px 12px;border-radius:12px;background:#fff3d9;border:2px solid #e8c978;color:#6d5319;font-size:12px;font-weight:900;line-height:1.4}
+  .recovery-actions{display:grid;gap:8px;margin-top:10px}.recovery-actions button{border:2px solid #d9e1ef;background:#fff;border-radius:13px;padding:11px 12px;text-align:left;font-weight:950;color:#2d3f65}.recovery-actions button.perk{background:#e9f7ee;border-color:#a9d8b9;color:#286548}.recovery-cost{display:block;margin-top:3px;font-size:10px;font-weight:800;opacity:.8}
+  .early-arrival-card{background:#f5f7ff;border:2px solid #d5def5;border-radius:15px;padding:12px 13px;margin:8px 0 11px;color:#33435b;line-height:1.45;font-weight:800}.early-arrival-status{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:9px 0}.early-arrival-status div{background:#f4f6f7;border-radius:10px;padding:8px}.early-arrival-status span{display:block;font-size:9px;color:#78858d;font-weight:1000}.early-arrival-status b{display:block;margin-top:2px;font-size:12px;color:#2e3e48}
+  @media(max-width:1050px){.conversation-docked>.box{left:8px;right:8px;top:auto;bottom:8px;width:auto!important;max-width:none;max-height:42vh}body.reception-conversation-docked #receptionModal .pms-box,body.reception-conversation-docked #bookingDetailModal .booking-detail-box,body.reception-conversation-docked #checkoutModal>.box{max-width:96vw;transform:none}}
   .information-result-note{font-size:12px;color:#66727a;margin-top:7px}
   .teacher-phrase-row{display:grid;grid-template-columns:1fr 130px;gap:8px;align-items:end;margin:8px 0}.teacher-phrase-row label{margin:0}.teacher-phrase-row select{margin:0}
   .teacher-login-box{width:min(430px,92vw)}
@@ -899,11 +921,11 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-189</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-193</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
-    <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span></div>
-    <button class="next-day-btn" id="nextDayBtn" type="button">Nästa dag ▶</button>
+    <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
+    <button class="next-day-btn" id="nextDayBtn" type="button">Nästa period ▶</button>
     <div class="small-pill" id="happyPill">😊 <span id="happyText">70</span>%</div>
     <button id="teacherBtn">⚙ Lärarläge</button>
     <button id="endLessonBtn" type="button">📤 Avsluta lektion</button>
@@ -916,11 +938,12 @@
 
 <div id="mission">
   <div class="mission-head">
-    <h2>📋 Dagens arbetsuppgifter</h2>
+    <h2>📋 Arbetsuppgifter · <span id="missionPeriodText">06–09</span></h2>
     <button id="missionToggle" title="Visa eller dölj arbetsuppgifterna">−</button>
   </div>
   <div id="missionBody">
-    <p>Du styr hotellets personal – inte gästerna. Gå fram till ett moment. Vid receptionen trycker du på klockan och väljer check-in eller check-out.</p>
+    <p>Du styr hotellets personal – inte gästerna. Hotelltiden går vidare först när periodens kärnuppgifter är klara. Du får ta den tid du behöver.</p>
+    <div id="periodStatus" class="period-status"></div>
     <div id="missionList"></div>
   </div>
 </div>
@@ -1020,7 +1043,8 @@
         </div>
       </div>
       <div class="payment-status-line"><span class="payment-status-pill" id="paymentCardSource">Källa</span><span class="payment-status-pill" id="paymentCardTotal">0 kr</span><span class="payment-status-pill" id="paymentCardPaid">Betalningsgaranti</span></div>
-      <label class="payment-confirm-row"><span>Betalningsmedel / betalningsgaranti kontrollerad</span><input type="checkbox" id="paymentCardConfirmed"></label>
+      <div class="payment-charge-area" id="paymentChargeArea"></div>
+      <label class="payment-confirm-row" id="paymentConfirmRow"><span>Betalningsmedel / betalningsgaranti kontrollerad</span><input type="checkbox" id="paymentCardConfirmed"></label>
     </div>
   </div>
 </div>
@@ -1028,7 +1052,7 @@
 <div class="modal" id="guestContactModal">
   <div class="box guest-contact-box">
     <div class="box-head"><h2>💬 Kontrollera gästuppgifter</h2><button class="close" data-close="guestContactModal">Stäng</button></div>
-    <div class="guest-contact-body"><div class="guest-speech-card" id="guestContactSpeech"></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="secondary" id="guestContactVerifyBtn" type="button" style="display:none">✓ Uppgifterna stämmer</button><button class="primary" id="guestContactReturnBtn" type="button">Stäng gästens svar</button></div></div>
+    <div class="guest-contact-body"><div class="guest-speech-card" id="guestContactSpeech"></div><label class="payment-confirm-row guest-contact-check" id="guestContactCheckRow"><span>Jag har jämfört gästens uppgifter med reservationen</span><input type="checkbox" id="guestContactChecked"></label><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="secondary" id="guestContactVerifyBtn" type="button" style="display:none">✓ Uppgifterna stämmer</button><button class="primary" id="guestContactReturnBtn" type="button">Stäng gästens svar</button></div></div>
   </div>
 </div>
 
@@ -1157,6 +1181,17 @@
     <div class="dialogue-guest-card"><div class="dialogue-face" id="dialogueMoodFace">🙂</div><div class="dialogue-mood"><b id="dialogueGuestName">Gäst</b><span id="dialogueMoodText">Lugn</span><div class="mood-track"><div class="mood-fill" id="dialogueMoodFill"></div></div></div></div>
     <p>Välj vad personalen säger. Bemötandet påverkar gästens humör under vistelsen.</p>
     <div id="checkinDialogueChoices"></div><div id="checkinDialogueResult"></div>
+  </div>
+</div>
+
+<div class="modal" id="earlyArrivalModal">
+  <div class="box" style="width:min(720px,96vw)">
+    <div class="box-head"><h2>🕒 Tidig ankomst</h2><button class="close" data-close="earlyArrivalModal">Stäng</button></div>
+    <div class="early-arrival-card" id="earlyArrivalMessage"></div>
+    <div class="early-arrival-status" id="earlyArrivalStatus"></div>
+    <p><strong>Vad säger du till gästen?</strong></p>
+    <div class="phone-dialogue-choices" id="earlyArrivalChoices"></div>
+    <div id="earlyArrivalResult"></div>
   </div>
 </div>
 
@@ -1295,7 +1330,7 @@
       <h3>🧳 Gästresa · sampletest</h3>
       <div class="journey-card">
         <h3>Weekendgästen Sara Lind</h3>
-        <p>Följ samma gäst genom tre kontaktpunkter. Eleven får problem under vistelsen och måste välja hur situationen ska lösas. Rätt svar ger ordinarie poäng och en tidsbonus om eleven löser problemet snabbt.</p>
+        <p>Följ samma gäst genom tre kontaktpunkter. Eleven får problem under vistelsen och måste välja hur situationen ska lösas. Uppgifterna har ingen tidtagning – eleven får arbeta i egen takt.</p>
         <div class="journey-stages"><span class="journey-stage-chip">1 · Reception</span><span class="journey-stage-chip">2 · Gästservice</span><span class="journey-stage-chip">3 · Frukost</span></div>
         <button class="primary" id="startSampleJourneyBtn" type="button">▶ Starta sample-gästresa</button>
       </div>
@@ -1392,7 +1427,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-188 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-193 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1413,8 +1448,8 @@
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
   const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
-  const HOTEL_VERSION = "v.01-189";
-  const MASTER_CONTENT_VERSION = "v.01-188";
+  const HOTEL_VERSION = "v.01-193";
+  const MASTER_CONTENT_VERSION = "v.01-193";
   const TEACHER_PASSWORD = "password1234";
   function normalizeStudentCode(value){return String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,16);}
   function studentSaveKey(code){return `index_hotell_student_v115_${normalizeStudentCode(code)}`;}
@@ -1481,13 +1516,13 @@
   };
 
   const defaultCheckinPhrases = [
-    {text:"God morgon och varmt välkommen till vårt hotell. Vad kan jag hjälpa er med idag?",effect:10,feedback:"Mycket bra. Ett professionellt, vänligt och öppet välkomnande. En redan nöjd gäst stannar på 100 %."},
-    {text:"Välkommen! Har ni en reservation hos oss?",effect:5,feedback:"Bra och tydligt. Ett något kortare men fortfarande serviceinriktat välkomnande."},
+    {text:"God morgon och varmt välkommen till vårt hotell. Vad kan jag hjälpa er med idag?",effect:5,feedback:"Mycket bra. Ett professionellt, vänligt och öppet välkomnande."},
+    {text:"Välkommen! Har ni en reservation hos oss?",effect:3,feedback:"Bra och tydligt. Ett något kortare men fortfarande serviceinriktat välkomnande."},
     {text:"Hej! Vad kan jag hjälpa er med?",effect:0,feedback:"Godtagbart. Vänligt men mindre hotellmässigt och mindre personligt."},
-    {text:"Har ni bokat?",effect:-5,feedback:"Svagt välkomnande. Du går direkt på ärendet utan att riktigt välkomna gästen."},
-    {text:"Namn och legitimation, tack.",effect:-12,feedback:"Sakligt men opersonligt. Gästen blir mindre nöjd eftersom kontakten börjar som en kontroll."},
-    {text:"Ni får vänta lite, jag är upptagen.",effect:-20,feedback:"Dåligt välkomnande. En gäst som kom med 100 % nöjdhet sjunker till 80 %."},
-    {text:"Vad vill ni?",effect:-35,feedback:"Mycket dåligt och avvisande bemötande som kraftigt försämrar gästens upplevelse."}
+    {text:"Har ni bokat?",effect:-1,feedback:"Lite svagt välkomnande. Du går direkt på ärendet utan att riktigt välkomna gästen."},
+    {text:"Namn och legitimation, tack.",effect:-2,feedback:"Sakligt men opersonligt. Gästen blir mindre nöjd eftersom kontakten börjar som en kontroll."},
+    {text:"Ni får vänta lite, jag är upptagen.",effect:-4,feedback:"Dåligt välkomnande. Bemötandet skapar onödig irritation."},
+    {text:"Vad vill ni?",effect:-5,feedback:"Mycket dåligt och avvisande bemötande. Ett enskilt bemötandemoment kan som mest sänka gästnöjdheten med 5 poäng."}
   ];
 
   const RATE_TYPES=["Queen Room","King Deluxe","Master Suite"];
@@ -1614,7 +1649,7 @@
 
   const defaultState = {
     masterContentVersion:MASTER_CONTENT_VERSION,
-    money:6500, score:0, happiness:100, day:1,
+    money:6500, score:0, happiness:100, day:1, hotelPeriodIndex:2, hotelPeriodVersion:192,
     tasks:{checkin:false,phoneBooking:false,clean:false,breakfast:false,problem:false,build:false},
     hskQueue:[102,101,104],
     hskPlannedRoomIds:[],
@@ -1696,6 +1731,8 @@
   };
 
   let state = loadState();
+  state.hotelPeriodIndex=Math.max(0,Math.min(7,Number(state.hotelPeriodIndex??2)));
+  state.hotelPeriodVersion=192;
   function ensureGuestSatisfactionState(){
     if(Number(state.guestSatisfactionVersion||0)>=111)return;
     state.happiness=100;
@@ -1707,6 +1744,30 @@
   }
   ensureGuestSatisfactionState();
   ensureHotelDevelopmentState();
+
+  // v.01-191: självreparation av äldre sparningar + ny dröjsmålsmodell.
+  // v.01-190/v.01-189 kunde lämna DND kvar efter en redan genomförd chefskontroll.
+  function repairResolvedDndRoomLocks(){
+    if(!state||!Array.isArray(state.rooms)||!state.dndManagerChecks||typeof state.dndManagerChecks!=="object")return;
+    let changed=false;
+    state.rooms.forEach(room=>{
+      if(String(room?.doorSign||"none").toUpperCase()!=="DND")return;
+      const rec=state.dndManagerChecks[String(Number(room.id))];
+      if(!rec||rec.status!=="done")return;
+      room.doorSign="none";
+      if(["dirty","occupied_dirty","occupied"].includes(String(room.status||""))){
+        if(!Array.isArray(state.hskQueue))state.hskQueue=[];
+        if(!state.hskQueue.includes(Number(room.id)))state.hskQueue.push(Number(room.id));
+        if(state.tasks)state.tasks.clean=false;
+      }
+      changed=true;
+    });
+    if(changed){
+      try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));}catch(e){}
+    }
+  }
+  repairResolvedDndRoomLocks();
+
   function ensureBreakfastTableState(){
     if(!Array.isArray(state.breakfastTables))state.breakfastTables=[];
     const oldById=new Map(state.breakfastTables.map(t=>[Number(t.id),t]));
@@ -1900,7 +1961,82 @@
   sanitizeReservationStatuses({persist:false});
 
   const DAILY_TASK_KEYS=["checkin","phoneBooking","clean","breakfast","problem"];
+  const HOTEL_PERIODS=[
+    {label:"00:00–03:00",short:"00–03",name:"Nattpass",focus:"Sena ankomster, nattservice och enstaka gästproblem.",active:["checkin","problem"]},
+    {label:"03:00–06:00",short:"03–06",name:"Natt / tidig morgon",focus:"Lugnare hotellpass och förberedelser inför morgonen.",active:["problem"]},
+    {label:"06:00–09:00",short:"06–09",name:"Morgonpass",focus:"Frukostbuffé, frukostgäster och enstaka tidiga ärenden.",active:["breakfast","checkin"]},
+    {label:"09:00–12:00",short:"09–12",name:"Förmiddag",focus:"Check-out, frukostavslut, bord, housekeeping och gästfrågor.",active:["breakfast","checkin","clean","problem"]},
+    {label:"12:00–15:00",short:"12–15",name:"Mitt på dagen",focus:"Sena check-outs, housekeeping, tidiga ankomster, bagage och reservationssamtal.",active:["checkin","phoneBooking","clean","problem"]},
+    {label:"15:00–18:00",short:"15–18",name:"Eftermiddag",focus:"Stor check-in-period, reception, housekeeping och bokningar.",active:["checkin","phoneBooking","clean","problem"]},
+    {label:"18:00–21:00",short:"18–21",name:"Kväll",focus:"Gästservice, frågor, bokningssamtal och hotellproblem.",active:["checkin","phoneBooking","problem"]},
+    {label:"21:00–24:00",short:"21–24",name:"Sen kväll",focus:"Sena ankomster och kvarvarande uppgifter innan nästa kalenderdygn.",active:["checkin","phoneBooking","clean","breakfast","problem"]}
+  ];
   let autoDayAdvanceTimer=null;
+
+  function currentHotelPeriodIndex(){return Math.max(0,Math.min(HOTEL_PERIODS.length-1,Number(state?.hotelPeriodIndex??2)));}
+  function currentHotelPeriod(){return HOTEL_PERIODS[currentHotelPeriodIndex()]||HOTEL_PERIODS[2];}
+  function nextHotelPeriod(){return HOTEL_PERIODS[(currentHotelPeriodIndex()+1)%HOTEL_PERIODS.length];}
+  function isBreakfastHotelPeriod(){const i=currentHotelPeriodIndex();return i===2||i===3;}
+  function periodAllowsPhoneCalls(){const i=currentHotelPeriodIndex();return i>=4&&i<=6;}
+  function periodAllowsAmbientGuests(){return currentHotelPeriodIndex()!==1;}
+  function periodAllowsGuestRoomActivity(){const i=currentHotelPeriodIndex();return i>=2&&i<=6;}
+  function pendingCheckoutWorkForPeriod(){const today=getTodayIndex();return state.bookings.some(b=>b.status==="inhouse"&&bookingEndIndex(b)===today);}
+  function pendingArrivalWorkForPeriod(){const today=getTodayIndex();return state.bookings.some(b=>["arrival","reserved","late_arrival"].includes(b.status)&&Number(b.start||0)===today);}
+  function hotelPeriodRequirementState(){
+    refreshDailyTaskCompletion();
+    const i=currentHotelPeriodIndex();let complete=true,requirement="";
+    if(i===0)requirement="Inga obligatoriska moment i nattpasset. Gå vidare när du är redo.";
+    else if(i===1)requirement="Inga obligatoriska moment just nu. Gå vidare när du är redo för morgonpasset.";
+    else if(i===2){complete=Boolean(state.breakfastReady);requirement=complete?"Frukostbuffén är startad.":"Starta frukostbuffén innan du går vidare.";}
+    else if(i===3){const checkout=pendingCheckoutWorkForPeriod(),dirty=dirtyBreakfastTables().length,breakfastPending=breakfastGuestsPendingToday();complete=!checkout&&dirty===0&&!breakfastPending;requirement=complete?"Förmiddagens check-outs och frukost är klara.":`${checkout?"Hantera dagens check-out. ":""}${breakfastPending?"Låt dagens frukostgäster bli klara. ":""}${dirty?`Duka av ${dirty} smutsiga frukostbord.`:""}`.trim();}
+    else if(i===4){complete=hskDailyWorkComplete();requirement=complete?"Housekeepingarbetet inför eftermiddagens ankomster är klart.":"Slutför väntande housekeepingarbete innan 15:00.";}
+    else if(i===5){complete=!pendingArrivalWorkForPeriod();requirement=complete?"Eftermiddagens ankomster är hanterade.":"Hantera dagens väntande ankomster/check-ins.";}
+    else if(i===6){complete=Boolean(state.tasks.phoneBooking)&&Boolean(state.tasks.problem);requirement=complete?"Kvällens reservationssamtal och gästserviceproblem är klara.":`${state.tasks.phoneBooking?"":"Hantera reservationssamtalet. "}${state.tasks.problem?"":"Lös dagens gästserviceproblem."}`.trim();}
+    else {complete=dailyTasksComplete();requirement=complete?"Alla dagens kärnuppgifter är klara. Hotellet kan gå över midnatt.":"Slutför kvarvarande dagsuppgifter innan nästa kalenderdygn.";}
+    return {complete,requirement,period:currentHotelPeriod()};
+  }
+  function currentHotelPeriodTaskKeys(){return currentHotelPeriod().active.slice();}
+
+  function applyPeriodDelayConsequences(){
+    let affected=0;
+    guestAgents.forEach(guest=>{
+      if(!guest||guest.serviceInProgress||guest.ambient)return;
+      const stateKey=String(guest.state||"");
+      if(!["waitingReception","waitingDirection","waitingBreakfastBuffet","waitingBreakfastTable","waitingCheckout"].includes(stateKey))return;
+      const before=Number(state.guestMoods?.[guest.id]??100),after=Math.max(0,before-2);
+      state.guestMoods[guest.id]=after;affected++;
+      if(stateKey==="waitingReception")guest.receptionDelayPeriods=Number(guest.receptionDelayPeriods||0)+1;
+      if(stateKey==="waitingDirection")guest.directionDelayPeriods=Number(guest.directionDelayPeriods||0)+1;
+      recordAssessment("hotel_period_delay",{guest:guest.name,waitingState:stateKey,points:-2,satisfactionBefore:before,satisfactionAfter:after,period:currentHotelPeriod().short});
+    });
+    if(affected){state.happiness=Math.max(0,Number(state.happiness||100)-Math.min(5,affected));showTip(`${affected} gäst${affected===1?"":"er"} följde med till nästa hotellperiod utan färdig service. −2 gästnöjdhet per gäst.`);}
+  }
+
+  function activateCurrentHotelPeriod(){
+    const now=performance.now();
+    nextGuestReleaseAt=now+350;
+    nextAmbientGuestAt=periodAllowsAmbientGuests()?now+2200:Number.POSITIVE_INFINITY;
+    nextAmbientPhoneAt=periodAllowsPhoneCalls()&&!state.tasks.phoneBooking?now+3500:Number.POSITIVE_INFINITY;
+    guestAgents.forEach((guest,index)=>{
+      if(!guest)return;
+      if(guest.state==="inRoom")guest.nextActionAt=periodAllowsGuestRoomActivity()?now+450+index*180:Number.POSITIVE_INFINITY;
+      if(guest.state==="inRestaurant"&&!guest.ambient)guest.nextActionAt=currentHotelPeriodIndex()>=3?now+450+index*160:Number.POSITIVE_INFINITY;
+      if(guest.state==="inLobby"&&!guest.ambient)guest.nextActionAt=currentHotelPeriodIndex()>=5?now+650+index*180:Number.POSITIVE_INFINITY;
+    });
+  }
+
+  function advanceHotelPeriod(){
+    const req=hotelPeriodRequirementState();
+    if(!req.complete){showTip(req.requirement||"Slutför periodens kärnuppgifter först.");return;}
+    if(document.querySelector(".modal.show")){showTip("Stäng det pågående arbetsmomentet innan du byter hotellperiod.");return;}
+    applyPeriodDelayConsequences();
+    const i=currentHotelPeriodIndex();
+    recordAssessment("hotel_period_completed",{period:req.period.short,periodName:req.period.name,day:Number(state.day||1)});
+    if(i===HOTEL_PERIODS.length-1){advanceHotelDay(true);return;}
+    state.hotelPeriodIndex=i+1;state.hotelPeriodVersion=192;
+    activateCurrentHotelPeriod();saveState();updateHud();renderReceptionPms();updateMission();
+    showTip(`${currentHotelPeriod().label} · ${currentHotelPeriod().name}.`);
+  }
 
   function hasPendingReceptionWorkToday(){
     const todayIndex=getTodayIndex();
@@ -1958,19 +2094,8 @@
   }
 
   function scheduleAutomaticDayAdvance(){
-    if(!dailyTasksComplete())return;
-    if(autoDayAdvanceTimer)return;
-    showTip("Alla dagens arbetsuppgifter är klara. Nästa dag börjar snart.");
-    const attempt=()=>{
-      if(!dailyTasksComplete()){autoDayAdvanceTimer=null;return;}
-      if(document.querySelector(".modal.show")){
-        autoDayAdvanceTimer=setTimeout(attempt,500);
-        return;
-      }
-      autoDayAdvanceTimer=null;
-      advanceHotelDay(true);
-    };
-    autoDayAdvanceTimer=setTimeout(attempt,1600);
+    // v.01-192: ingen automatisk tidsväxling. Eleven väljer själv nästa hotellperiod när kärnuppgifterna är klara.
+    return;
   }
 
   if(Array.isArray(state.hskQueue)&&state.hskQueue.length)state.tasks.clean=false;
@@ -1999,7 +2124,7 @@
   let nextAmbientPhoneAt = 0;
   let started = false;
   let selectedMissionTaskKey = null;
-  // v.01-188: DND rapporteras av Omar; Alex tillkallas och kontrollen genomförs tillsammans.
+  // v.01-190: DND rapporteras av Omar; Alex tillkallas och kontrollen genomförs tillsammans.
   // v.01-185: HSK-status visar PÅ VÄG → VID RUMMET/DÖRRRUTIN → STÄDAR → KLAR.
   // v.01-183: manuell HSK-städning kan alltid styras inne i rummet och skräpmarkörer är tydliga.
   // v.01-182: HSK-dörrpassage robust efter korrekt knack-/Housekeeping-rutin.
@@ -2015,7 +2140,7 @@
   let dndWorkflow = null;
   let dndAutoPath = [];
   let dndAutoPathIndex = 0;
-  // v.01-188: publik HSK-städning har ett eget arbetsflöde så Omar inte kan fastna
+  // v.01-190: publik HSK-städning har ett eget arbetsflöde så Omar inte kan fastna
   // efter att eleven tryckt FIXA. Han går till ett konkret skräp, får PLOCKA-knapp
   // när han är framme och fortsätter därefter automatiskt mot nästa skräp.
   let publicLitterWorkflow = null;
@@ -2332,7 +2457,7 @@
     if(performance.now()<Number(dndWorkflow.announceWaitUntil||0)){showTip("Vänta ett ögonblick efter att Alex identifierat sig.");return;}
     const guestInside=isGuestPhysicallyInRoom(dndWorkflow.roomId);
     const door=roomDoorPoints[dndWorkflow.roomId];if(!door)return;
-    // v.01-188: skolans DND-rutin kräver två personal. Efter rapportering väntar Omar vid
+    // v.01-190: skolans DND-rutin kräver två personal. Efter rapportering väntar Omar vid
     // dörren, Alex tillkallas, identifierar sig och därefter går Alex + Omar in TILLSAMMANS.
     dndWorkflow.entryOutcome=guestInside?"two_staff_control_guest_present":"two_staff_room_control";
     dndWorkflow.speechText=guestInside?"Alex och Omar genomför kontrollen tillsammans.":"Ingen svarar – vi går in tillsammans.";
@@ -2342,17 +2467,32 @@
     recordAssessment("dnd_manager_entry_check",{roomId:dndWorkflow.roomId,escortId:dndWorkflow.escortId,guestPresent:guestInside,twoStaff:true,managerAndHousekeeperTogether:true});
     showTip(`Alex och Omar går nu in tillsammans i rum ${dndWorkflow.roomId} för DND-kontrollen.`);
   }
+  // v.01-190: avslutad DND-kontroll får aldrig lämna ett occupied_dirty-rum permanent låst.
+  // Efter tvåpersonskontrollen är dagens DND-händelse hanterad. Skylten tas bort i spelet
+  // och rummet läggs tillbaka i HSK-kön om det fortfarande behöver städas. Om gästen är
+  // kvar på rummet väntar Omar fortfarande korrekt tills gästen går ut.
   function finishDndManagerCheck(outcome){
     if(!dndWorkflow)return;
     const roomId=dndWorkflow.roomId,escort=getStaff(dndWorkflow.escortId),outside=hskDoorOutsidePoint(roomId);
     completeDndManagerCheck(roomId,dndWorkflow.escortId,outcome);
+
+    const room=state.rooms.find(item=>Number(item.id)===Number(roomId));
+    if(room && String(room.doorSign||"none").toUpperCase()==="DND"){
+      room.doorSign="none";
+      const needsCleaning=["dirty","occupied_dirty","occupied"].includes(String(room.status||""));
+      if(needsCleaning)addHskRequest(roomId);
+    }
+
     state.score+=80;
-    recordAssessment("dnd_manager_check_completed",{roomId,managerId:"manager",escortId:dndWorkflow.escortId,escortName:escort.name,outcome,points:80,day:Number(state.day||1)});
+    recordAssessment("dnd_manager_check_completed",{roomId,managerId:"manager",escortId:dndWorkflow.escortId,escortName:escort.name,outcome,points:80,day:Number(state.day||1),dndReleased:true,requeuedForCleaning:Boolean(room&&["dirty","occupied_dirty","occupied"].includes(String(room.status||"")))});
     if(outside){player.x=outside.x;player.y=outside.y;player.targetX=player.x;player.targetY=player.y;}
     const escortName=escort.name;
+    const guestInside=isGuestPhysicallyInRoom(roomId);
     dndWorkflow=null;dndAutoPath=[];dndAutoPathIndex=0;
     saveState();updateMission();renderReceptionPms();renderStaffBar();focusCameraOnWorldPoint(player.x,player.y);
-    showTip(`Dagens DND-kontroll för rum ${roomId} är genomförd av Alex och ${escortName}. +80 poäng.`);
+    showTip(guestInside
+      ? `DND-kontrollen för rum ${roomId} är klar. ${currentRoomGuestName(roomId)} är kvar på rummet – Omar städar när gästen har gått ut. +80 poäng.`
+      : `DND-kontrollen för rum ${roomId} är klar. Rummet är frisläppt till housekeeping och kan nu städas. +80 poäng.`);
   }
 
   function startHousekeepingWorkflow(task,staffId="housekeeper",mode="ideal",explicitRoomId=null){
@@ -2564,6 +2704,7 @@
     recordAssessment("housekeeping_completed",{roomId,trashCollected:3,knocks:3,announced:true,roomStatus:room.status});
     const outside=hskDoorOutsidePoint(roomId);if(outside){player.x=outside.x;player.y=outside.y;player.targetX=player.x;player.targetY=player.y;}
     hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();
+    selectedMissionTaskKey=null;
     saveState();updateMission();renderReceptionPms();renderStaffBar();focusCameraOnWorldPoint(player.x,player.y);
     showTip(`Rum ${roomId} är klart. Omar plockade alla tre skräp efter korrekt dörrrutin. +100 poäng.`);
   }
@@ -2845,6 +2986,7 @@
     if(!guest||guest.state!=="waitingDirection")return;
     const booking=activeBookingForGuest(guest),question=directionQuestionForGuest(guest,booking);
     activeDirectionGuest=guest;
+    guest.serviceInProgress=true;
     guest.directionQuestionKey=question.key;
     document.getElementById("guestDirectionQuestion").textContent=`${guest.name}: ”${question.question}”`;
     const root=document.getElementById("guestDirectionChoices");root.innerHTML="";
@@ -2853,7 +2995,7 @@
       button.onclick=()=>answerGuestDirection(question,choice);
       root.appendChild(button);
     });
-    document.getElementById("guestDirectionModal").classList.add("show");
+    openConversationDocked("guestDirectionModal",false);
   }
   function answerGuestDirection(question,choice){
     const guest=activeDirectionGuest;if(!guest)return;
@@ -2864,13 +3006,14 @@
     state.score=Math.max(0,Number(state.score||0)+Number(choice.points||0));
     if(booking)booking.directionAskedDay=Number(state.day||1);
     recordAssessment("guest_direction_answer",{guest:guest.name,choice:choice.text,correct:Boolean(choice.correct),points:Number(choice.points||0),satisfactionBefore:before,satisfactionAfter:after,reason:question.key});
-    document.getElementById("guestDirectionModal").classList.remove("show");
+    closeConversationDocked("guestDirectionModal");
+    guest.serviceInProgress=false;
     guest.returningFromOuting=true;
     guest.lastDirectionIrritationAt=0;
     queueGuestPath(guest,receptionToRoomPath(guest.roomId),"inRoom");
     activeDirectionGuest=null;
     saveState();updateHud();
-    showTip(`${choice.feedback} ${Number(choice.points||0)>=0?"+":""}${Number(choice.points||0)} poäng.`);
+    showTip(`Gästservice: ${choice.feedback} ${Number(choice.points||0)>=0?"+":""}${Number(choice.points||0)} poäng.`);
   }
 
   function ensureAmbientActivityState(){
@@ -3069,7 +3212,7 @@
     if(!state.guestMoods)state.guestMoods={};
     state.guestMoods[guest.id]=92+Math.floor(Math.random()*9);
 
-    const canEat=Boolean(state.breakfastReady)&&cleanBreakfastTables().length>0&&Math.random()<.6;
+    const canEat=isBreakfastHotelPeriod()&&Boolean(state.breakfastReady)&&cleanBreakfastTables().length>0&&Math.random()<.6;
     if(canEat){
       const tableId=assignBreakfastTable(guest);
       if(tableId){
@@ -3095,7 +3238,7 @@
     if(!nextAmbientGuestAt)nextAmbientGuestAt=now+6000;
     if(!nextAmbientPhoneAt)nextAmbientPhoneAt=now+8500;
 
-    if(now>=nextAmbientPhoneAt){
+    if(periodAllowsPhoneCalls()&&now>=nextAmbientPhoneAt){
       if(!state.tasks.phoneBooking&&phoneCallStatus()==="idle"){
         startIncomingPhoneCall();
         nextAmbientPhoneAt=Number.POSITIVE_INFINITY;
@@ -3104,7 +3247,7 @@
       }
     }
 
-    if(now>=nextAmbientGuestAt&&Number(state.ambientGuestsSpawned||0)<4&&!dailyTasksComplete()){
+    if(periodAllowsAmbientGuests()&&now>=nextAmbientGuestAt&&Number(state.ambientGuestsSpawned||0)<4&&!dailyTasksComplete()){
       spawnAmbientHotelGuest();
       nextAmbientGuestAt=now+17000+Math.random()*10000;
     }
@@ -4763,6 +4906,7 @@
     const facilitySatisfaction=facilityDailySatisfactionBonus();
     if(facilitySatisfaction>0)applyGuestSatisfactionLift(Math.max(1,Math.round(facilitySatisfaction/2)),"facility_daily_guest_satisfaction");
     state.day=Number(state.day||1)+1;
+    state.hotelPeriodIndex=0;state.hotelPeriodVersion=192;
     state.phoneTaskDay=Number(state.day||1);
     resetDailyTasksForNewDay();
     // Dagens kvarvarande ankomster som aldrig checkades in blir möjliga No Show-fall.
@@ -4773,7 +4917,7 @@
     updateHud();
     renderReceptionPms();
     updateMission();
-    showTip(`Dag ${state.day}. Nya ankomster, avresor och arbetsuppgifter är aktiva.`);
+    activateCurrentHotelPeriod();showTip(`Dag ${state.day} · ${currentHotelPeriod().label}. Hotellet fortsätter genom natten.`);
   }
 
   function startGuestFlow(){
@@ -4782,8 +4926,8 @@
     syncGuestsAndBookingsForDay({advance:false});
     nextGuestReleaseAt=performance.now()+1000;
     ensureAmbientActivityState();
-    nextAmbientGuestAt=performance.now()+6000;
-    nextAmbientPhoneAt=performance.now()+8500;
+    nextAmbientGuestAt=periodAllowsAmbientGuests()?performance.now()+2200:Number.POSITIVE_INFINITY;
+    nextAmbientPhoneAt=periodAllowsPhoneCalls()?performance.now()+3500:Number.POSITIVE_INFINITY;
 
     const resident=guestAgents.find(guest=>guest.id==="resident101");
     if(resident){resident.nextActionAt=performance.now()+6000;}
@@ -4796,7 +4940,12 @@
     );
     if(someoneAtReception) return;
 
-    const next=guestAgents.find(guest=>guest.state==="waitingDoor");
+    const next=guestAgents.find(guest=>{
+      if(guest.state!=="waitingDoor")return false;
+      const booking=activeBookingForGuest(guest);
+      if(booking&&["arrival","reserved","late_arrival"].includes(booking.status)&&Number(booking.start||0)===getTodayIndex()&&currentHotelPeriodIndex()<4)return false;
+      return true;
+    });
     if(!next) return;
 
     queueGuestPath(
@@ -4922,6 +5071,24 @@
     }
 
     guestAgents.forEach((guest,index)=>{
+      if(guest.state==="returnLater"){
+        const booking=activeBookingForGuest(guest);
+        const preferredId=preferredRoomForBooking(booking);
+        const preferredRoom=state.rooms.find(room=>Number(room.id)===Number(preferredId));
+        const alternativeReady=builtRooms().some(room=>roomTypeForId(room.id)===booking?.roomType&&housekeepingStatus(room).key==="ready"&&!findReservationConflict(room.id,Number(booking?.start||0),Math.max(1,Number(booking?.nights||1)),booking?.id));
+        const canReturn=Boolean((preferredRoom&&housekeepingStatus(preferredRoom).key==="ready")||alternativeReady);
+        const returnDay=Number(guest.returnDay||state.day||1),returnPeriod=Number(guest.returnPeriodIndex??5);
+        const hotelTimeReached=Number(state.day||1)>returnDay||(Number(state.day||1)===returnDay&&currentHotelPeriodIndex()>=returnPeriod);
+        if(hotelTimeReached&&canReturn){
+          guest.state="waitingDoor";guest.finalState="waitingDoor";guest.path=[];guest.pathIndex=0;guest.lastIrritationAt=0;guest.serviceInProgress=false;
+          guest.x=880;guest.y=2450;
+          nextGuestReleaseAt=Math.min(nextGuestReleaseAt||now,now+500);
+          if(booking){booking.earlyArrivalWaiting=false;booking.earlyArrivalReturned=true;}
+          recordAssessment("early_arrival_returned",{guest:guest.name,roomId:preferredId,day:Number(state.day||1),correct:true});
+          saveState();showTip(`${guest.name} har återkommit. Rummet kan nu hanteras för check-in.`);
+        }
+        return;
+      }
       if(guest.state==="walking"){
         const point=guest.path[guest.pathIndex];
         if(!point){
@@ -4938,12 +5105,12 @@
             if(guest.returningFromOuting&&booking){finishStayoverReturnCheck(guest,booking);guest.returningFromOuting=false;guest.dailyPhase="resting";}
             guest.nextActionAt=now+16000+index*1200;
           }else if(guest.state==="inLobby"){
-            guest.nextActionAt=now+(guest.ambient?9000:7000)+index*700;
+            guest.nextActionAt=guest.ambient?now+9000+index*700:(currentHotelPeriodIndex()>=5?now+1400+index*250:Number.POSITIVE_INFINITY);
           }else if(guest.state==="inRestaurant"){
             const table=breakfastTableById(guest.breakfastTableId);
             if(table){table.status="occupied";table.guestId=guest.id;table.dirtyAfterGuest=false;}
             // Gästen sitter och äter. Bordet ser fortfarande rent ut; synlig disk skapas först när gästen lämnar.
-            guest.nextActionAt=now+(guest.ambient?10000:12000)+index*700;
+            guest.nextActionAt=guest.ambient?now+10000+index*700:(currentHotelPeriodIndex()>=3?now+1400+index*250:Number.POSITIVE_INFINITY);
             saveState();
           }else if(guest.state==="waitingDirection"){
             guest.lastDirectionIrritationAt=now;
@@ -4952,15 +5119,9 @@
               const tableId=assignBreakfastTable(guest);
               if(tableId)queueGuestPath(guest,[restaurantSeatPoints[tableId-1]],"inRestaurant");
             }else{
-              // Gästen har kommit till frukosten men personalen har inte startat buffén i tid.
-              const current=Number(state.guestMoods[guest.id]??100);
-              state.guestMoods[guest.id]=Math.min(current,30);
-              state.happiness=Math.max(0,state.happiness-5);
-              state.score=Math.max(0,state.score-40);
+              // v.01-192: ingen verklig tidsstress. Gästen väntar, men avdrag sker först om eleven aktivt går vidare till nästa hotellperiod utan att lösa situationen.
               guest.lastBreakfastBuffetIrritationAt=now;
-              recordAssessment("breakfast_not_ready",{guest:guest.name,penaltyPoints:40,satisfactionBefore:current,satisfactionAfter:Number(state.guestMoods[guest.id]??100),message:"Gästen kom till frukosten innan buffén var startad."});
               saveState();
-              showTip(`${guest.name} kom till frukosten innan buffén var startad och blev arg. −40 poäng.`);
             }
           }
           return;
@@ -4981,36 +5142,18 @@
         }
       }
 
-      if(guest.state==="waitingReception"){
-        if(!guest.lastIrritationAt) guest.lastIrritationAt=now;
-        if(now-guest.lastIrritationAt>=7000){
-          const current=Number(state.guestMoods[guest.id]??100);
-          state.guestMoods[guest.id]=Math.max(0,current-6);
-          state.happiness=Math.max(0,state.happiness-1);
-          guest.lastIrritationAt=now;
-          saveState();
-        }
-      }
-
-      if(guest.state==="waitingDirection"){
-        if(!guest.lastDirectionIrritationAt)guest.lastDirectionIrritationAt=now;
-        if(now-guest.lastDirectionIrritationAt>=8000){
-          const before=Number(state.guestMoods[guest.id]??100),after=Math.max(0,before-4);
-          state.guestMoods[guest.id]=after;state.happiness=Math.max(0,Number(state.happiness||100)-1);
-          guest.lastDirectionIrritationAt=now;
-          recordAssessment("guest_direction_wait",{guest:guest.name,correct:false,satisfactionBefore:before,satisfactionAfter:after});
-          saveState();
-        }
-      }
+      if(guest.state==="waitingReception"&&!guest.serviceInProgress){if(!guest.lastIrritationAt)guest.lastIrritationAt=now;}
+      if(guest.state==="waitingDirection"&&!guest.serviceInProgress){if(!guest.lastDirectionIrritationAt)guest.lastDirectionIrritationAt=now;}
 
       if(guest.state==="inRoom" && now>=guest.nextActionAt){
+        if(!periodAllowsGuestRoomActivity()){guest.nextActionAt=now+5000;return;}
         const booking=activeBookingForGuest(guest);
         if(!booking){guest.nextActionAt=now+12000;return;}
         prepareInhouseGuestLife(guest,booking);
         const day=Number(state.day||1),room=state.rooms.find(item=>item.id===Number(guest.roomId));
         if(guest.departureDue){
           // Avresande gäst går till frukost men rummet stayover-städas inte innan checkout.
-          if(Number(booking.breakfastCompletedDay||0)!==day){
+          if(isBreakfastHotelPeriod()&&Number(booking.breakfastCompletedDay||0)!==day){
             if(state.breakfastReady){
               const tableId=assignBreakfastTable(guest);
               if(tableId)queueGuestPath(guest,restaurantPathFromRoom(guest.roomId,tableId-1),"inRestaurant");
@@ -5022,7 +5165,7 @@
         }else if(Number(booking.guestLifeOutingDoneDay||0)!==day){
           // Stayover-gästen lämnar rummet. Här öppnas Omars verkliga städfönster.
           beginStayoverCleaningWindow(guest,booking,Number(booking.breakfastCompletedDay||0)!==day?"breakfast":"hotel_activity");
-          if(Number(booking.breakfastCompletedDay||0)!==day){
+          if(isBreakfastHotelPeriod()&&Number(booking.breakfastCompletedDay||0)!==day){
             if(state.breakfastReady){
               const tableId=assignBreakfastTable(guest);
               if(tableId)queueGuestPath(guest,restaurantPathFromRoom(guest.roomId,tableId-1),"inRestaurant");
@@ -5064,14 +5207,6 @@
           }
         }else{
           if(!guest.lastBreakfastBuffetIrritationAt)guest.lastBreakfastBuffetIrritationAt=now;
-          if(now-guest.lastBreakfastBuffetIrritationAt>=5000){
-            const current=Number(state.guestMoods[guest.id]??30);
-            state.guestMoods[guest.id]=Math.max(0,current-5);
-            state.happiness=Math.max(0,state.happiness-1);
-            state.score=Math.max(0,state.score-10);
-            guest.lastBreakfastBuffetIrritationAt=now;
-            saveState();
-          }
         }
       }
       if(guest.state==="waitingBreakfastTable"){
@@ -5080,13 +5215,6 @@
           queueGuestPath(guest,[restaurantSeatPoints[tableId-1]],"inRestaurant");
         }else{
           if(!guest.lastTableIrritationAt)guest.lastTableIrritationAt=now;
-          if(now-guest.lastTableIrritationAt>=5000){
-            const current=Number(state.guestMoods[guest.id]??100);
-            state.guestMoods[guest.id]=Math.max(0,current-7);
-            state.happiness=Math.max(0,state.happiness-1);
-            guest.lastTableIrritationAt=now;
-            saveState();
-          }
         }
       }
       if(guest.state==="inRestaurant" && now>=guest.nextActionAt){
@@ -5349,7 +5477,7 @@
       if(interaction)best=0;
       tasks.forEach(t=>{
         if(state.tasks[t.id] || t.id==="checkin" || t.id==="phoneBooking") return;
-        // v.01-188: visa inte den stora orange UTFÖR UPPGIFT-knappen för HSK när
+        // v.01-190: visa inte den stora orange UTFÖR UPPGIFT-knappen för HSK när
         // det enda aktuella rummet fortfarande har gästen inne. Missionraden visar då VÄNTAR.
         // Publikt skräp får fortfarande plockas även om ett rum väntar på att gästen ska gå ut.
         if(t.id==="clean"){
@@ -5412,6 +5540,16 @@
 
   let activeDialogueGuest=null;
 
+  function openConversationDocked(modalId,shiftReception=true){
+    const modal=document.getElementById(modalId);if(!modal)return;
+    modal.classList.add("show","conversation-docked");
+    if(shiftReception)document.body.classList.add("reception-conversation-docked");
+  }
+  function closeConversationDocked(modalId){
+    const modal=document.getElementById(modalId);if(modal)modal.classList.remove("show","conversation-docked");
+    if(!document.querySelector(".modal.conversation-docked.show"))document.body.classList.remove("reception-conversation-docked");
+  }
+
   function moodDescription(value){
     const mood=Math.max(0,Math.min(100,Number(value)||0));
     if(mood<=14) return {face:"😡",text:"Arg"};
@@ -5449,42 +5587,133 @@
     document.getElementById("receptionModal").classList.add("show");
   }
 
+  function arrivalBookingForGuest(guest){
+    if(!guest)return null;
+    const wanted=String(guest.name||"").trim().toLowerCase();
+    return state.bookings.find(booking=>["arrival","reserved","late_arrival"].includes(booking.status)&&Number(booking.start||0)===getTodayIndex()&&String(booking.guest||"").trim().toLowerCase()===wanted)||null;
+  }
+
+  function readyAlternativeForBooking(booking){
+    if(!booking)return null;
+    return builtRooms().find(room=>roomTypeForId(room.id)===booking.roomType&&housekeepingStatus(room).key==="ready"&&!findReservationConflict(room.id,Number(booking.start||0),Math.max(1,Number(booking.nights||1)),booking.id))||null;
+  }
+
+  function bookingNeedsEarlyArrivalConversation(booking){
+    if(!booking||Number(booking.start||0)!==getTodayIndex())return false;
+    if(currentHotelPeriodIndex()<5)return true; // ordinarie check-in börjar 15:00
+    const preferredId=preferredRoomForBooking(booking),preferred=state.rooms.find(room=>Number(room.id)===Number(preferredId));
+    const preferredReady=Boolean(preferred&&housekeepingStatus(preferred).key==="ready");
+    return !preferredReady&&!readyAlternativeForBooking(booking);
+  }
+
+  function sendEarlyArrivalGuestAway(guest,booking,baggageStored){
+    if(!guest||!booking)return;
+    guest.serviceInProgress=false;
+    guest.receptionDelayMinutes=0;
+    guest.lastIrritationAt=0;
+    const currentPeriod=currentHotelPeriodIndex();
+    guest.returnDay=Number(state.day||1);
+    guest.returnPeriodIndex=currentPeriod<5?5:(currentPeriod<7?currentPeriod+1:0);
+    if(currentPeriod>=7)guest.returnDay=Number(state.day||1)+1;
+    guest.returningAfterEarlyArrival=true;
+    booking.earlyArrivalWaiting=true;
+    booking.earlyArrivalBaggage=Boolean(baggageStored);
+    booking.earlyArrivalHandledDay=Number(state.day||1);
+    queueGuestPath(guest,[{x:880,y:1120},{x:880,y:990},entrancePoint,{x:880,y:2450}],"returnLater");
+    nextGuestReleaseAt=performance.now()+1600;
+  }
+
+  function openEarlyArrivalConversation(booking,guest){
+    if(!booking||!guest)return;
+    activeDialogueGuest=guest;guest.serviceInProgress=true;
+    const preferredId=preferredRoomForBooking(booking),room=state.rooms.find(item=>Number(item.id)===Number(preferredId));
+    const status=room?housekeepingStatus(room).label:"Ej tilldelat";
+    document.getElementById("earlyArrivalMessage").innerHTML=`<strong>${escapeHtml(booking.guest)} har kommit innan rummet är klart.</strong><br>Ordinarie check-in är från kl. 15.00. Hotellet ska förklara läget professionellt och kan ta hand om bagaget tills gästen återkommer.`;
+    document.getElementById("earlyArrivalStatus").innerHTML=`<div><span>FÖRVALT RUM</span><b>${preferredId?`Rum ${preferredId}`:"Ej tilldelat"}</b></div><div><span>RUMSSTATUS</span><b>${escapeHtml(status)}</b></div>`;
+    const choices=[
+      {text:"Välkommen! Ert rum är tyvärr inte klart ännu. Ordinarie incheckning är från kl. 15.00. Vi tar gärna hand om ert bagage så länge, och ni är varmt välkommen tillbaka senare.",points:35,mood:3,baggage:true,returnLater:true,correct:true,feedback:"Professionellt: tydlig information, bagagehjälp och ett vänligt återkommande."},
+      {text:"Rummet är fortfarande upptaget. Ni får komma tillbaka senare.",points:-25,mood:-8,baggage:false,returnLater:true,correct:false,feedback:"Informationen är saklig men bemötandet är avvisande och erbjuder ingen hjälp."},
+      {text:"Ni kan vänta här i lobbyn tills rummet blir klart.",points:-10,mood:-3,baggage:false,returnLater:false,correct:false,feedback:"Gästen får inget tidsperspektiv och receptionen skapar onödig väntan."},
+      {text:"Check-in är klockan 15.00. Jag kan registrera ert bagage nu och meddela housekeeping att rummet har en ankomst idag.",points:25,mood:2,baggage:true,returnLater:true,correct:true,feedback:"Bra och praktiskt, men något mindre personligt än det bästa alternativet."}
+    ];
+    const root=document.getElementById("earlyArrivalChoices");root.innerHTML=choices.map((choice,index)=>`<button type="button" data-early-arrival-choice="${index}">${escapeHtml(choice.text)}</button>`).join("");
+    document.getElementById("earlyArrivalResult").innerHTML="";
+    root.querySelectorAll("[data-early-arrival-choice]").forEach(button=>button.onclick=()=>{
+      const choice=choices[Number(button.dataset.earlyArrivalChoice)];if(!choice)return;
+      const before=Number(state.guestMoods[guest.id]??100),after=Math.max(0,Math.min(100,before+Number(choice.mood||0)));
+      state.guestMoods[guest.id]=after;state.happiness=Math.max(0,Math.min(100,Number(state.happiness||100)+Math.round(Number(choice.mood||0)/2)));
+      state.score=Math.max(0,Number(state.score||0)+Number(choice.points||0));
+      booking.earlyArrivalChoice=choice.text;booking.earlyArrivalPoints=Number(choice.points||0);
+      recordAssessment("early_arrival_service",{guest:guest.name,roomId:preferredId,choice:choice.text,correct:Boolean(choice.correct),points:Number(choice.points||0),satisfactionBefore:before,satisfactionAfter:after,action:choice.baggage?"baggage_offered":"no_baggage"});
+      root.innerHTML="";
+      document.getElementById("earlyArrivalResult").innerHTML=`<div class="result ${choice.correct?"":"bad"}"><strong>${choice.correct?"Bra hanterat":"Det valet kan förbättras"}</strong><p>${escapeHtml(choice.feedback)}</p><div class="information-result-note">Gästnöjdhet: ${before}% → ${after}% · Hotellpoäng ${Number(choice.points)>=0?"+":""}${Number(choice.points)}</div></div><button class="primary" id="finishEarlyArrivalBtn">Fortsätt</button>`;
+      document.getElementById("finishEarlyArrivalBtn").onclick=()=>{
+        closeConversationDocked("earlyArrivalModal");
+        if(choice.returnLater){sendEarlyArrivalGuestAway(guest,booking,choice.baggage);document.getElementById("bookingDetailModal").classList.remove("show");showTip(`${guest.name} återkommer när rummet är klart.${choice.baggage?" Bagaget är omhändertaget.":""}`);}else{guest.serviceInProgress=false;guest.lastIrritationAt=performance.now();showTip(`${guest.name} väntar kvar. Gästnöjdheten påverkas först om hotellet går vidare till nästa period utan att hjälpa gästen.`);}
+        saveState();renderReceptionPms();updateMission();updateHud();
+      };
+      saveState();updateHud();
+    });
+    openConversationDocked("earlyArrivalModal",true);
+  }
+
+  function finishCheckinWelcome(useCoffee=false){
+    const guest=activeDialogueGuest;if(!guest)return;
+    const delayPeriods=Number(guest.receptionDelayPeriods||0);
+    if(useCoffee&&delayPeriods>0){
+      const before=Number(state.guestMoods[guest.id]??100),cost=25,after=Math.min(100,before+4);
+      state.money=Math.max(0,Number(state.money||0)-cost);state.guestMoods[guest.id]=after;state.score+=15;
+      recordAssessment("service_recovery_perk",{guest:guest.name,action:"free_coffee",points:15,satisfactionBefore:before,satisfactionAfter:after,reason:`reception_delay_${delayPeriods}_period`});
+      showTip(`Gratis kaffe erbjudet. Hotellet −${cost} kr, gästnöjdhet +${after-before}.`);
+    }
+    if(delayPeriods>0)recordAssessment("reception_delay_handled",{guest:guest.name,points:-2*delayPeriods,reason:`${delayPeriods}_period_wait`,correct:Boolean(useCoffee)});
+    guest.receptionDelayPeriods=0;guest.receptionDelayMinutes=0;guest.lastIrritationAt=performance.now();guest.serviceInProgress=true;
+    const booking=arrivalBookingForGuest(guest)||getArrivalBooking();
+    closeConversationDocked("checkinDialogueModal");
+    if(booking){
+      state.receptionCheckin.selectedBookingId=booking.id;saveState();renderReceptionPms();
+      if(bookingNeedsEarlyArrivalConversation(booking))openEarlyArrivalConversation(booking,guest);else{guest.serviceInProgress=false;openBookingDetail(booking.id);}
+    }else guest.serviceInProgress=false;
+    updateHud();
+  }
+
   function openCheckinDialogue(guest){
     activeDialogueGuest=guest;
+    guest.serviceInProgress=true;
+    const task=tasks.find(item=>item.id==="checkin");
+    openReceptionPms(task,state.activeStaffId,"ideal");
     const mood=Number(state.guestMoods[guest.id]??100),info=moodDescription(mood);
     document.getElementById("dialogueGuestName").textContent=guest.name;
     document.getElementById("dialogueMoodFace").textContent=info.face;
     document.getElementById("dialogueMoodText").textContent=`${info.text} · ${mood}%`;
     document.getElementById("dialogueMoodFill").style.width=`${mood}%`;
     document.getElementById("checkinDialogueResult").innerHTML="";
+    const delay=Number(guest.receptionDelayPeriods||0);
     const choices=document.getElementById("checkinDialogueChoices");
-    choices.innerHTML=state.checkinPhrases.map((phrase,index)=>`<button class="dialogue-choice" data-dialogue-choice="${index}">${escapeHtml(phrase.text)}</button>`).join("");
+    choices.innerHTML=(delay?`<div class="delay-note">Gästen blev kvar till ${delay===1?"nästa hotellperiod":`${delay} senare hotellperioder`}. Väntan har sänkt gästnöjdheten med ${delay*2} poäng. Efter välkomnandet kan du välja service recovery.</div>`:"")+state.checkinPhrases.map((phrase,index)=>`<button class="dialogue-choice" data-dialogue-choice="${index}">${escapeHtml(phrase.text)}</button>`).join("");
     choices.querySelectorAll("[data-dialogue-choice]").forEach(button=>button.onclick=()=>answerCheckinDialogue(Number(button.dataset.dialogueChoice)));
-    document.getElementById("checkinDialogueModal").classList.add("show");
+    openConversationDocked("checkinDialogueModal",true);
   }
 
   function answerCheckinDialogue(index){
     if(!activeDialogueGuest) return;
     const phrase=state.checkinPhrases[index];
     const before=Number(state.guestMoods[activeDialogueGuest.id]??100);
-    const after=Math.max(0,Math.min(100,before+Number(phrase.effect||0)));
+    const effect=Math.max(-5,Math.min(5,Number(phrase.effect||0))),after=Math.max(0,Math.min(100,before+effect));
     state.guestMoods[activeDialogueGuest.id]=after;
-    state.happiness=Math.max(0,Math.min(100,state.happiness+Math.round(Number(phrase.effect||0)/6)));
-    recordAssessment("checkin_welcome",{guest:activeDialogueGuest.name,choice:phrase.text,effect:Number(phrase.effect||0),satisfactionBefore:before,satisfactionAfter:after});
+    state.happiness=Math.max(0,Math.min(100,state.happiness+Math.round(effect/3)));
+    recordAssessment("checkin_welcome",{guest:activeDialogueGuest.name,choice:phrase.text,effect,satisfactionBefore:before,satisfactionAfter:after});
     saveState();
     const info=moodDescription(after);
     document.getElementById("dialogueMoodFace").textContent=info.face;
     document.getElementById("dialogueMoodText").textContent=`${info.text} · ${after}%`;
     document.getElementById("dialogueMoodFill").style.width=`${after}%`;
     document.getElementById("checkinDialogueChoices").innerHTML="";
-    const effect=Number(phrase.effect||0);
-    const welcomeGrade=effect>=10?"Mycket bra välkomnande":effect>=5?"Bra välkomnande":effect>=0?"Godtagbart välkomnande":effect>=-5?"Lite svagt välkomnande":effect>=-12?"Svagt välkomnande":effect>=-20?"Dåligt välkomnande":"Mycket dåligt välkomnande";
-    document.getElementById("checkinDialogueResult").innerHTML=`<div class="result ${effect<0?"bad":""}"><strong>${welcomeGrade}</strong><p>${escapeHtml(phrase.feedback||"")}</p><div class="information-result-note">Gästnöjdhet: ${before}% → ${after}%</div></div><button class="primary" id="continueToCheckinBtn">Fortsätt till reservationen</button>`;
-    document.getElementById("continueToCheckinBtn").onclick=()=>{
-      document.getElementById("checkinDialogueModal").classList.remove("show");
-      const task=tasks.find(item=>item.id==="checkin");
-      openReceptionPms(task,state.activeStaffId,"ideal");
-    };
+    const delay=Number(activeDialogueGuest.receptionDelayPeriods||0);
+    const welcomeGrade=effect>=5?"Mycket bra välkomnande":effect>=3?"Bra välkomnande":effect>=0?"Godtagbart välkomnande":effect>=-2?"Svagt välkomnande":"Mycket svagt välkomnande";
+    const recovery=delay>0?`<div class="delay-note">Gästen fick vänta till en senare hotellperiod. Du kan nu välja om hotellet ska kompensera dröjsmålet.</div><div class="recovery-actions"><button class="perk" id="coffeeRecoveryBtn">☕ Erbjud gratis kaffe i frukostrestaurangen<span class="recovery-cost">Kostar hotellet 25 kr · +4 gästnöjdhet · +15 servicepoäng</span></button><button id="noRecoveryBtn">Fortsätt utan kompensation<span class="recovery-cost">Ingen kostnad · dröjsmålets avdrag ligger kvar</span></button></div>`:`<button class="primary" id="continueToCheckinBtn">Fortsätt till reservationen</button>`;
+    document.getElementById("checkinDialogueResult").innerHTML=`<div class="result ${effect<0?"bad":""}"><strong>${welcomeGrade}</strong><p>${escapeHtml(phrase.feedback||"")}</p><div class="information-result-note">Gästnöjdhet: ${before}% → ${after}%</div></div>${recovery}`;
+    if(delay>0){document.getElementById("coffeeRecoveryBtn").onclick=()=>finishCheckinWelcome(true);document.getElementById("noRecoveryBtn").onclick=()=>finishCheckinWelcome(false);}else document.getElementById("continueToCheckinBtn").onclick=()=>finishCheckinWelcome(false);
   }
 
   function startCheckinFromBell(){
@@ -5556,10 +5785,10 @@
     const booking=selectedCheckoutBooking(),target=document.getElementById("checkoutMoments");if(!booking||!target)return;
     const keyDone=Boolean(booking.checkoutKeyDone),paymentDone=Boolean(booking.checkoutPaymentVerified),farewellDone=Boolean(booking.checkoutFarewellDone);
     target.innerHTML=`<div class="checkout-moment"><div><strong>Rumsnyckel</strong><small>${keyDone?"Nyckeln är mottagen/spärrad.":""}</small></div><button class="checkout-action-btn ${keyDone?"done":""}" id="checkoutKeyAction" type="button">${keyDone?"✓ Klar":"Ta emot nyckel"}</button></div>
-      <div class="checkout-moment"><div><strong>Betalning</strong><small>Kontrolleras i gästens reservation.</small></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="checkout-status-pill ${paymentDone?"done":""}">${paymentDone?"✓ Kontrollerad":"Ej kontrollerad"}</span><button class="checkout-action-btn ${paymentDone?"done":""}" id="checkoutOpenReservationAction" type="button">Öppna reservation</button></div></div>
+      <div class="checkout-moment"><div><strong>Betalning</strong><small>${booking.paid?"Betalningen finns registrerad – kontrollera reservationen.":`Kvar att betala: ${Number(booking.total||0)} kr.`}</small></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="checkout-status-pill ${paymentDone?"done":""}">${paymentDone?"✓ Betald / kontrollerad":booking.paid?"Betald – ej kontrollerad":"Obetald"}</span><button class="checkout-action-btn ${paymentDone?"done":""}" id="checkoutOpenReservationAction" type="button">${booking.paid?"Öppna reservation":"Ta betalt"}</button></div></div>
       <div class="checkout-moment"><div><strong>Gästbemötande</strong><small>${farewellDone?"Avslutande samtal genomfört.":""}</small></div><button class="checkout-action-btn ${farewellDone?"done":""}" id="checkoutFarewellAction" type="button">${farewellDone?"✓ Klar":"Prata med gästen"}</button></div>`;
     const keyBtn=document.getElementById("checkoutKeyAction");if(keyBtn)keyBtn.onclick=()=>openCheckoutKeyConversation(booking);
-    const reservationBtn=document.getElementById("checkoutOpenReservationAction");if(reservationBtn)reservationBtn.onclick=()=>openReservationFromCheckout(booking);
+    const reservationBtn=document.getElementById("checkoutOpenReservationAction");if(reservationBtn)reservationBtn.onclick=()=>{if(!booking.paid){state.checkoutReservationReturnId=booking.id;state.receptionCheckin.selectedBookingId=booking.id;document.getElementById("checkoutModal").classList.remove("show");openPaymentCheckModal();}else openReservationFromCheckout(booking);};
     const farewellBtn=document.getElementById("checkoutFarewellAction");if(farewellBtn)farewellBtn.onclick=()=>openCheckoutFarewellConversation(booking,0);
   }
 
@@ -5590,8 +5819,8 @@
       {text:"Tack så mycket, jag tar emot den och avslutar nyckeln för rum " + booking.roomId + ".",points:15},
       {text:"Lägg den där.",points:-8},
       {text:"Behåll den bara.",points:-20}
-    ].forEach(option=>{const button=document.createElement("button");button.textContent=option.text;button.onclick=()=>{booking.checkoutKeyDone=true;state.score=Math.max(0,state.score+option.points);saveState();document.getElementById("checkoutKeyModal").classList.remove("show");renderCheckoutMoments();};target.appendChild(button);});
-    document.getElementById("checkoutKeyModal").classList.add("show");
+    ].forEach(option=>{const button=document.createElement("button");button.textContent=option.text;button.onclick=()=>{booking.checkoutKeyDone=true;state.score=Math.max(0,state.score+option.points);saveState();closeConversationDocked("checkoutKeyModal");renderCheckoutMoments();};target.appendChild(button);});
+    openConversationDocked("checkoutKeyModal",true);
   }
 
   function openCheckoutFarewellConversation(booking,phase){
@@ -5611,9 +5840,9 @@
         {text:"Tack och hej då!",points:6,mood:1},
         {text:"Hej då.",points:0,mood:0},
         {text:"Nästa gäst!",points:-18,mood:-5}
-      ].forEach(option=>{const b=document.createElement("button");b.textContent=option.text;b.onclick=()=>{booking.checkoutFarewellDone=true;state.score=Math.max(0,state.score+option.points);const guest=guestAgentForBooking(booking);if(guest&&state.guestMoods)state.guestMoods[guest.id]=Math.max(0,Math.min(100,Number(state.guestMoods[guest.id]??100)+option.mood));saveState();document.getElementById("checkoutFarewellModal").classList.remove("show");renderCheckoutMoments();};target.appendChild(b);});
+      ].forEach(option=>{const b=document.createElement("button");b.textContent=option.text;b.onclick=()=>{booking.checkoutFarewellDone=true;state.score=Math.max(0,state.score+option.points);const guest=guestAgentForBooking(booking);if(guest&&state.guestMoods)state.guestMoods[guest.id]=Math.max(0,Math.min(100,Number(state.guestMoods[guest.id]??100)+option.mood));saveState();closeConversationDocked("checkoutFarewellModal");renderCheckoutMoments();};target.appendChild(b);});
     }
-    document.getElementById("checkoutFarewellModal").classList.add("show");
+    openConversationDocked("checkoutFarewellModal",true);
   }
 
   function startCheckoutFromBell(){
@@ -5649,7 +5878,7 @@
     if(!booking.checkoutFarewellDone){state.score=Math.max(0,state.score-35);state.happiness=Math.max(0,state.happiness-3);missed.push("gästbemötande −35");}
     const room=state.rooms.find(item=>item.id===booking.roomId);if(room){room.status="dirty";room.doorSign="none";}
     addHskRequest(booking.roomId);if(Array.isArray(state.hskPlannedRoomIds))state.hskPlannedRoomIds=state.hskPlannedRoomIds.filter(id=>Number(id)!==Number(booking.roomId));
-    booking.status="departed";state.checkoutReservationReturnId=0;state.money+=100;state.score+=140;state.happiness=Math.min(100,state.happiness+3);
+    booking.status="departed";state.checkoutReservationReturnId=0;state.score+=140;state.happiness=Math.min(100,state.happiness+3);
     guest.checkoutInProgress=false;
     guest.departureDue=false;
     guest.checkoutQueueOrder=0;
@@ -6250,7 +6479,9 @@
       return;
     }
 
-    pendingCheckinAssignment={task,staffId,mode};const arrival=state.bookings.find(booking=>booking.status==="arrival");
+    pendingCheckinAssignment={task,staffId,mode};
+    const guestName=String(receptionGuest.name||"").trim().toLowerCase();
+    const arrival=state.bookings.find(booking=>booking.status==="arrival"&&String(booking.guest||"").trim().toLowerCase()===guestName)||state.bookings.find(booking=>booking.status==="arrival");
     if(arrival){
       state.receptionCheckin.selectedBookingId=arrival.id;state.receptionCheckin.selectedRate=Number(arrival.rate||state.receptionCheckin.selectedRate||132);
       state.receptionCheckin.identityConfirmed=Boolean(arrival.identityVerified);
@@ -6435,22 +6666,25 @@
   function openGuestContactConversation(){
     const booking=getArrivalBooking();if(!booking)return;
     const expected=expectedContactForBooking(booking);
-    const checkoutMode=booking.status==="inhouse"&&bookingEndIndex(booking)===getTodayIndex()&&Number(state.checkoutReservationReturnId||0)===Number(booking.id);
+    // v.01-193: samma C/O-läge som reservationsvyn. Tidigare krävdes även checkoutReservationReturnId,
+    // vilket gjorde att kryssrutan kunde spara fel status och "2. Information" därför inte blev grön.
+    const checkoutMode=booking.status==="inhouse"&&bookingEndIndex(booking)===getTodayIndex();
     document.getElementById("guestContactSpeech").innerHTML=`<strong>${escapeHtml(booking.guest)}:</strong><br>Absolut. Mitt telefonnummer är <strong>${escapeHtml(expected.phone)}</strong>. Jag bor på <strong>${escapeHtml(expected.address)}</strong> i <strong>${escapeHtml(expected.city)}</strong>. Min e-post är <strong>${escapeHtml(expected.email)}</strong>.`;
     booking.contactConversationOpened=true;
-    const verifyBtn=document.getElementById("guestContactVerifyBtn");
-    if(verifyBtn){
-      verifyBtn.style.display=checkoutMode?"inline-flex":"none";
-      verifyBtn.disabled=Boolean(booking.checkoutInfoVerified);
-      verifyBtn.textContent=booking.checkoutInfoVerified?"✓ Gästuppgifter kontrollerade":"✓ Uppgifterna stämmer";
-      verifyBtn.onclick=()=>{
-        booking.checkoutInfoVerified=true;
-        saveState();
-        verifyBtn.disabled=true;
-        verifyBtn.textContent="✓ Gästuppgifter kontrollerade";
-        renderBookingDetail();
-      };
-    }
+    const checked=document.getElementById("guestContactChecked"),returnBtn=document.getElementById("guestContactReturnBtn"),verifyBtn=document.getElementById("guestContactVerifyBtn");
+    const isVerified=checkoutMode?Boolean(booking.checkoutInfoVerified):Boolean(booking.contactInfoVerified);
+    if(verifyBtn)verifyBtn.style.display="none";
+    if(checked){checked.checked=isVerified;checked.onchange=()=>{
+      if(checkoutMode)booking.checkoutInfoVerified=checked.checked;else booking.contactInfoVerified=checked.checked;
+      if(checked.checked)recordAssessment("guest_contact_verified",{guest:booking.guest,checkout:checkoutMode,correct:true,points:5});
+      saveState();
+      if(returnBtn)returnBtn.disabled=!checked.checked;
+      renderBookingDetail();
+      // Reservationsfönstret ligger kvar öppet bakom den dockade gästrutan.
+      document.getElementById("bookingDetailModal").classList.add("show");
+      if(checked.checked)showTip("Kontaktuppgifterna är kontrollerade. Information är klar.");
+    };}
+    if(returnBtn)returnBtn.disabled=!isVerified;
     saveState();
     const modal=document.getElementById("guestContactModal");
     modal.classList.add("show","docked");
@@ -6996,8 +7230,8 @@
         <div class="detail-box"><label>TOTALT</label><b>${Number(booking.total||0)} kr</b></div>
         <div class="detail-checkin-cell"><button class="detail-checkin-button" id="detailCheckinBtn" type="button">Check In</button></div>
       </div>
-      <div class="contact-actions"><button class="contact-ask-btn" id="askGuestContactBtn" type="button">💬 Fråga gästen om kontaktuppgifter</button></div>`;
-    const bindContact=(id,key)=>{const input=document.getElementById(id);if(input)input.onchange=()=>{booking[key]=cleanText(input.value);if(checkoutMode)booking.checkoutInfoVerified=false;saveState();renderBookingDetail();};};
+      <div class="contact-actions"><button class="contact-ask-btn" id="askGuestContactBtn" type="button">${(checkoutMode?booking.checkoutInfoVerified:booking.contactInfoVerified)?"✓ Kontaktuppgifter kontrollerade":"💬 Fråga gästen om kontaktuppgifter"}</button></div>`;
+    const bindContact=(id,key)=>{const input=document.getElementById(id);if(input)input.onchange=()=>{booking[key]=cleanText(input.value);if(checkoutMode)booking.checkoutInfoVerified=false;else booking.contactInfoVerified=false;saveState();renderBookingDetail();};};
     bindContact("checkinPhone","phone");bindContact("checkinCity","city");bindContact("checkinAddress","address");bindContact("checkinEmail","email");
     const askGuestContactBtn=document.getElementById("askGuestContactBtn");if(askGuestContactBtn)askGuestContactBtn.onclick=openGuestContactConversation;
     const returnCheckoutBtn=document.getElementById("bookingReturnCheckoutBtn");
@@ -7128,14 +7362,14 @@
       choices.innerHTML="";
       const chosen=scenario.choices[Number(booking.informationChoiceIndex||0)]||scenario.choices[0];
       result.innerHTML=`<div class="result ${Number(chosen.points)<0?"bad":""}"><strong>Informationsmomentet är redan genomfört</strong><p>${escapeHtml(chosen.feedback)}</p></div><button class="primary" id="returnFromInformationBtn">Tillbaka till bokningen</button>`;
-      document.getElementById("returnFromInformationBtn").onclick=()=>document.getElementById("informationDialogueModal").classList.remove("show");
+      document.getElementById("returnFromInformationBtn").onclick=()=>closeConversationDocked("informationDialogueModal");
     }else{
       choices.innerHTML=scenario.choices.map((choice,index)=>`<button class="dialogue-choice" data-information-choice="${index}">${escapeHtml(choice.text)}</button>`).join("");
       choices.querySelectorAll("[data-information-choice]").forEach(button=>button.onclick=()=>answerInformationDialogue(Number(button.dataset.informationChoice)));
     }
     const informationModal=document.getElementById("informationDialogueModal");
     informationModal.style.zIndex="10050";
-    informationModal.classList.add("show");
+    openConversationDocked("informationDialogueModal",true);
   }
 
   function answerInformationDialogue(index){
@@ -7163,7 +7397,7 @@
     const heading=Number(choice.points)>=15?"Bra situationsanpassning":Number(choice.points)>=5?"Godtagbart":"Svagt informationsbemötande";
     document.getElementById("informationDialogueResult").innerHTML=`<div class="result ${Number(choice.points)<0?"bad":""}"><strong>${heading}</strong><p>${escapeHtml(choice.feedback)}</p><div class="information-result-note">${Number(choice.points)>0?`+${Number(choice.points)} poäng`:`${Number(choice.points)} poäng`}</div></div><button class="primary" id="returnFromInformationBtn">Tillbaka till bokningen</button>`;
     document.getElementById("returnFromInformationBtn").onclick=()=>{
-      document.getElementById("informationDialogueModal").classList.remove("show");
+      closeConversationDocked("informationDialogueModal");
       renderBookingDetail();
     };
   }
@@ -7206,13 +7440,28 @@
     document.getElementById("paymentCardNumber").textContent=`•••• •••• •••• ${paymentCardLast4(booking)}`;
     document.getElementById("paymentCardSource").textContent=`${booking.source||"Direkt"}`;
     document.getElementById("paymentCardTotal").textContent=`${Number(booking.total||0)} kr`;
-    document.getElementById("paymentCardPaid").textContent=booking.paid?"Betald / garanti finns":"Betalningsgaranti kontrolleras";
-    const checkbox=document.getElementById("paymentCardConfirmed");checkbox.checked=checkoutMode?Boolean(booking.checkoutPaymentVerified):Boolean(checkin.paymentConfirmed);
-    checkbox.onchange=()=>{
-      if(checkoutMode)booking.checkoutPaymentVerified=checkbox.checked;else{checkin.paymentConfirmed=checkbox.checked;booking.paymentVerified=checkbox.checked;}
-      saveState();
-      if(checkbox.checked){document.getElementById("paymentCheckModal").classList.remove("show");document.getElementById("bookingDetailModal").classList.add("show");renderBookingDetail();if(checkoutMode)renderCheckoutMoments();showTip(checkoutMode?"Kreditkort/slutbetalning är kontrollerad.":"Betalningsmedel kontrollerat.");}
-    };
+    document.getElementById("paymentCardPaid").textContent=booking.paid?"BETALD":"OBETALD";
+    const checkbox=document.getElementById("paymentCardConfirmed"),confirmRow=document.getElementById("paymentConfirmRow"),chargeArea=document.getElementById("paymentChargeArea");
+    checkbox.checked=checkoutMode?Boolean(booking.checkoutPaymentVerified):Boolean(checkin.paymentConfirmed);
+    if(checkoutMode&&!booking.paid){
+      confirmRow.style.display="none";
+      chargeArea.innerHTML=`<div class="payment-charge-card"><strong>Kvar att betala: ${Number(booking.total||0)} kr</strong><small>Genomför betalningen innan utcheckningen kan markeras som klar.</small><button class="payment-charge-button" id="takePaymentBtn" type="button">💳 TA BETALT ${Number(booking.total||0)} KR</button></div>`;
+      document.getElementById("takePaymentBtn").onclick=()=>{
+        booking.paid=true;booking.checkoutPaymentVerified=true;booking.paymentTakenDay=Number(state.day||1);
+        recordAssessment("checkout_payment_taken",{guest:booking.guest,amount:Number(booking.total||0),correct:true,points:5});saveState();
+        document.getElementById("paymentCardPaid").textContent="BETALD";
+        chargeArea.innerHTML=`<div class="payment-charge-card paid"><strong>✓ Betalning genomförd</strong><small>${Number(booking.total||0)} kr är registrerat på reservationen.</small></div>`;
+        setTimeout(()=>{document.getElementById("paymentCheckModal").classList.remove("show");renderCheckoutMoments();document.getElementById("checkoutModal").classList.add("show");showTip(`Betalningen på ${Number(booking.total||0)} kr är genomförd.`);},350);
+      };
+    }else{
+      chargeArea.innerHTML=checkoutMode?`<div class="payment-charge-card paid"><strong>✓ Reservationen är betald</strong><small>Kontrollera att betalningen stämmer och markera kontrollen nedan.</small></div>`:"";
+      confirmRow.style.display="flex";
+      checkbox.onchange=()=>{
+        if(checkoutMode)booking.checkoutPaymentVerified=checkbox.checked;else{checkin.paymentConfirmed=checkbox.checked;booking.paymentVerified=checkbox.checked;}
+        saveState();
+        if(checkbox.checked){document.getElementById("paymentCheckModal").classList.remove("show");document.getElementById("bookingDetailModal").classList.add("show");renderBookingDetail();if(checkoutMode)renderCheckoutMoments();showTip(checkoutMode?"Betalningen är kontrollerad.":"Betalningsmedel kontrollerat.");}
+      };
+    }
     document.getElementById("paymentCheckModal").classList.add("show");
   }
 
@@ -7268,7 +7517,7 @@
     return roomCurrentStatusText(room);
   }
 
-  // v.01-188: ett rum där gästen fortfarande är inne får inte blockera hela HSK-kön.
+  // v.01-190: ett rum där gästen fortfarande är inne får inte blockera hela HSK-kön.
   // Prioritera först DND (kan rapporteras utan att gå in), därefter ett rum där gästen är ute.
   // Om alla väntande rum är blockerade av gäster returneras första rummet så UI kan visa VÄNTAR.
   function currentHskRoomId(){
@@ -7632,15 +7881,14 @@
   function stopScenarioTimer(){if(scenarioTimerInterval){clearInterval(scenarioTimerInterval);scenarioTimerInterval=null;}}
   function renderScenarioTimer(){
     const meta=document.getElementById("scenarioJourneyMeta"),label=document.getElementById("scenarioJourneyLabel"),timer=document.getElementById("scenarioTimer");
-    if(!activeScenario?.timeLimitSeconds){if(meta)meta.hidden=true;return;}
-    if(meta)meta.hidden=false;const elapsed=Math.max(0,(Date.now()-Number(activeScenario._startedAt||Date.now()))/1000),left=Math.max(0,Math.ceil(Number(activeScenario.timeLimitSeconds)-elapsed));
-    if(label)label.textContent=activeGuestJourney?`${activeGuestJourney.guest} · steg ${guestJourneyStageIndex+1}/${activeGuestJourney.stages.length}`:`Tidsutmaning`;
-    if(timer){timer.textContent=`⏱ ${left} s`;timer.classList.toggle("urgent",left<=10);}
+    if(!activeGuestJourney){if(meta)meta.hidden=true;return;}
+    if(meta)meta.hidden=false;if(label)label.textContent=`${activeGuestJourney.guest} · steg ${guestJourneyStageIndex+1}/${activeGuestJourney.stages.length}`;
+    if(timer){timer.textContent="Ingen tidtagning";timer.classList.remove("urgent");}
   }
   function prepareScenarioModal(scenario){
     activeScenario=clone(scenario);activeScenario._startedAt=Date.now();document.getElementById("scenarioTitle").textContent=activeScenario.title;document.getElementById("scenarioProblem").textContent=activeScenario.problem;
     const box=document.getElementById("scenarioChoices");box.innerHTML="";activeScenario.choices.forEach((c,i)=>{const b=document.createElement("button");b.className="choice";b.textContent=c.text;b.onclick=()=>answerScenario(i);box.appendChild(b);});
-    renderScenarioTimer();stopScenarioTimer();if(activeScenario.timeLimitSeconds)scenarioTimerInterval=setInterval(renderScenarioTimer,250);document.getElementById("scenarioModal").classList.add("show");
+    renderScenarioTimer();stopScenarioTimer();openConversationDocked("scenarioModal",false);
   }
   function openRandomScenario(department,completeTask,assignment=null){
     const arr=state.scenarios.filter(s=>s.department===department);if(!arr.length){showTip("Läraren har ännu inte lagt in ett problem för den här avdelningen.");return}
@@ -7651,23 +7899,23 @@
   }
   function openGuestJourneyStage(){if(!activeGuestJourney)return;const stage=clone(activeGuestJourney.stages[guestJourneyStageIndex]);stage._journeyStage=true;prepareScenarioModal(stage);}
   function finishGuestJourney(){
-    stopScenarioTimer();const correct=guestJourneyResults.filter(x=>x.correct).length,bonus=guestJourneyResults.reduce((sum,x)=>sum+Number(x.bonus||0),0);recordAssessment("journey_completed",{journeyId:activeGuestJourney.id,journeyTitle:activeGuestJourney.title,guest:activeGuestJourney.guest,correctStages:correct,totalStages:guestJourneyResults.length,bonusPoints:bonus});saveState();
+    stopScenarioTimer();const correct=guestJourneyResults.filter(x=>x.correct).length,bonus=0;recordAssessment("journey_completed",{journeyId:activeGuestJourney.id,journeyTitle:activeGuestJourney.title,guest:activeGuestJourney.guest,correctStages:correct,totalStages:guestJourneyResults.length,bonusPoints:bonus});saveState();
     const target=document.getElementById("scenarioChoices");document.getElementById("scenarioTitle").textContent=`Gästresan klar · ${activeGuestJourney.guest}`;document.getElementById("scenarioProblem").textContent="Du har följt gästen genom hela sample-resan.";document.getElementById("scenarioJourneyMeta").hidden=true;
-    target.innerHTML=`<div class="result"><strong>Gästresan är avslutad.</strong><div class="journey-result-summary"><div><span>Rätt lösta</span><b>${correct}/${guestJourneyResults.length}</b></div><div><span>Tidsbonus</span><b>+${bonus}</b></div><div><span>Hotellpoäng</span><b>${Number(state.score||0)}</b></div></div></div><button class="primary" id="continueScenario">Stäng</button>`;
-    document.getElementById("continueScenario").onclick=()=>{document.getElementById("scenarioModal").classList.remove("show");activeGuestJourney=null;};
+    target.innerHTML=`<div class="result"><strong>Gästresan är avslutad.</strong><div class="journey-result-summary"><div><span>Rätt lösta</span><b>${correct}/${guestJourneyResults.length}</b></div><div><span>Arbetstempo</span><b>Egen takt</b></div><div><span>Hotellpoäng</span><b>${Number(state.score||0)}</b></div></div></div><button class="primary" id="continueScenario">Stäng</button>`;
+    document.getElementById("continueScenario").onclick=()=>{closeConversationDocked("scenarioModal");activeGuestJourney=null;};
   }
   function answerScenario(i){
-    const c=activeScenario.choices[i],elapsed=Math.round((Date.now()-Number(activeScenario._startedAt||Date.now()))/1000),withinBonus=Boolean(c.correct&&activeScenario.bonusWindowSeconds&&elapsed<=Number(activeScenario.bonusWindowSeconds)),bonus=withinBonus?Number(activeScenario.bonusPoints||0):0;stopScenarioTimer();
+    const c=activeScenario.choices[i],elapsed=0,bonus=0;stopScenarioTimer();
     if(activeScenario._journeyStage){
       const basePoints=c.correct?120:0;if(c.correct){state.money+=100;state.score+=basePoints+bonus;state.happiness=Math.min(100,state.happiness+4);}else state.happiness=Math.max(0,state.happiness-5);
       guestJourneyResults.push({stageId:activeScenario.id,area:activeScenario.area,correct:Boolean(c.correct),elapsedSeconds:elapsed,bonus});recordAssessment("journey_stage",{journeyId:activeGuestJourney?.id,guest:activeGuestJourney?.guest,stageId:activeScenario.id,title:activeScenario.title,area:activeScenario.area,department:activeScenario.department,choice:c.text,correct:Boolean(c.correct),elapsedSeconds:elapsed,timeLimitSeconds:Number(activeScenario.timeLimitSeconds||0),bonusPoints:bonus,points:basePoints+bonus});saveState();updateMission();
-      const target=document.getElementById("scenarioChoices");target.innerHTML=`<div class="result ${c.correct?"":"bad"}"><strong>${c.correct?"Bra hanterat!":"Det valet behöver förbättras."}</strong><p>${escapeHtml(c.feedback||"")}</p>${c.correct?`<p><strong>Poäng:</strong> +${basePoints}${bonus?` + ${bonus} tidsbonus`:""} · svarstid ${elapsed} s</p>`:`<p>Svarstid: ${elapsed} s</p>`}</div><button class="primary" id="continueScenario">${guestJourneyStageIndex<activeGuestJourney.stages.length-1?"Nästa del av gästresan":"Visa resultat"}</button>`;
+      const target=document.getElementById("scenarioChoices");target.innerHTML=`<div class="result ${c.correct?"":"bad"}"><strong>${c.correct?"Bra hanterat!":"Det valet behöver förbättras."}</strong><p>${escapeHtml(c.feedback||"")}</p>${c.correct?`<p><strong>Poäng:</strong> +${basePoints}</p>`:`<p>Du får försöka tänka igenom återkopplingen i egen takt.</p>`}</div><button class="primary" id="continueScenario">${guestJourneyStageIndex<activeGuestJourney.stages.length-1?"Nästa del av gästresan":"Visa resultat"}</button>`;
       document.getElementById("continueScenario").onclick=()=>{guestJourneyStageIndex++;if(guestJourneyStageIndex<activeGuestJourney.stages.length)openGuestJourneyStage();else finishGuestJourney();};return;
     }
     recordAssessment("scenario_choice",{scenarioId:activeScenario.id,title:activeScenario.title,department:activeScenario.department,choice:c.text,correct:Boolean(c.correct),elapsedSeconds:elapsed,bonusPoints:bonus});
     const target=document.getElementById("scenarioChoices");target.innerHTML=`<div class="result ${c.correct?"":"bad"}"><strong>${c.correct?"Bra hanterat!":"Det valet behöver förbättras."}</strong><p>${escapeHtml(c.feedback||"")}</p>${bonus?`<p><strong>Tidsbonus:</strong> +${bonus} poäng</p>`:""}</div><button class="primary" id="continueScenario">Fortsätt spela</button>`;
     if(c.correct){state.money+=120;state.score+=150+bonus;state.happiness=Math.min(100,state.happiness+5);if(activeScenario._completeTask){state.tasks.problem=true;const assignment=activeScenario._assignment;const mode=assignment?.mode||"ideal";const multiplier=mode==="ideal"?1:mode==="reassigned"?.9:.65;state.score+=Math.round(100*multiplier);state.money+=Math.round(90*multiplier);}state.completed.push(activeScenario.id);}else state.happiness=Math.max(0,state.happiness-4);
-    saveState();updateMission();document.getElementById("continueScenario").onclick=()=>document.getElementById("scenarioModal").classList.remove("show");
+    saveState();updateMission();document.getElementById("continueScenario").onclick=()=>closeConversationDocked("scenarioModal");
   }
 
   function showTip(text){
@@ -7680,6 +7928,7 @@
     document.getElementById("scoreText").textContent=state.score;
     document.getElementById("happyText").textContent=state.happiness;
     document.getElementById("dayText").textContent=state.day;
+    const hotelClock=document.getElementById("hotelClockText");if(hotelClock)hotelClock.textContent=currentHotelPeriod().short;
     document.getElementById("scenarioStatus").textContent=
       `Spelet innehåller ${state.scenarios.length} scenarier + 1 sample-gästresa. Eleven har löst ${state.completed.length} problem med rätt svar.`;
     renderStaffBar();
@@ -7752,18 +8001,21 @@
       breakfast:!state.breakfastReady?"PRIORITET: Starta frukostbuffén innan gästerna kommer":dirtyBreakfastTables().length?`Frukost: duka av ${dirtyBreakfastTables().length} smutsiga bord`:activeBreakfastTables().some(t=>["reserved","occupied"].includes(t.status))?"Frukost: gäster äter – håll borden under uppsikt":breakfastGuestsPendingToday()?"Frukost: invänta dagens frukostgäster":"Frukost: buffén är klar",
       checkin:state.tasks.checkin?"Reception: dagens C/I, C/O och No Show är klara":"Reception: hantera dagens C/I, C/O och No Show",
       phoneBooking:state.tasks.phoneBooking?"Reception: dagens telefonbokning är klar":phoneStatus==="idle"?"Reception: tryck SVARA för att koppla fram ett inkommande samtal":phoneStatus==="arming"?`Reception: samtalet kopplas fram (${phoneCountdown} sek)`:phoneStatus==="ringing"?"Receptionstelefonen ringer – gå till telefonen och svara":phoneStatus==="awaiting_reservation"?"Telefonsamtalet är klart – spara reservationen i PMS":"Telefonsamtal pågår – fortsätt samtalet",
-      clean:pendingDndManagerRoomId()?(dndWorkflow?`HSK: DND-kontroll rum ${dndWorkflow.roomId} – Alex och Omar arbetar tillsammans`:`HSK: rum ${pendingDndManagerRoomId()} · DND rapporterad – Omar väntar, tillkalla hotellchef`):(hskWorkflow?hskProgressStatus().mission:publicLitterWorkflow?publicLitterStatus().mission:currentHskRoomId()?hskProgressStatus().mission:(Array.isArray(state.ambientLitter)&&state.ambientLitter.length?`HSK: plocka ${state.ambientLitter.length} skräp i allmänna ytor`:"HSK: inga väntande rum")),
+      clean:state.tasks.clean?"Housekeeping: dagens uppgifter är klara":pendingDndManagerRoomId()?(dndWorkflow?`HSK: DND-kontroll rum ${dndWorkflow.roomId} – Alex och Omar arbetar tillsammans`:`HSK: rum ${pendingDndManagerRoomId()} · DND rapporterad – Omar väntar, tillkalla hotellchef`):(hskWorkflow?hskProgressStatus().mission:publicLitterWorkflow?publicLitterStatus().mission:currentHskRoomId()?hskProgressStatus().mission:(Array.isArray(state.ambientLitter)&&state.ambientLitter.length?`HSK: plocka ${state.ambientLitter.length} skräp i allmänna ytor`:"Housekeeping: dagens uppgifter är klara")),
       problem:"Lös dagens gästserviceproblem"
     };
     if(selectedMissionTaskKey&&state.tasks[selectedMissionTaskKey])selectedMissionTaskKey=null;
+    const period=currentHotelPeriod(),periodReq=hotelPeriodRequirementState();
+    const missionPeriodText=document.getElementById("missionPeriodText");if(missionPeriodText)missionPeriodText.textContent=period.short;
+    const periodStatus=document.getElementById("periodStatus");if(periodStatus){periodStatus.classList.toggle("ready",periodReq.complete);periodStatus.innerHTML=`<strong>${periodReq.complete?"✓ Periodens kärnuppgifter är klara":"Periodens kärnuppgifter"}</strong>${escapeHtml(periodReq.requirement)}<span class="period-focus">Fokus: ${escapeHtml(period.focus)}</span>`;}
     const missionList=document.getElementById("missionList");
-    missionList.innerHTML=Object.keys(labels).map(k=>{
+    missionList.innerHTML=currentHotelPeriodTaskKeys().map(k=>{
       const done=Boolean(state.tasks[k]),selected=selectedMissionTaskKey===k,priority=k==="breakfast"&&!state.breakfastReady;
       const phoneTask=k==="phoneBooking";
       const hskTask=k==="clean";
       const hskInfo=hskTask?hskProgressStatus():null;
       const pendingDndRoom=hskTask?pendingDndManagerRoomId():null;
-      const actionText=phoneTask?(phoneStatus==="idle"?"SVARA":phoneStatus==="arming"?"VÄNTA":phoneStatus==="ringing"?"GÅ TILL":phoneStatus==="awaiting_reservation"?"SPARA":"FORTSÄTT"):(hskTask&&pendingDndRoom?(dndWorkflow?"PÅGÅR":"TILLKALLA CHEF"):hskTask&&hskWorkflow?hskInfo.action:hskTask&&publicLitterWorkflow?publicLitterStatus().action:hskTask&&hskInfo?.stage==="waiting"?"VÄNTAR":selected?"VALD":"FIXA");
+      const actionText=phoneTask?(phoneStatus==="idle"?"SVARA":phoneStatus==="arming"?"VÄNTA":phoneStatus==="ringing"?"GÅ TILL":phoneStatus==="awaiting_reservation"?"SPARA":"FORTSÄTT"):(hskTask&&pendingDndRoom?(dndWorkflow?"PÅGÅR":"TILLKALLA CHEF"):hskTask&&hskWorkflow?hskInfo.action:hskTask&&publicLitterWorkflow?publicLitterStatus().action:hskTask&&hskInfo?.stage==="waiting"?"VÄNTAR":hskTask?"FIXA":selected?"VALD":"FIXA");
       return `<div class="mission-row ${priority?"priority":""} ${selected?"selected":""}"><span class="check ${done?"done":""}">${done?"✓":"!"}</span><span class="mission-label">${labels[k]}</span>${done?"":`<button type="button" class="mission-fix ${selected&&!phoneTask?"selected":""}" data-fix-task="${k}">${actionText}</button>`}</div>`;
     }).join("");
     missionList.querySelectorAll("[data-fix-task]").forEach(button=>button.onclick=event=>{
@@ -7844,14 +8096,14 @@
       }
       selectMissionTask(key);
     });
-    const complete=dailyTasksComplete();
+    const periodComplete=periodReq.complete;
     const nextDayBtn=document.getElementById("nextDayBtn");
     if(nextDayBtn){
-      nextDayBtn.disabled=!complete;
-      nextDayBtn.textContent=complete?"Dagen klar ✓":"Dagen pågår…";
-      nextDayBtn.title=complete?"Nästa dag startar automatiskt":"Slutför dagens arbetsuppgifter först";
+      nextDayBtn.disabled=!periodComplete;
+      const nextLabel=currentHotelPeriodIndex()===HOTEL_PERIODS.length-1?`Dag ${Number(state.day||1)+1} · 00–03`:nextHotelPeriod().short;
+      nextDayBtn.textContent=periodComplete?`Fortsätt ${nextLabel} ▶`:`${period.short} pågår…`;
+      nextDayBtn.title=periodComplete?"Du väljer själv när hotellet går vidare":"Slutför periodens kärnuppgifter först";
     }
-    if(complete)scheduleAutomaticDayAdvance();
     saveState();
   }
 
@@ -7882,9 +8134,8 @@
     ctx.restore();
   }
 
-  // v.01-189: stabilitetsvakt. Ett enstaka runtime-fel får inte döda hela requestAnimationFrame-loopen.
-  let lastLoopErrorMessage="";
-  let lastLoopErrorAt=0;
+  // v.01-189: spel-loopen schemalägger alltid nästa frame även om ett enstaka
+  // uppdateringsfel inträffar. Felet loggas i konsolen i stället för att frysa hela spelet.
   function loop(now){
     try{
       const dt=Math.min(.033,(now-last)/1000);last=now;
@@ -7894,14 +8145,8 @@
         lastStaffPaint=now;
       }
       render();
-    }catch(error){
-      const message=String(error?.stack||error?.message||error||"Okänt spelfel");
-      const errorNow=performance.now();
-      if(message!==lastLoopErrorMessage || errorNow-lastLoopErrorAt>5000){
-        console.error("Hotel Manager spel-loop återhämtade sig från ett fel:",error);
-        lastLoopErrorMessage=message;
-        lastLoopErrorAt=errorNow;
-      }
+    }catch(err){
+      console.error("Hotel Manager loop error:",err);
     }finally{
       requestAnimationFrame(loop);
     }
@@ -8134,12 +8379,12 @@
   function assessmentArea(item){
     const type=String(item?.type||"");
     if(type==="journey_stage"&&item?.area)return String(item.area);
-    if(type.startsWith("checkin_")||type==="id_check")return "reception";
+    if(type.startsWith("checkin_")||type==="id_check"||type==="reception_delay_handled"||type==="early_arrival_service"||type==="early_arrival_returned")return "reception";
     if(type.startsWith("phone_")||type.includes("reservation"))return "phone";
     if(type.startsWith("housekeeping_")||type.startsWith("dnd_"))return "housekeeping";
     if(type.startsWith("breakfast_"))return "breakfast";
     if(type==="scenario_choice")return item?.department==="breakfast"?"breakfast":item?.department==="housekeeping"?"housekeeping":item?.department==="reception"?"reception":"guestservice";
-    if(type==="service_choice"||type.startsWith("guest_"))return "guestservice";
+    if(type==="service_choice"||type==="service_recovery_perk"||type.startsWith("guest_"))return "guestservice";
     if(type.startsWith("hotel_")||type.startsWith("room_upgrade")||type==="suite_completed")return "management";
     return "";
   }
@@ -8152,6 +8397,9 @@
       return done===3?3:done===2?2:done===1?1:-1;
     }
     if(type==="checkin_welcome")return Number(item.effect||0)>=0?1:-1;
+    if(type==="early_arrival_service")return item.correct?2:-1;
+    if(type==="service_recovery_perk")return 2;
+    if(type==="reception_delay_handled")return Number(item.points||0)<0?-1:1;
     if(type==="phone_booking_no_sale")return -1;
     if(type==="housekeeping_wrong_room"||type==="housekeeping_stayover_missed"||type==="breakfast_not_ready")return -1;
     if(type==="housekeeping_completed"||type==="dnd_manager_check_completed"||type==="breakfast_buffet_prepared")return 2;
@@ -8300,7 +8548,7 @@
 
   let loadedStudentResultPackage=null;
   const assessmentLabels={
-    session_started:"Startade spelomgång",checkin_completed:"Check-in slutförd",checkin_information:"Information vid check-in",checkin_welcome:"Välkomnande vid check-in",
+    session_started:"Startade spelomgång",hotel_period_completed:"Hotellperiod klar",hotel_period_delay:"Dröjsmål mellan hotellperioder",guest_contact_verified:"Gästuppgifter kontrollerade",checkout_payment_taken:"Betalning vid check-out",checkin_completed:"Check-in slutförd",checkin_information:"Information vid check-in",checkin_welcome:"Välkomnande vid check-in",early_arrival_service:"Tidig ankomst · bemötande",early_arrival_returned:"Tidig ankomst · gäst återkom",reception_delay_handled:"Reception · dröjsmål",service_recovery_perk:"Service recovery · gratis kaffe",
     phone_booking_no_sale:"Telefonbokning · ingen försäljning",phone_availability_checked:"Telefonbokning · tillgänglighet kontrollerad",phone_fullbooked_choice:"Telefonbokning · val vid fullbokat",phone_overbooking:"Telefonbokning · överbokning",phone_room_number_disclosed:"Telefonbokning · uppgav rumsnummer före incheckning",breakfast_buffet_prepared:"Frukostbuffé klar",breakfast_not_ready:"Frukost inte klar",
     housekeeping_started:"Housekeeping startad",housekeeping_completed:"Housekeeping klar",housekeeping_stayover_window_opened:"Gäst ute · städfönster",housekeeping_stayover_cleaned_in_window:"Stayover städat i tid",housekeeping_stayover_ready_on_return:"Gäst återvände till städat rum",housekeeping_stayover_skipped_dnd:"Stayover hoppades över p.g.a. DND",housekeeping_stayover_missed:"Missad stayover-städning",housekeeping_knock:"Knackning",housekeeping_announce:"HOUSEKEEPING",
     housekeeping_enter:"Inträde på rum",housekeeping_wrong_room:"Fel rum",housekeeping_dnd_reported:"DND rapporterad",housekeeping_wait_guest_inside:"Väntade på gäst",
@@ -8490,7 +8738,7 @@
   document.getElementById("startCheckoutBtn").onclick=startCheckoutFromBell;
   document.getElementById("completeCheckoutBtn").onclick=completeReceptionCheckout;
   document.getElementById("saveNewReservationBtn").onclick=saveNewReservation;
-  document.getElementById("guestContactReturnBtn").onclick=()=>{document.getElementById("guestContactModal").classList.remove("show","docked");document.body.classList.remove("guest-contact-docked");document.getElementById("bookingDetailModal").classList.add("show");renderBookingDetail();};
+  document.getElementById("guestContactReturnBtn").onclick=()=>{const checked=document.getElementById("guestContactChecked");if(checked&&!checked.checked){showTip("Kryssa i att du har jämfört uppgifterna med reservationen.");return;}document.getElementById("guestContactModal").classList.remove("show","docked");document.body.classList.remove("guest-contact-docked");document.getElementById("bookingDetailModal").classList.add("show");renderBookingDetail();};
   document.getElementById("interact").onclick=performInteraction;
   document.getElementById("breakfastTaskAction").onclick=finishBreakfastBuffetTask;
 
@@ -8498,7 +8746,10 @@
   document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{
     const modalId=b.dataset.close;
     if(modalId==="phoneBookingModal"){hangUpPhoneCall();return;}
-    document.getElementById(modalId).classList.remove("show");
+    const closingModal=document.getElementById(modalId);
+    if(closingModal?.classList.contains("conversation-docked"))closeConversationDocked(modalId);else closingModal?.classList.remove("show");
+    if(["checkinDialogueModal","earlyArrivalModal"].includes(modalId)&&activeDialogueGuest){activeDialogueGuest.serviceInProgress=false;activeDialogueGuest.lastIrritationAt=performance.now();}
+    if(modalId==="guestDirectionModal"&&activeDirectionGuest){activeDirectionGuest.serviceInProgress=false;activeDirectionGuest.lastDirectionIrritationAt=performance.now();activeDirectionGuest=null;}
     if(modalId==="receptionModal"&&(state.phoneAvailabilityCheckOpen||state.phoneAlternativeCheckOpen))finishPhoneAvailabilityWorkspace();
     if(modalId==="breakfastTaskModal"){document.getElementById("breakfastTaskModal").classList.remove("docked");document.body.classList.remove("breakfast-task-docked");}
     if(modalId==="guestContactModal"){document.getElementById("guestContactModal").classList.remove("docked");document.body.classList.remove("guest-contact-docked");}
@@ -8606,7 +8857,7 @@
   document.getElementById("endLessonBtn").onclick=openLessonEnd;
   document.getElementById("downloadProgressBtn").onclick=()=>{const name=exportFileName();recordAssessment("lesson_export",{method:"download",fileName:name});saveState();downloadStudentPackage();showTip("Spelet har sparats som en fil på datorn.");};
   document.getElementById("shareProgressBtn").onclick=shareProgressJson;
-  document.getElementById("nextDayBtn").onclick=advanceHotelDay;
+  document.getElementById("nextDayBtn").onclick=advanceHotelPeriod;
   document.getElementById("homeBtn").onclick=()=>{
     if(confirm("Vill du gå tillbaka till startsidan?")){
       started=false;document.getElementById("startScreen").style.display="grid";
