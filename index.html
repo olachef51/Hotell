@@ -761,9 +761,6 @@
   .student-profile-box label{margin:0 0 6px;color:#35406c}
   .student-profile-box input{width:100%;border:2px solid #cfd8f2;border-radius:12px;padding:11px 12px;font-weight:900;text-transform:uppercase;background:#fff}
   .student-profile-help{font-size:11px!important;line-height:1.4!important;margin:7px 0 0!important;color:#68718e!important}
-  .student-code-error{display:none;margin:7px 0 0;font-size:11px;font-weight:950;line-height:1.35;color:#a93731;background:#fff0ef;border:1px solid #efb8b3;border-radius:10px;padding:7px 9px}
-  .student-code-error.show{display:block}
-  .student-profile-box input.invalid{border-color:#d64b43;background:#fff8f7;box-shadow:0 0 0 3px rgba(214,75,67,.10)}
   .start-profile-row{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:8px}
   .profile-switch-btn{border:0;border-radius:12px;padding:9px 12px;background:#eef1fa;color:#35406c;font-weight:950}
   .saved-students-panel{max-width:470px;margin:10px auto 14px;text-align:left}
@@ -955,7 +952,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-201</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-202</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1463,7 +1460,7 @@
     <div class="hotel-logo">🏨</div>
     <h1>Hotellchefen</h1>
     <p>Styr personalen i ett hotell med stor lobby, riktigt receptions-backoffice, HSK-office och bagagerum.</p>
-    <div class="student-profile-box"><label for="studentCodeInput">Elevkod</label><input id="studentCodeInput" type="text" maxlength="16" autocomplete="off" placeholder="Skriv din elevkod" inputmode="text"><p class="student-profile-help">Använd den elevkod du har fått. Klass, elevnummer och namn hanteras av läraren i Lärarläget.</p><div class="student-code-error" id="studentCodeError" aria-live="polite"></div></div>
+    <div class="student-profile-box"><label for="studentCodeInput">Elevkod</label><input id="studentCodeInput" type="text" maxlength="16" autocomplete="off" placeholder="Skriv din elevkod" inputmode="text"></div>
     <div class="saved-students-panel" id="savedStudentsPanel">
       <div class="saved-students-head"><span>Hotell sparade på den här datorn</span><span class="saved-students-count" id="savedStudentsCount">0</span></div>
       <div class="saved-students-list" id="savedStudentsList"></div>
@@ -1473,7 +1470,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-201 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-202 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1491,25 +1488,16 @@
   const AUTO_START_KEY = "index_hotell_auto_start_v1";
   const TEACHER_UNLOCK_KEY = "index_hotell_teacher_unlocked_v1";
   const TEACHER_EMAIL_KEY = "index_hotell_teacher_email_v1";
-  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-201: standardadress följer med direkt i GitHub-filen
+  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-202: standardadress följer med direkt i GitHub-filen
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
   const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
-  const HOTEL_VERSION = "v.01-201";
-  const MASTER_CONTENT_VERSION = "v.01-201";
+  const HOTEL_VERSION = "v.01-202";
+  const MASTER_CONTENT_VERSION = "v.01-202";
   const TEACHER_PASSWORD = "password1234";
   function normalizeStudentCode(value){return String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,16);}
+  // v.01-202: eleven behöver bara ange sin elevkod. Klass, elevnummer och namn rättas av läraren i Lärarläget.
   function validStudentCodeFormat(value){return Boolean(normalizeStudentCode(value));}
-  function studentCodeFormatMessage(code){return normalizeStudentCode(code)?"":"Skriv en elevkod för att starta hotellet.";}
-  function showStudentCodeValidation(code,force=false){
-    const input=document.getElementById("studentCodeInput"),error=document.getElementById("studentCodeError");
-    const value=normalizeStudentCode(code);
-    if(input&&input.value!==value)input.value=value;
-    const valid=Boolean(value);
-    if(input)input.classList.toggle("invalid",Boolean(force&&!valid));
-    if(error){error.textContent=force&&!valid?"Skriv en elevkod.":"";error.classList.toggle("show",Boolean(force&&!valid));}
-    return valid;
-  }
   function studentSaveKey(code){return `index_hotell_student_v115_${normalizeStudentCode(code)}`;}
   function studentAutoBackupKey(code){const safe=normalizeStudentCode(code)||"LOCAL";return `${AUTO_BACKUP_PREFIX}${safe}`;}
   const currentStudentCode = normalizeStudentCode(localStorage.getItem(CURRENT_STUDENT_KEY)||"");
@@ -9037,7 +9025,7 @@
 
   function startOrContinueStudent(){
     const input=document.getElementById("studentCodeInput"),code=normalizeStudentCode(input?.value||"");
-    if(!showStudentCodeValidation(code,true)){showTip("Skriv en elevkod.");input?.focus();return;}
+    if(!code){input?.focus();return;}
     if(code!==currentStudentCode){
       localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");location.reload();return;
     }
@@ -9355,7 +9343,7 @@
   const activeStudentLabel=document.getElementById("activeStudentLabel");
   if(studentCodeInput){
     studentCodeInput.value=currentStudentCode||"";
-    studentCodeInput.addEventListener("input",()=>{const normalized=normalizeStudentCode(studentCodeInput.value);if(studentCodeInput.value!==normalized)studentCodeInput.value=normalized;showStudentCodeValidation(normalized,false);});
+    studentCodeInput.addEventListener("input",()=>{const normalized=normalizeStudentCode(studentCodeInput.value);if(studentCodeInput.value!==normalized)studentCodeInput.value=normalized;});
     studentCodeInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();startOrContinueStudent();}});
   }
   if(activeStudentLabel)activeStudentLabel.textContent=currentStudentCode?`Aktiv elev: ${currentStudentCode}`:"Ingen elev vald";
