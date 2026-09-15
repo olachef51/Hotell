@@ -952,7 +952,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-202</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-203</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1351,7 +1351,7 @@
 
     <section class="teacher-panel" id="teacher-scoreboard">
       <h3>👥 Elever & progression</h3>
-      <p>Varje importerad rapport sparas som en historikpunkt på lärardatorn. Du kan själv rätta Klass, Elevnr och Förnamn lokalt. Dessa uppgifter skickas aldrig tillbaka till elevens spel.</p>
+      <p>Varje importerad rapport sparas som en historikpunkt på lärardatorn. Elevnummer skapas automatiskt i den ordning elevernas progression läggs in. Du kan själv rätta Klass, Elevnr och Förnamn lokalt. Dessa uppgifter skickas aldrig tillbaka till elevens spel.</p>
       <div class="scoreboard-note"><strong>Samlat resultat:</strong> Check-in, Service, Städ, Frukost, Ekonomi och Gästnöjdhet väger lika. Om ett område ännu inte har genomförts räknas det inte med.</div>
       <div class="scoreboard-tools"><button class="primary" id="loadScoreboardSampleBtn" type="button">🧪 Lägg in sampledata</button><button class="secondary" id="clearScoreboardBtn" type="button">Rensa all progression</button></div>
       <div id="scoreboardView"></div>
@@ -1470,7 +1470,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-202 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-203 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1488,15 +1488,15 @@
   const AUTO_START_KEY = "index_hotell_auto_start_v1";
   const TEACHER_UNLOCK_KEY = "index_hotell_teacher_unlocked_v1";
   const TEACHER_EMAIL_KEY = "index_hotell_teacher_email_v1";
-  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-202: standardadress följer med direkt i GitHub-filen
+  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-203: standardadress följer med direkt i GitHub-filen
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
   const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
-  const HOTEL_VERSION = "v.01-202";
-  const MASTER_CONTENT_VERSION = "v.01-202";
+  const HOTEL_VERSION = "v.01-203";
+  const MASTER_CONTENT_VERSION = "v.01-203";
   const TEACHER_PASSWORD = "password1234";
   function normalizeStudentCode(value){return String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,16);}
-  // v.01-202: eleven behöver bara ange sin elevkod. Klass, elevnummer och namn rättas av läraren i Lärarläget.
+  // v.01-203: eleven behöver bara ange sin elevkod. Klass, elevnummer och namn rättas av läraren i Lärarläget.
   function validStudentCodeFormat(value){return Boolean(normalizeStudentCode(value));}
   function studentSaveKey(code){return `index_hotell_student_v115_${normalizeStudentCode(code)}`;}
   function studentAutoBackupKey(code){const safe=normalizeStudentCode(code)||"LOCAL";return `${AUTO_BACKUP_PREFIX}${safe}`;}
@@ -8599,6 +8599,22 @@
   function progressionProfileForPackage(pkg){return progressionProfileFromEvents(Array.isArray(pkg?.assessmentLog)?pkg.assessmentLog:[]);}
   function scoreboardLoad(){try{const v=JSON.parse(localStorage.getItem(TEACHER_SCOREBOARD_KEY)||"{}");return v&&typeof v==="object"?v:{students:{}};}catch(e){return {students:{}};}}
   function scoreboardSave(board){try{localStorage.setItem(TEACHER_SCOREBOARD_KEY,JSON.stringify(board));}catch(e){console.warn("Scoreboard kunde inte sparas",e);}}
+  function nextAutomaticStudentNo(board){
+    const nums=Object.values(board?.students||{}).map(s=>Number(String(s?.studentNo||"").trim())).filter(n=>Number.isInteger(n)&&n>0);
+    return nums.length?Math.max(...nums)+1:1;
+  }
+  function ensureAutomaticStudentNumbers(board){
+    if(!board||typeof board!=="object")return false;
+    if(!board.students||typeof board.students!=="object")board.students={};
+    let next=nextAutomaticStudentNo(board),changed=false;
+    Object.values(board.students).forEach(student=>{
+      if(!student||typeof student!=="object")return;
+      if(String(student.studentNo||"").trim())return;
+      student.studentNo=String(next++);
+      changed=true;
+    });
+    return changed;
+  }
   function progressionAverage(profile){const vals=PROGRESSION_AREAS.map(a=>{const x=profile?.[a.key]||{};return Number(x.evidence||0)>0?Number(x.level||0):null;}).filter(v=>v!==null);return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10:0;}
   function reportIdForPackage(pkg,code,day){const summary=pkg?.summary||{};return [code,String(pkg?.exportedAt||""),Number(day||1),Number(summary.score||0),Number(summary.loggedDecisions||0),Number(summary.totalLoggedDecisions||0)].join("|");}
   function scoreboardSnapshotFromPackage(pkg){
@@ -8610,14 +8626,14 @@
   function saveScoreboardSnapshot(pkg){
     if(!pkg||!pkg.student)return {saved:false};
     const made=scoreboardSnapshotFromPackage(pkg);if(!made)return {saved:false};const {code,snapshot}=made;
-    const board=scoreboardLoad();if(!board.students)board.students={};if(!board.students[code])board.students[code]={code,name:"",classCode:"",studentNo:"",history:[]};
-    const student=board.students[code];student.code=code;if(typeof student.name!=="string")student.name="";if(typeof student.classCode!=="string")student.classCode="";if(typeof student.studentNo!=="string")student.studentNo="";
+    const board=scoreboardLoad();if(!board.students)board.students={};ensureAutomaticStudentNumbers(board);if(!board.students[code])board.students[code]={code,name:"",classCode:"",studentNo:String(nextAutomaticStudentNo(board)),history:[]};
+    const student=board.students[code];student.code=code;if(typeof student.name!=="string")student.name="";if(typeof student.classCode!=="string")student.classCode="";if(typeof student.studentNo!=="string")student.studentNo="";ensureAutomaticStudentNumbers(board);
     const history=Array.isArray(student.history)?student.history:[];
     if(history.some(x=>String(x.reportId||"")===snapshot.reportId)){return {saved:false,duplicate:true,code,snapshot};}
     history.push(snapshot);history.sort((a,b)=>{const ta=Date.parse(a.exportedAt||"")||0,tb=Date.parse(b.exportedAt||"")||0;return ta===tb?Number(a.day||0)-Number(b.day||0):ta-tb;});student.history=history.slice(-120);scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();return {saved:true,duplicate:false,code,snapshot};
   }
   function studentCodeParts(code){const value=normalizeStudentCode(code||"");const idx=value.lastIndexOf("-");return idx>0?{classCode:value.slice(0,idx),studentNo:value.slice(idx+1)}:{classCode:"",studentNo:""};}
-  function studentDisplayParts(student){const parsed=studentCodeParts(student?.code||"");return {classCode:String(student?.classCode||parsed.classCode||"").trim().toUpperCase(),studentNo:String(student?.studentNo||parsed.studentNo||"").trim()};}
+  function studentDisplayParts(student){const parsed=studentCodeParts(student?.code||"");return {classCode:String(student?.classCode||parsed.classCode||"").trim().toUpperCase(),studentNo:String(student?.studentNo||"").trim()};}
   const SCORE_METRICS=[
     {key:"checkin",label:"Check-in",short:"C/I",color:"#4f67d8"},{key:"service",label:"Service",short:"SER",color:"#9b59b6"},{key:"housekeeping",label:"Städ",short:"HSK",color:"#2e9b78"},{key:"breakfast",label:"Frukost",short:"FRU",color:"#e59a2f"},{key:"economy",label:"Ekonomi",short:"EKO",color:"#3c8bb5"},{key:"satisfaction",label:"Gästnöjdhet",short:"GÄST",color:"#d45d6f"}
   ];
@@ -8641,7 +8657,7 @@
     scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();
   }
   function renderTeacherScoreboard(){
-    const root=document.getElementById("scoreboardView");if(!root)return;const board=scoreboardLoad(),students=Object.values(board.students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);
+    const root=document.getElementById("scoreboardView");if(!root)return;const board=scoreboardLoad();if(ensureAutomaticStudentNumbers(board))scoreboardSave(board);const students=Object.values(board.students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);
     if(!students.length){root.innerHTML='<div class="info">Ingen progression sparad ännu. Klistra in ett elevmejl under <strong>Importera progression</strong>.</div>';const d=document.getElementById("scoreboardDetail");if(d)d.innerHTML="";return;}
     students.sort((a,b)=>{const pa=studentDisplayParts(a),pb=studentDisplayParts(b);return pa.classCode.localeCompare(pb.classCode,"sv")||pa.studentNo.localeCompare(pb.studentNo,"sv",{numeric:true})||a.code.localeCompare(b.code,"sv");});
     root.innerHTML=`<div class="scoreboard-wrap"><table class="scoreboard-table"><thead><tr><th>Elevkod</th><th>Klass</th><th>Elevnr</th><th>Förnamn</th><th>Senaste dag</th><th>Samlat resultat</th>${SCORE_METRICS.map(m=>`<th>${m.short}</th>`).join("")}<th>Rapporter</th></tr></thead><tbody>${students.map(s=>{const latest=s.history.at(-1),parts=studentDisplayParts(s),metrics=scoreMetricsForSnapshot(latest),total=combinedResultForSnapshot(latest);return `<tr data-score-student="${escapeHtml(s.code)}"><td><b>${escapeHtml(s.code)}</b></td><td><input class="student-meta-input" data-student-meta="classCode" data-student-code="${escapeHtml(s.code)}" value="${escapeHtml(parts.classCode)}" placeholder="Klass"></td><td><input class="student-meta-input student-no" data-student-meta="studentNo" data-student-code="${escapeHtml(s.code)}" value="${escapeHtml(parts.studentNo)}" placeholder="Nr"></td><td><input class="student-name-input" data-student-meta="name" data-student-code="${escapeHtml(s.code)}" value="${escapeHtml(s.name||"")}" placeholder="Förnamn"></td><td>${Number(latest.day||1)}</td><td><span class="score-total-pill">${total.toFixed(1)}%</span></td>${SCORE_METRICS.map(m=>`<td>${Number.isFinite(metrics[m.key])?`${Math.round(metrics[m.key])}%`:"—"}</td>`).join("")}<td>${s.history.length}</td></tr>`;}).join("")}</tbody></table></div>`;
@@ -8676,7 +8692,7 @@
   }
   function loadScoreboardSample(){
     const board=scoreboardLoad();board.students=Object.assign({},board.students||{});const now=Date.now();
-    const make=(code,name,rows)=>{const parts=studentCodeParts(code);board.students[code]={code,name,classCode:parts.classCode,studentNo:parts.studentNo,history:rows.map((r,ri)=>{const domains={};PROGRESSION_AREAS.forEach((a,i)=>domains[a.key]={key:a.key,label:a.label,level:r.levels[i],evidence:r.levels[i]>0?Math.max(1,r.levels[i]+1):0,positive:r.levels[i],needsWork:r.levels[i]&&r.levels[i]<3?1:0,raw:r.levels[i]*2});const snap={reportId:`sample-${code}-${ri}`,day:r.day,exportedAt:new Date(now-(rows.length-ri)*86400000).toISOString(),score:r.score,guestAverage:r.guest,money:r.money,loggedDecisions:10,domains,progressAverage:0};snap.progressAverage=progressionAverage(domains);snap.totalResult=combinedResultForSnapshot(snap);return snap;})};};
+    const make=(code,name,rows)=>{const parts=studentCodeParts(code);board.students[code]={code,name,classCode:parts.classCode,studentNo:String(nextAutomaticStudentNo(board)),history:rows.map((r,ri)=>{const domains={};PROGRESSION_AREAS.forEach((a,i)=>domains[a.key]={key:a.key,label:a.label,level:r.levels[i],evidence:r.levels[i]>0?Math.max(1,r.levels[i]+1):0,positive:r.levels[i],needsWork:r.levels[i]&&r.levels[i]<3?1:0,raw:r.levels[i]*2});const snap={reportId:`sample-${code}-${ri}`,day:r.day,exportedAt:new Date(now-(rows.length-ri)*86400000).toISOString(),score:r.score,guestAverage:r.guest,money:r.money,loggedDecisions:10,domains,progressAverage:0};snap.progressAverage=progressionAverage(domains);snap.totalResult=combinedResultForSnapshot(snap);return snap;})};};
     make("HR26-01","Sara",[{day:1,score:650,guest:82,money:6750,levels:[1,1,2,1,1,0]},{day:2,score:1420,guest:88,money:7340,levels:[2,2,3,2,2,1]},{day:3,score:2360,guest:94,money:8120,levels:[3,3,3,3,3,2]}]);
     make("HR26-02","Ali",[{day:1,score:780,guest:90,money:6800,levels:[2,1,1,2,2,1]},{day:2,score:1280,guest:84,money:7210,levels:[2,1,2,2,2,2]},{day:3,score:2010,guest:89,money:7900,levels:[3,2,2,3,3,2]}]);scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();showTip("Sampledata är inlagd.");
   }
