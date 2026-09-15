@@ -930,6 +930,8 @@
   .scoreboard-trend{font-weight:1000}.scoreboard-detail{margin-top:12px}
   .scoreboard-note{background:#fff7e1;border:1px solid #efd38b;border-radius:12px;padding:10px 12px;color:#6b571f;font-size:11px;line-height:1.45}
   .student-name-input{width:112px!important;padding:6px 8px!important;border-radius:8px!important;font-size:11px!important;text-transform:none!important}
+  .student-meta-input{width:88px!important;padding:6px 8px!important;border-radius:8px!important;font-size:11px!important;font-weight:850!important}
+  .student-meta-input.student-no{width:68px!important;text-align:center!important}
   .scoreboard-table tr[data-score-student]{cursor:pointer}.scoreboard-table tr[data-score-student]:hover td{background:#f7f9ff}.scoreboard-table tr[data-score-student]:hover td:first-child{background:#f0f3ff}
   .score-total-pill{display:inline-flex;align-items:center;justify-content:center;min-width:54px;padding:6px 8px;border-radius:999px;background:#e3f4e9;color:#246a43;font-weight:1000}
   .progress-chart-card{margin-top:12px;border:2px solid #dfe6f3;border-radius:15px;background:#fbfcff;padding:12px}.progress-chart-tools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}.progress-chart-tools button{border:1px solid #d8e0ef;background:#fff;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:950;color:#3c4d6b}.progress-chart-tools button.active{background:#5269dc;color:#fff;border-color:#5269dc}.progress-chart{width:100%;height:270px;display:block;background:#fff;border-radius:10px;border:1px solid #e5eaf2}.progress-chart-grid{stroke:#e5eaf2;stroke-width:1}.progress-chart-axis{fill:#78849a;font-size:10px;font-weight:800}.progress-chart-line{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.progress-chart-dot{stroke:#fff;stroke-width:2}.progress-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:10px;font-weight:900;color:#536079}.progress-legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;background:var(--legend-color)}
@@ -953,7 +955,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-200</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-201</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1352,7 +1354,7 @@
 
     <section class="teacher-panel" id="teacher-scoreboard">
       <h3>👥 Elever & progression</h3>
-      <p>Varje importerad rapport sparas som en historikpunkt på lärardatorn. Elevens namn lägger du själv till lokalt och namnet skickas aldrig från elevens spel.</p>
+      <p>Varje importerad rapport sparas som en historikpunkt på lärardatorn. Du kan själv rätta Klass, Elevnr och Förnamn lokalt. Dessa uppgifter skickas aldrig tillbaka till elevens spel.</p>
       <div class="scoreboard-note"><strong>Samlat resultat:</strong> Check-in, Service, Städ, Frukost, Ekonomi och Gästnöjdhet väger lika. Om ett område ännu inte har genomförts räknas det inte med.</div>
       <div class="scoreboard-tools"><button class="primary" id="loadScoreboardSampleBtn" type="button">🧪 Lägg in sampledata</button><button class="secondary" id="clearScoreboardBtn" type="button">Rensa all progression</button></div>
       <div id="scoreboardView"></div>
@@ -1461,7 +1463,7 @@
     <div class="hotel-logo">🏨</div>
     <h1>Hotellchefen</h1>
     <p>Styr personalen i ett hotell med stor lobby, riktigt receptions-backoffice, HSK-office och bagagerum.</p>
-    <div class="student-profile-box"><label for="studentCodeInput">Elevkod</label><input id="studentCodeInput" type="text" maxlength="16" autocomplete="off" placeholder="Exempel: HR26-07" inputmode="text"><p class="student-profile-help"><strong>Format: KLASS-ELEVNUMMER</strong> · exempel <strong>HR26-07</strong>. Koden används för att sortera rätt klass och elev i lärarläget.</p><div class="student-code-error" id="studentCodeError" aria-live="polite"></div></div>
+    <div class="student-profile-box"><label for="studentCodeInput">Elevkod</label><input id="studentCodeInput" type="text" maxlength="16" autocomplete="off" placeholder="Skriv din elevkod" inputmode="text"><p class="student-profile-help">Använd den elevkod du har fått. Klass, elevnummer och namn hanteras av läraren i Lärarläget.</p><div class="student-code-error" id="studentCodeError" aria-live="polite"></div></div>
     <div class="saved-students-panel" id="savedStudentsPanel">
       <div class="saved-students-head"><span>Hotell sparade på den här datorn</span><span class="saved-students-count" id="savedStudentsCount">0</span></div>
       <div class="saved-students-list" id="savedStudentsList"></div>
@@ -1471,7 +1473,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-200 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-201 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1489,33 +1491,23 @@
   const AUTO_START_KEY = "index_hotell_auto_start_v1";
   const TEACHER_UNLOCK_KEY = "index_hotell_teacher_unlocked_v1";
   const TEACHER_EMAIL_KEY = "index_hotell_teacher_email_v1";
-  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-200: standardadress följer med direkt i GitHub-filen
+  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-201: standardadress följer med direkt i GitHub-filen
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
   const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
-  const HOTEL_VERSION = "v.01-200";
-  const MASTER_CONTENT_VERSION = "v.01-200";
+  const HOTEL_VERSION = "v.01-201";
+  const MASTER_CONTENT_VERSION = "v.01-201";
   const TEACHER_PASSWORD = "password1234";
   function normalizeStudentCode(value){return String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,16);}
-  function validStudentCodeFormat(value){
-    const code=normalizeStudentCode(value);
-    if(!/^[A-ZÅÄÖ0-9]{2,12}-\d{1,3}$/.test(code))return false;
-    const classCode=code.slice(0,code.lastIndexOf("-"));
-    return /[A-ZÅÄÖ]/.test(classCode);
-  }
-  function studentCodeFormatMessage(code){
-    const value=normalizeStudentCode(code);
-    if(!value)return "Skriv elevkoden i formatet KLASS-ELEVNUMMER, till exempel HR26-07.";
-    if(!value.includes("-"))return `Koden ${value} saknar bindestreck. Använd till exempel HR26-07.`;
-    return "Elevkoden ska vara KLASS-ELEVNUMMER, till exempel HR26-07. Elevnumret efter bindestrecket ska vara siffror.";
-  }
+  function validStudentCodeFormat(value){return Boolean(normalizeStudentCode(value));}
+  function studentCodeFormatMessage(code){return normalizeStudentCode(code)?"":"Skriv en elevkod för att starta hotellet.";}
   function showStudentCodeValidation(code,force=false){
     const input=document.getElementById("studentCodeInput"),error=document.getElementById("studentCodeError");
     const value=normalizeStudentCode(code);
     if(input&&input.value!==value)input.value=value;
-    const valid=validStudentCodeFormat(value);
+    const valid=Boolean(value);
     if(input)input.classList.toggle("invalid",Boolean(force&&!valid));
-    if(error){error.textContent=force&&!valid?studentCodeFormatMessage(value):"";error.classList.toggle("show",Boolean(force&&!valid));}
+    if(error){error.textContent=force&&!valid?"Skriv en elevkod.":"";error.classList.toggle("show",Boolean(force&&!valid));}
     return valid;
   }
   function studentSaveKey(code){return `index_hotell_student_v115_${normalizeStudentCode(code)}`;}
@@ -8630,13 +8622,14 @@
   function saveScoreboardSnapshot(pkg){
     if(!pkg||!pkg.student)return {saved:false};
     const made=scoreboardSnapshotFromPackage(pkg);if(!made)return {saved:false};const {code,snapshot}=made;
-    const board=scoreboardLoad();if(!board.students)board.students={};if(!board.students[code])board.students[code]={code,name:"",history:[]};
-    const student=board.students[code];student.code=code;if(typeof student.name!=="string")student.name="";
+    const board=scoreboardLoad();if(!board.students)board.students={};if(!board.students[code])board.students[code]={code,name:"",classCode:"",studentNo:"",history:[]};
+    const student=board.students[code];student.code=code;if(typeof student.name!=="string")student.name="";if(typeof student.classCode!=="string")student.classCode="";if(typeof student.studentNo!=="string")student.studentNo="";
     const history=Array.isArray(student.history)?student.history:[];
     if(history.some(x=>String(x.reportId||"")===snapshot.reportId)){return {saved:false,duplicate:true,code,snapshot};}
     history.push(snapshot);history.sort((a,b)=>{const ta=Date.parse(a.exportedAt||"")||0,tb=Date.parse(b.exportedAt||"")||0;return ta===tb?Number(a.day||0)-Number(b.day||0):ta-tb;});student.history=history.slice(-120);scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();return {saved:true,duplicate:false,code,snapshot};
   }
-  function studentCodeParts(code){const value=normalizeStudentCode(code||"");const idx=value.lastIndexOf("-");return idx>0?{classCode:value.slice(0,idx),studentNo:value.slice(idx+1)}:{classCode:value,studentNo:"—"};}
+  function studentCodeParts(code){const value=normalizeStudentCode(code||"");const idx=value.lastIndexOf("-");return idx>0?{classCode:value.slice(0,idx),studentNo:value.slice(idx+1)}:{classCode:"",studentNo:""};}
+  function studentDisplayParts(student){const parsed=studentCodeParts(student?.code||"");return {classCode:String(student?.classCode||parsed.classCode||"").trim().toUpperCase(),studentNo:String(student?.studentNo||parsed.studentNo||"").trim()};}
   const SCORE_METRICS=[
     {key:"checkin",label:"Check-in",short:"C/I",color:"#4f67d8"},{key:"service",label:"Service",short:"SER",color:"#9b59b6"},{key:"housekeeping",label:"Städ",short:"HSK",color:"#2e9b78"},{key:"breakfast",label:"Frukost",short:"FRU",color:"#e59a2f"},{key:"economy",label:"Ekonomi",short:"EKO",color:"#3c8bb5"},{key:"satisfaction",label:"Gästnöjdhet",short:"GÄST",color:"#d45d6f"}
   ];
@@ -8652,14 +8645,20 @@
   function latestStudentTotal(student){const h=student?.history||[];return h.length?combinedResultForSnapshot(h[h.length-1]):0;}
   function studentProgressBonus(student){const h=student?.history||[];if(h.length<2)return 0;const before=combinedResultForSnapshot(h[h.length-2]),latest=combinedResultForSnapshot(h[h.length-1]);return latest>before?50:0;}
   function trendForHistory(history){if(!Array.isArray(history)||history.length<2)return "→";const a=combinedResultForSnapshot(history[history.length-2]),b=combinedResultForSnapshot(history[history.length-1]);return b>a?"↑":b<a?"↓":"→";}
-  function saveStudentLocalName(code,name){const board=scoreboardLoad(),student=board.students?.[code];if(!student)return;student.name=String(name||"").trim().slice(0,40);scoreboardSave(board);renderTeacherHighscores();}
+  function saveStudentLocalMeta(code,field,value){
+    const board=scoreboardLoad(),student=board.students?.[code];if(!student)return;
+    if(field==="name")student.name=String(value||"").trim().slice(0,40);
+    if(field==="classCode")student.classCode=normalizeStudentCode(value||"").replace(/-+$/g,"").slice(0,16);
+    if(field==="studentNo")student.studentNo=String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,8);
+    scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();
+  }
   function renderTeacherScoreboard(){
     const root=document.getElementById("scoreboardView");if(!root)return;const board=scoreboardLoad(),students=Object.values(board.students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);
     if(!students.length){root.innerHTML='<div class="info">Ingen progression sparad ännu. Klistra in ett elevmejl under <strong>Importera progression</strong>.</div>';const d=document.getElementById("scoreboardDetail");if(d)d.innerHTML="";return;}
-    students.sort((a,b)=>{const pa=studentCodeParts(a.code),pb=studentCodeParts(b.code);return pa.classCode.localeCompare(pb.classCode,"sv")||pa.studentNo.localeCompare(pb.studentNo,"sv",{numeric:true});});
-    root.innerHTML=`<div class="scoreboard-wrap"><table class="scoreboard-table"><thead><tr><th>Klass</th><th>Elevnr</th><th>Förnamn</th><th>Senaste dag</th><th>Samlat resultat</th>${SCORE_METRICS.map(m=>`<th>${m.short}</th>`).join("")}<th>Rapporter</th></tr></thead><tbody>${students.map(s=>{const latest=s.history.at(-1),parts=studentCodeParts(s.code),metrics=scoreMetricsForSnapshot(latest),total=combinedResultForSnapshot(latest);return `<tr data-score-student="${escapeHtml(s.code)}"><td>${escapeHtml(parts.classCode)}</td><td>${escapeHtml(parts.studentNo)}</td><td><input class="student-name-input" data-student-name="${escapeHtml(s.code)}" value="${escapeHtml(s.name||"")}" placeholder="Förnamn"></td><td>${Number(latest.day||1)}</td><td><span class="score-total-pill">${total.toFixed(1)}%</span></td>${SCORE_METRICS.map(m=>`<td>${Number.isFinite(metrics[m.key])?`${Math.round(metrics[m.key])}%`:"—"}</td>`).join("")}<td>${s.history.length}</td></tr>`;}).join("")}</tbody></table></div>`;
+    students.sort((a,b)=>{const pa=studentDisplayParts(a),pb=studentDisplayParts(b);return pa.classCode.localeCompare(pb.classCode,"sv")||pa.studentNo.localeCompare(pb.studentNo,"sv",{numeric:true})||a.code.localeCompare(b.code,"sv");});
+    root.innerHTML=`<div class="scoreboard-wrap"><table class="scoreboard-table"><thead><tr><th>Elevkod</th><th>Klass</th><th>Elevnr</th><th>Förnamn</th><th>Senaste dag</th><th>Samlat resultat</th>${SCORE_METRICS.map(m=>`<th>${m.short}</th>`).join("")}<th>Rapporter</th></tr></thead><tbody>${students.map(s=>{const latest=s.history.at(-1),parts=studentDisplayParts(s),metrics=scoreMetricsForSnapshot(latest),total=combinedResultForSnapshot(latest);return `<tr data-score-student="${escapeHtml(s.code)}"><td><b>${escapeHtml(s.code)}</b></td><td><input class="student-meta-input" data-student-meta="classCode" data-student-code="${escapeHtml(s.code)}" value="${escapeHtml(parts.classCode)}" placeholder="Klass"></td><td><input class="student-meta-input student-no" data-student-meta="studentNo" data-student-code="${escapeHtml(s.code)}" value="${escapeHtml(parts.studentNo)}" placeholder="Nr"></td><td><input class="student-name-input" data-student-meta="name" data-student-code="${escapeHtml(s.code)}" value="${escapeHtml(s.name||"")}" placeholder="Förnamn"></td><td>${Number(latest.day||1)}</td><td><span class="score-total-pill">${total.toFixed(1)}%</span></td>${SCORE_METRICS.map(m=>`<td>${Number.isFinite(metrics[m.key])?`${Math.round(metrics[m.key])}%`:"—"}</td>`).join("")}<td>${s.history.length}</td></tr>`;}).join("")}</tbody></table></div>`;
     root.querySelectorAll("[data-score-student]").forEach(row=>row.addEventListener("click",e=>{if(e.target.closest("input"))return;renderScoreboardStudentDetail(row.dataset.scoreStudent);}));
-    root.querySelectorAll("[data-student-name]").forEach(input=>{input.addEventListener("change",()=>saveStudentLocalName(input.dataset.studentName,input.value));input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();input.blur();}});});
+    root.querySelectorAll("[data-student-meta]").forEach(input=>{input.addEventListener("change",()=>saveStudentLocalMeta(input.dataset.studentCode,input.dataset.studentMeta,input.value));input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();input.blur();}});});
   }
   function chartSvgForStudent(student,activeKey="all"){
     const history=student?.history||[],w=760,h=260,left=42,right=18,top=16,bottom=34,plotW=w-left-right,plotH=h-top-bottom;
@@ -8671,7 +8670,7 @@
     return svg+`</svg>`;
   }
   function renderScoreboardStudentDetail(code,activeKey="all"){
-    const detail=document.getElementById("scoreboardDetail"),student=scoreboardLoad().students?.[code];if(!detail||!student?.history?.length)return;const latest=student.history.at(-1),parts=studentCodeParts(code),total=combinedResultForSnapshot(latest);
+    const detail=document.getElementById("scoreboardDetail"),student=scoreboardLoad().students?.[code];if(!detail||!student?.history?.length)return;const latest=student.history.at(-1),parts=studentDisplayParts(student),total=combinedResultForSnapshot(latest);
     const historyRows=student.history.slice().reverse().map((snap,revIndex)=>{const metrics=scoreMetricsForSnapshot(snap),originalIndex=student.history.length-1-revIndex;return `<tr><td>Dag ${Number(snap.day||1)}<br><small>${escapeHtml(formatResultDate(snap.exportedAt))}</small></td><td><b>${combinedResultForSnapshot(snap).toFixed(1)}%</b></td>${SCORE_METRICS.map(m=>`<td>${Number.isFinite(metrics[m.key])?`${Math.round(metrics[m.key])}%`:"—"}</td>`).join("")}<td><button class="history-delete" type="button" data-delete-report="${originalIndex}" data-delete-student="${escapeHtml(code)}">Radera</button></td></tr>`;}).join("");
     detail.innerHTML=`<div class="student-result-view"><div class="student-result-head"><div><h4>${escapeHtml(parts.classCode)} · elev ${escapeHtml(parts.studentNo)}${student.name?` · ${escapeHtml(student.name)}`:""}</h4><div class="student-identity-row"><span class="student-identity-chip">Kod: ${escapeHtml(code)}</span><span class="student-identity-chip">${student.history.length} rapporter</span></div></div></div><div class="latest-total-card"><span>Senaste samlade resultat</span><b>${total.toFixed(1)}%</b></div><div class="progress-chart-card"><div class="progress-chart-tools"><button type="button" data-chart-metric="all" class="${activeKey==="all"?"active":""}">Alla</button>${SCORE_METRICS.map(m=>`<button type="button" data-chart-metric="${m.key}" class="${activeKey===m.key?"active":""}">${escapeHtml(m.label)}</button>`).join("")}</div>${chartSvgForStudent(student,activeKey)}<div class="progress-legend">${SCORE_METRICS.filter(m=>activeKey==="all"||m.key===activeKey).map(m=>`<span style="--legend-color:${m.color}">${escapeHtml(m.label)}</span>`).join("")}</div></div><div class="student-result-section"><h5>Historik · rapport för rapport</h5><div style="overflow:auto"><table class="history-table"><thead><tr><th>Rapport</th><th>Total</th>${SCORE_METRICS.map(m=>`<th>${m.short}</th>`).join("")}<th></th></tr></thead><tbody>${historyRows}</tbody></table></div><div class="info">Fel rapport? Radera den här och klistra sedan in rätt elevmejl igen.</div></div></div>`;
     detail.querySelectorAll("[data-chart-metric]").forEach(btn=>btn.addEventListener("click",()=>renderScoreboardStudentDetail(code,btn.dataset.chartMetric)));
@@ -8682,14 +8681,14 @@
   function renderTeacherHighscores(){
     const root=document.getElementById("highscoreView");if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);
     if(!students.length){root.innerHTML='<div class="info">Ingen progression sparad ännu.</div>';return;}
-    const individual=students.map(s=>({student:s,total:latestStudentTotal(s),parts:studentCodeParts(s.code)})).sort((a,b)=>b.total-a.total||a.student.code.localeCompare(b.student.code,"sv"));
-    const groups={};students.forEach(s=>{const cls=studentCodeParts(s.code).classCode;(groups[cls]||(groups[cls]=[])).push(s);});
+    const individual=students.map(s=>({student:s,total:latestStudentTotal(s),parts:studentDisplayParts(s)})).sort((a,b)=>b.total-a.total||a.student.code.localeCompare(b.student.code,"sv"));
+    const groups={};students.forEach(s=>{const cls=studentDisplayParts(s).classCode;if(!cls)return;(groups[cls]||(groups[cls]=[])).push(s);});
     const classes=Object.entries(groups).map(([classCode,members])=>{const performance=members.reduce((sum,s)=>sum+latestStudentTotal(s),0)/members.length;const eligible=members.filter(s=>s.history.length>=2),improved=eligible.filter(s=>studentProgressBonus(s)>0);const bonusAverage=eligible.length?improved.reduce((sum,s)=>sum+studentProgressBonus(s),0)/eligible.length:0;return {classCode,members:members.length,performance,bonusAverage,improved:improved.length,eligible:eligible.length,score:performance+bonusAverage};}).sort((a,b)=>b.score-a.score||b.performance-a.performance);
-    root.innerHTML=`<div class="highscore-grid"><div class="highscore-card"><h4>👤 Individuell highscore</h4><table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Resultat</th></tr></thead><tbody>${individual.map((x,i)=>`<tr><td class="rank-medal">${rankMedal(i)}</td><td>${escapeHtml(x.parts.classCode)}</td><td>${escapeHtml(x.student.name||x.parts.studentNo||x.student.code)}</td><td><b>${x.total.toFixed(1)}%</b></td></tr>`).join("")}</tbody></table></div><div class="highscore-card"><h4>🏫 Klass-highscore</h4><table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Klasspoäng</th><th>Prestation</th><th>Prog.bonus</th><th>Aktiva</th></tr></thead><tbody>${classes.map((x,i)=>`<tr><td class="rank-medal">${rankMedal(i)}</td><td><b>${escapeHtml(x.classCode)}</b></td><td class="class-score">${x.score.toFixed(1)} p</td><td>${x.performance.toFixed(1)}</td><td>+${x.bonusAverage.toFixed(1)} p <small>(${x.improved}/${x.eligible||0})</small></td><td>${x.members}</td></tr>`).join("")}</tbody></table></div></div>`;
+    root.innerHTML=`<div class="highscore-grid"><div class="highscore-card"><h4>👤 Individuell highscore</h4><table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Resultat</th></tr></thead><tbody>${individual.map((x,i)=>`<tr><td class="rank-medal">${rankMedal(i)}</td><td>${escapeHtml(x.parts.classCode||"—")}</td><td>${escapeHtml(x.student.name||x.parts.studentNo||x.student.code)}</td><td><b>${x.total.toFixed(1)}%</b></td></tr>`).join("")}</tbody></table></div><div class="highscore-card"><h4>🏫 Klass-highscore</h4><table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Klasspoäng</th><th>Prestation</th><th>Prog.bonus</th><th>Aktiva</th></tr></thead><tbody>${classes.map((x,i)=>`<tr><td class="rank-medal">${rankMedal(i)}</td><td><b>${escapeHtml(x.classCode)}</b></td><td class="class-score">${x.score.toFixed(1)} p</td><td>${x.performance.toFixed(1)}</td><td>+${x.bonusAverage.toFixed(1)} p <small>(${x.improved}/${x.eligible||0})</small></td><td>${x.members}</td></tr>`).join("")}</tbody></table></div></div>`;
   }
   function loadScoreboardSample(){
     const board=scoreboardLoad();board.students=Object.assign({},board.students||{});const now=Date.now();
-    const make=(code,name,rows)=>board.students[code]={code,name,history:rows.map((r,ri)=>{const domains={};PROGRESSION_AREAS.forEach((a,i)=>domains[a.key]={key:a.key,label:a.label,level:r.levels[i],evidence:r.levels[i]>0?Math.max(1,r.levels[i]+1):0,positive:r.levels[i],needsWork:r.levels[i]&&r.levels[i]<3?1:0,raw:r.levels[i]*2});const snap={reportId:`sample-${code}-${ri}`,day:r.day,exportedAt:new Date(now-(rows.length-ri)*86400000).toISOString(),score:r.score,guestAverage:r.guest,money:r.money,loggedDecisions:10,domains,progressAverage:0};snap.progressAverage=progressionAverage(domains);snap.totalResult=combinedResultForSnapshot(snap);return snap;})};
+    const make=(code,name,rows)=>{const parts=studentCodeParts(code);board.students[code]={code,name,classCode:parts.classCode,studentNo:parts.studentNo,history:rows.map((r,ri)=>{const domains={};PROGRESSION_AREAS.forEach((a,i)=>domains[a.key]={key:a.key,label:a.label,level:r.levels[i],evidence:r.levels[i]>0?Math.max(1,r.levels[i]+1):0,positive:r.levels[i],needsWork:r.levels[i]&&r.levels[i]<3?1:0,raw:r.levels[i]*2});const snap={reportId:`sample-${code}-${ri}`,day:r.day,exportedAt:new Date(now-(rows.length-ri)*86400000).toISOString(),score:r.score,guestAverage:r.guest,money:r.money,loggedDecisions:10,domains,progressAverage:0};snap.progressAverage=progressionAverage(domains);snap.totalResult=combinedResultForSnapshot(snap);return snap;})};};
     make("HR26-01","Sara",[{day:1,score:650,guest:82,money:6750,levels:[1,1,2,1,1,0]},{day:2,score:1420,guest:88,money:7340,levels:[2,2,3,2,2,1]},{day:3,score:2360,guest:94,money:8120,levels:[3,3,3,3,3,2]}]);
     make("HR26-02","Ali",[{day:1,score:780,guest:90,money:6800,levels:[2,1,1,2,2,1]},{day:2,score:1280,guest:84,money:7210,levels:[2,1,2,2,2,2]},{day:3,score:2010,guest:89,money:7900,levels:[3,2,2,3,3,2]}]);scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();showTip("Sampledata är inlagd.");
   }
@@ -8942,8 +8941,7 @@
   }
   function restoreLoadedStudentResult(){
     const pkg=loadedStudentResultPackage,backup=pkg?.backup?.state;if(!backup){showTip("Den här filen innehåller ingen spelbackup.");return;}
-    let code=normalizeStudentCode(pkg.student?.code||backup.studentCode||"");if(!code){showTip("Elevkoden saknas i filen.");return;}
-    if(!validStudentCodeFormat(code)){const replacement=normalizeStudentCode(prompt(`Backupen använder den äldre elevkoden ${code}.\n\nSkriv elevens nya kod som KLASS-ELEVNUMMER, till exempel HR26-07:`)||"");if(!replacement)return;if(!validStudentCodeFormat(replacement)){showTip(studentCodeFormatMessage(replacement));return;}code=replacement;}
+    const code=normalizeStudentCode(pkg.student?.code||backup.studentCode||"");if(!code){showTip("Elevkoden saknas i filen.");return;}
     if(!confirm(`Öppna backupen för elev ${code}? Den sparas som elevens lokala spelprofil på den här datorn.`))return;
     const restored=mergeStudentProgressWithCurrentMaster(backup,code);
     localStorage.setItem(studentSaveKey(code),JSON.stringify(restored));localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion:pkg.hotelVersion||"äldre version",toVersion:HOTEL_VERSION,day:Number(restored.day||1)}));location.reload();
@@ -8969,13 +8967,7 @@
     reader.onload=()=>{
       try{
         const extracted=extractPortableStudentSave(JSON.parse(reader.result));
-        const {pkg,backup}=extracted;let code=extracted.code;
-        if(!validStudentCodeFormat(code)){
-          const replacement=normalizeStudentCode(prompt(`Filen använder den äldre elevkoden ${code}.\n\nSkriv elevens nya kod som KLASS-ELEVNUMMER, till exempel HR26-07:`)||"");
-          if(!replacement)return;
-          if(!validStudentCodeFormat(replacement)){setLoadGameStatus(studentCodeFormatMessage(replacement),"bad");showTip(studentCodeFormatMessage(replacement));return;}
-          code=replacement;
-        }
+        const {pkg,backup}=extracted;const code=extracted.code;
         const migrated=mergeStudentProgressWithCurrentMaster(backup,code);
         const fromVersion=String(pkg.hotelVersion||"äldre version");
         const message=`${code} · Dag ${Number(migrated.day||1)} · ${Number(migrated.score||0)} hotellpoäng. Sparad med ${fromVersion}. Ladda progressionen i ${HOTEL_VERSION}? Nya master-scenarier och masterinställningar från ${HOTEL_VERSION} används.`;
@@ -9039,22 +9031,14 @@
     const normalized=normalizeStudentCode(code);
     if(!normalized)return;
     localStorage.setItem(CURRENT_STUDENT_KEY,normalized);
-    if(validStudentCodeFormat(normalized)){localStorage.setItem(AUTO_START_KEY,"1");}
-    else{localStorage.removeItem(AUTO_START_KEY);localStorage.setItem("index_hotell_legacy_code_notice_v1",normalized);}
+    localStorage.setItem(AUTO_START_KEY,"1");
     location.reload();
   }
 
   function startOrContinueStudent(){
     const input=document.getElementById("studentCodeInput"),code=normalizeStudentCode(input?.value||"");
-    if(!showStudentCodeValidation(code,true)){showTip(studentCodeFormatMessage(code));input?.focus();return;}
+    if(!showStudentCodeValidation(code,true)){showTip("Skriv en elevkod.");input?.focus();return;}
     if(code!==currentStudentCode){
-      // v.01-200: om en gammal elevkod saknar KLASS-ELEVNUMMER flyttas den lokala progressionen säkert till den nya koden.
-      if(currentStudentCode&&!validStudentCodeFormat(currentStudentCode)){
-        try{
-          const oldKey=studentSaveKey(currentStudentCode),newKey=studentSaveKey(code),raw=localStorage.getItem(oldKey);
-          if(raw&&!localStorage.getItem(newKey)){const migrated=JSON.parse(raw);migrated.studentCode=code;localStorage.setItem(newKey,JSON.stringify(migrated));localStorage.removeItem(oldKey);}
-        }catch(e){console.warn("Kunde inte flytta gammal elevprofil till ny elevkod",e);}
-      }
       localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");location.reload();return;
     }
     started=true;document.getElementById("startScreen").style.display="none";startGuestFlow();focusCameraOnWorldPoint(880,960);recordAssessment("session_started",{studentCode:code});saveState();const loadNotice=localStorage.getItem(LOAD_NOTICE_KEY);if(loadNotice){localStorage.removeItem(LOAD_NOTICE_KEY);try{const info=JSON.parse(loadNotice);showTip(`✓ ${info.code||code} laddad från ${info.fromVersion||"äldre version"} till ${info.toVersion||HOTEL_VERSION}. Fortsätter på Dag ${Number(info.day||state.day||1)}.`);}catch(e){showTip("✓ Elevens sparade hotell är laddat i den nya spelversionen.");}}else{showTip("Elevprofilen sparas automatiskt lokalt. Avsluta lektionen för att skicka progressionsunderlaget till läraren.");}
@@ -9372,13 +9356,10 @@
   if(studentCodeInput){
     studentCodeInput.value=currentStudentCode||"";
     studentCodeInput.addEventListener("input",()=>{const normalized=normalizeStudentCode(studentCodeInput.value);if(studentCodeInput.value!==normalized)studentCodeInput.value=normalized;showStudentCodeValidation(normalized,false);});
-    studentCodeInput.addEventListener("blur",()=>{if(studentCodeInput.value.trim())showStudentCodeValidation(studentCodeInput.value,true);});
     studentCodeInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();startOrContinueStudent();}});
   }
   if(activeStudentLabel)activeStudentLabel.textContent=currentStudentCode?`Aktiv elev: ${currentStudentCode}`:"Ingen elev vald";
   renderSavedStudentProfiles();
-  const legacyCodeNotice=localStorage.getItem("index_hotell_legacy_code_notice_v1");
-  if(legacyCodeNotice){localStorage.removeItem("index_hotell_legacy_code_notice_v1");setTimeout(()=>{showStudentCodeValidation(legacyCodeNotice,true);showTip(`Gammal elevkod ${legacyCodeNotice}. Skriv ny kod som KLASS-ELEVNUMMER, t.ex. HR26-07. Progressionen flyttas automatiskt.`);studentCodeInput?.focus();},80);}
 
 
   sanitizeReservationStatuses();
