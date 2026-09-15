@@ -926,6 +926,13 @@
   .scoreboard-level{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:50%;background:#e8efff;color:#315487;font-weight:1000}
   .scoreboard-trend{font-weight:1000}.scoreboard-detail{margin-top:12px}
   .scoreboard-note{background:#fff7e1;border:1px solid #efd38b;border-radius:12px;padding:10px 12px;color:#6b571f;font-size:11px;line-height:1.45}
+  .student-name-input{width:112px!important;padding:6px 8px!important;border-radius:8px!important;font-size:11px!important;text-transform:none!important}
+  .scoreboard-table tr[data-score-student]{cursor:pointer}.scoreboard-table tr[data-score-student]:hover td{background:#f7f9ff}.scoreboard-table tr[data-score-student]:hover td:first-child{background:#f0f3ff}
+  .score-total-pill{display:inline-flex;align-items:center;justify-content:center;min-width:54px;padding:6px 8px;border-radius:999px;background:#e3f4e9;color:#246a43;font-weight:1000}
+  .progress-chart-card{margin-top:12px;border:2px solid #dfe6f3;border-radius:15px;background:#fbfcff;padding:12px}.progress-chart-tools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}.progress-chart-tools button{border:1px solid #d8e0ef;background:#fff;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:950;color:#3c4d6b}.progress-chart-tools button.active{background:#5269dc;color:#fff;border-color:#5269dc}.progress-chart{width:100%;height:270px;display:block;background:#fff;border-radius:10px;border:1px solid #e5eaf2}.progress-chart-grid{stroke:#e5eaf2;stroke-width:1}.progress-chart-axis{fill:#78849a;font-size:10px;font-weight:800}.progress-chart-line{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.progress-chart-dot{stroke:#fff;stroke-width:2}.progress-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:10px;font-weight:900;color:#536079}.progress-legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;background:var(--legend-color)}
+  .history-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:10px}.history-table th,.history-table td{padding:7px 6px;border-bottom:1px solid #e7ebf0;text-align:center;white-space:nowrap}.history-table th{background:#f4f6f9;color:#64717f}.history-table td:first-child,.history-table th:first-child{text-align:left}.history-delete{border:0;border-radius:8px;background:#ffe7e4;color:#9b3d36;padding:5px 7px;font-weight:950;font-size:9px}.history-delete:hover{filter:brightness(.97)}
+  .highscore-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:12px}.highscore-card{border:2px solid #dfe5f2;border-radius:15px;background:#fff;padding:12px}.highscore-card h4{margin:0 0 8px;color:#2d3e67}.highscore-table{width:100%;border-collapse:collapse;font-size:11px}.highscore-table th,.highscore-table td{padding:8px 6px;border-bottom:1px solid #e7ebf0;text-align:left}.highscore-table th{font-size:9px;text-transform:uppercase;color:#6d7888;background:#f5f7fa}.rank-medal{font-size:16px}.class-score{font-weight:1000;color:#2c4f8c}.latest-total-card{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#eef7f1;border:2px solid #c2e3cd;border-radius:13px;padding:10px 12px;margin:10px 0}.latest-total-card span{font-size:11px;font-weight:900;color:#557064}.latest-total-card b{font-size:24px;color:#246943}.student-identity-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.student-identity-chip{border-radius:999px;background:#eef1f8;color:#42506d;padding:5px 8px;font-size:10px;font-weight:950}
+  @media(max-width:900px){.highscore-grid{grid-template-columns:1fr}.progress-chart{height:230px}}
   .journey-card{border:2px solid #dce4f5;border-radius:15px;background:#f8faff;padding:13px;margin:10px 0}
   .journey-card h3{margin:0 0 5px;color:#2d4163}.journey-card p{margin:5px 0;color:#64718a;font-size:12px;line-height:1.45}
   .journey-stages{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}.journey-stage-chip{background:#e9efff;color:#39558b;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:1000}
@@ -943,7 +950,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-198</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-199</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -964,7 +971,7 @@
     <button id="missionToggle" title="Visa eller dölj arbetsuppgifterna">−</button>
   </div>
   <div id="missionBody">
-    <p>Du styr hotellets personal – inte gästerna. Du väljer själv när hotelltiden går vidare. Kvarvarande uppgifter följer med och väntande gäster kan påverkas om du går vidare för tidigt.</p>
+    <p>Det här är ditt stöd när du inte ser vad som behöver göras. Bara verkliga, aktuella arbetsuppgifter visas. Du kan alltid gå vidare i tiden: alla aktuella uppgifter klara ger <strong>+25 poäng</strong>, medan kvarvarande arbete ger <strong>−25 poäng</strong>.</p>
     <div id="periodStatus" class="period-status"></div>
     <div id="missionList"></div>
   </div>
@@ -1305,8 +1312,9 @@
   <div class="box">
     <div class="box-head"><h2>Lärarläge</h2><div class="teacher-head-actions"><button class="teacher-quick-reset" id="teacherQuickResetBtn" type="button">🔄 Nollställ elevspel</button><button class="close" data-close="teacherModal">Stäng</button></div></div>
     <div class="tabs">
-      <button class="active" data-teacher-tab="upload">Ladda upp</button>
-      <button data-teacher-tab="scoreboard">Scoreboard</button>
+      <button class="active" data-teacher-tab="upload">Importera progression</button>
+      <button data-teacher-tab="scoreboard">Elever & progression</button>
+      <button data-teacher-tab="highscore">Highscore</button>
       <button data-teacher-tab="journey">Gästresa</button>
       <button data-teacher-tab="create">Skapa problem</button>
       <button data-teacher-tab="phrases">Incheckningsfraser</button>
@@ -1316,17 +1324,17 @@
 
     <section class="teacher-panel active" id="teacher-upload">
       <div class="teacher-result-card">
-        <h3>📥 Läs elevresultat</h3>
-        <p>Öppna elevens Hotel Manager-fil. Samma JSON innehåller både progressionen och en backup av elevens aktuella hotell.</p>
+        <h3>📥 Spara elevprogression</h3>
+        <p>Enklast: öppna elevens mejl, markera innehållet med <strong>Ctrl+A</strong>, kopiera med <strong>Ctrl+C</strong>, klistra in här med <strong>Ctrl+V</strong> och tryck <strong>Spara progression</strong>. Elevkod och resultat hittas automatiskt.</p>
         <div class="teacher-result-actions">
           <input type="file" id="studentResultFile" accept=".json,application/json">
           <button class="primary" id="readStudentResultBtn" type="button">Läs elevfil</button>
         </div>
         <div class="teacher-result-code">
           <label for="studentProgressionPaste"><strong>📋 Klistra in progression från elevens mejl</strong></label>
-          <textarea id="studentProgressionPaste" spellcheck="false" placeholder="Kopiera JSON-blocket från elevens mejl och klistra in det här. Du kan även klistra in hela mejltexten."></textarea>
+          <textarea id="studentProgressionPaste" spellcheck="false" placeholder="Klistra in hela elevens mejl här (Ctrl+V). Hotel Manager hittar elevkod och progression automatiskt."></textarea>
           <div class="teacher-result-code-actions">
-            <button class="primary" id="readStudentProgressionPasteBtn" type="button">Läs progression</button>
+            <button class="primary" id="readStudentProgressionPasteBtn" type="button">💾 Spara progression</button>
             <button class="secondary" id="clearStudentProgressionPasteBtn" type="button">Rensa</button>
           </div>
         </div>
@@ -1340,12 +1348,19 @@
     </section>
 
     <section class="teacher-panel" id="teacher-scoreboard">
-      <h3>🏆 Scoreboard · progression</h3>
-      <p>Scoreboarden sparas lokalt på lärarens dator. När en elevprogression läses in uppdateras elevens dagshistorik automatiskt.</p>
-      <div class="scoreboard-note"><strong>Samplemodell:</strong> Hotellpoäng är spelets tävlingspoäng. Progressionsnivå 0–4 bygger på vad eleven faktiskt visar i sex yrkesområden. Vi testar modellen först och justerar viktningen efter hur den fungerar i klassrummet.</div>
-      <div class="scoreboard-tools"><button class="primary" id="loadScoreboardSampleBtn" type="button">🧪 Lägg in sampledata</button><button class="secondary" id="clearScoreboardBtn" type="button">Rensa scoreboard</button></div>
+      <h3>👥 Elever & progression</h3>
+      <p>Varje importerad rapport sparas som en historikpunkt på lärardatorn. Elevens namn lägger du själv till lokalt och namnet skickas aldrig från elevens spel.</p>
+      <div class="scoreboard-note"><strong>Samlat resultat:</strong> Check-in, Service, Städ, Frukost, Ekonomi och Gästnöjdhet väger lika. Om ett område ännu inte har genomförts räknas det inte med.</div>
+      <div class="scoreboard-tools"><button class="primary" id="loadScoreboardSampleBtn" type="button">🧪 Lägg in sampledata</button><button class="secondary" id="clearScoreboardBtn" type="button">Rensa all progression</button></div>
       <div id="scoreboardView"></div>
       <div class="scoreboard-detail" id="scoreboardDetail"></div>
+    </section>
+
+    <section class="teacher-panel" id="teacher-highscore">
+      <h3>🏆 Highscore</h3>
+      <p>Listorna visas bara i lärarläget. Du väljer själv om och när de ska publiceras för eleverna.</p>
+      <div class="scoreboard-note"><strong>Individuellt:</strong> senaste samlade resultatet. <strong>Klass:</strong> klassens genomsnittliga samlade resultat + en progressionsbonus på 50 p för varje elev som förbättrat sitt senaste samlade resultat. Bonusen genomsnittsberäknas bland elever med minst två rapporter, så olika stora klasser kan jämföras rättvist.</div>
+      <div id="highscoreView"></div>
     </section>
 
     <section class="teacher-panel" id="teacher-journey">
@@ -1397,7 +1412,7 @@
         </div>
         <div class="teacher-settings-status" id="teacherSettingsStatus" aria-live="polite"></div>
       </div>
-      <div class="info"><strong>Vid elevens utskick:</strong> sammanställd progression skrivs som ett kompakt JSON-block i mejlets text. Läraren kopierar blocket och klistrar in det under <strong>Lärarläge → Läs elevresultat → Klistra in progression från elevens mejl</strong>. Elevens fullständiga hotell sparas automatiskt lokalt i elevens webbläsare.</div>
+      <div class="info"><strong>Vid elevens utskick:</strong> sammanställd progression skrivs som ett kompakt JSON-block i mejlets text. Läraren kan kopiera hela mejlet och klistra in det under <strong>Lärarläge → Importera progression</strong>. Elevens fullständiga hotell sparas automatiskt lokalt i elevens webbläsare.</div>
     </section>
 
     <section class="teacher-panel" id="teacher-status">
@@ -1453,7 +1468,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-198 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-199 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1471,12 +1486,12 @@
   const AUTO_START_KEY = "index_hotell_auto_start_v1";
   const TEACHER_UNLOCK_KEY = "index_hotell_teacher_unlocked_v1";
   const TEACHER_EMAIL_KEY = "index_hotell_teacher_email_v1";
-  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-198: standardadress följer med direkt i GitHub-filen
+  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-199: standardadress följer med direkt i GitHub-filen
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
   const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
-  const HOTEL_VERSION = "v.01-198";
-  const MASTER_CONTENT_VERSION = "v.01-198";
+  const HOTEL_VERSION = "v.01-199";
+  const MASTER_CONTENT_VERSION = "v.01-199";
   const TEACHER_PASSWORD = "password1234";
   function normalizeStudentCode(value){return String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,16);}
   function studentSaveKey(code){return `index_hotell_student_v115_${normalizeStudentCode(code)}`;}
@@ -1676,7 +1691,7 @@
 
   const defaultState = {
     masterContentVersion:MASTER_CONTENT_VERSION,
-    money:6500, score:0, happiness:100, day:1, hotelPeriodIndex:2, hotelPeriodVersion:192,
+    money:6500, score:0, happiness:100, day:1, hotelPeriodIndex:2, hotelPeriodVersion:199,
     tasks:{checkin:false,phoneBooking:false,clean:false,breakfast:false,problem:false,build:false},
     hskQueue:[102,101,104],
     hskPlannedRoomIds:[],
@@ -1714,6 +1729,9 @@
     phoneTaskCompletedDay:0,
     phoneCallHeardDay:0,
     phoneCallStatus:"idle",
+    phoneTaskAssignedDay:0,
+    problemTaskAssignedDay:0,
+    periodScoring:{},
     phoneCallCountdownEnd:0,
     phoneCallProgress:0,
     pendingPhoneReservation:null,
@@ -1759,7 +1777,7 @@
 
   let state = loadState();
   state.hotelPeriodIndex=Math.max(0,Math.min(7,Number(state.hotelPeriodIndex??2)));
-  state.hotelPeriodVersion=192;
+  state.hotelPeriodVersion=199;
   function ensureGuestSatisfactionState(){
     if(Number(state.guestSatisfactionVersion||0)>=111)return;
     state.happiness=100;
@@ -2009,20 +2027,68 @@
   function periodAllowsGuestRoomActivity(){const i=currentHotelPeriodIndex();return i>=2&&i<=6;}
   function pendingCheckoutWorkForPeriod(){const today=getTodayIndex();return state.bookings.some(b=>b.status==="inhouse"&&bookingEndIndex(b)===today);}
   function pendingArrivalWorkForPeriod(){const today=getTodayIndex();return state.bookings.some(b=>["arrival","reserved","late_arrival"].includes(b.status)&&Number(b.start||0)===today);}
-  function hotelPeriodRequirementState(){
-    refreshDailyTaskCompletion();
-    const i=currentHotelPeriodIndex();let complete=true,requirement="";
-    if(i===0)requirement="Inga obligatoriska moment i nattpasset. Gå vidare när du är redo.";
-    else if(i===1)requirement="Inga obligatoriska moment just nu. Gå vidare när du är redo för morgonpasset.";
-    else if(i===2){complete=Boolean(state.breakfastReady);requirement=complete?"Frukostbuffén är startad.":"Frukostbuffén är ännu inte startad.";}
-    else if(i===3){const checkout=pendingCheckoutWorkForPeriod(),dirty=dirtyBreakfastTables().length,breakfastPending=breakfastGuestsPendingToday();complete=!checkout&&dirty===0&&!breakfastPending;requirement=complete?"Förmiddagens check-outs och frukost är klara.":`${checkout?"Hantera dagens check-out. ":""}${breakfastPending?"Låt dagens frukostgäster bli klara. ":""}${dirty?`Duka av ${dirty} smutsiga frukostbord.`:""}`.trim();}
-    else if(i===4){complete=hskDailyWorkComplete();requirement=complete?"Housekeepingarbetet inför eftermiddagens ankomster är klart.":"Det finns fortfarande väntande housekeepingarbete.";}
-    else if(i===5){complete=!pendingArrivalWorkForPeriod();requirement=complete?"Eftermiddagens ankomster är hanterade.":"Hantera dagens väntande ankomster/check-ins.";}
-    else if(i===6){complete=Boolean(state.tasks.phoneBooking)&&Boolean(state.tasks.problem);requirement=complete?"Kvällens reservationssamtal och gästserviceproblem är klara.":`${state.tasks.phoneBooking?"":"Hantera reservationssamtalet. "}${state.tasks.problem?"":"Lös dagens gästserviceproblem."}`.trim();}
-    else {complete=dailyTasksComplete();requirement=complete?"Alla dagens kärnuppgifter är klara. Hotellet kan gå över midnatt.":"Det finns kvarvarande dagsuppgifter. Om du går över midnatt följer konsekvenserna med.";}
-    return {complete,requirement,period:currentHotelPeriod()};
+  function ensurePeriodScoringState(){
+    if(!state.periodScoring||typeof state.periodScoring!=="object")state.periodScoring={};
   }
-  function currentHotelPeriodTaskKeys(){return currentHotelPeriod().active.slice();}
+  function periodScoreKey(){return `${Number(state.day||1)}:${currentHotelPeriodIndex()}`;}
+  function periodScoreEntry(){ensurePeriodScoringState();const key=periodScoreKey();if(!state.periodScoring[key])state.periodScoring[key]={hadWork:false,settled:false};return state.periodScoring[key];}
+  function markCurrentPeriodHasWork(count=1){if(Number(count||0)>0)periodScoreEntry().hadWork=true;}
+  function receptionMissionItemsForPeriod(){
+    const i=currentHotelPeriodIndex(),today=getTodayIndex(),items=[];
+    const seen=new Set();
+    const push=(booking,kind,label)=>{if(!booking)return;const id=`${kind}:${booking.id||booking.guest||booking.roomId}`;if(seen.has(id))return;seen.add(id);items.push({key:"checkin",kind,label:`${label} — Receptionen`,location:"Receptionen"});};
+    state.bookings.forEach(booking=>{
+      const start=Number(booking.start||0),end=bookingEndIndex(booking),status=String(booking.status||"");
+      if((i===3||i===4)&&status==="inhouse"&&end===today)push(booking,"checkout",`Checka ut ${booking.guest||"dagens gäst"}`);
+      if((i===3||i===4)&&status==="reserved"&&start<today&&end>today)push(booking,"noshow",`Hantera No Show · ${booking.guest||"reservation"}`);
+      if(i>=5&&i<=7&&["arrival","reserved","late_arrival"].includes(status)&&start===today)push(booking,"arrival",`Checka in ${booking.guest||"ankommande gäst"}`);
+    });
+    const waiting=(typeof guestAgents!=="undefined"?guestAgents:[]).filter(g=>g&&!g.ambient&&["waitingReception","waitingCheckout"].includes(String(g.state||"")));
+    waiting.forEach(g=>items.push({key:"checkin",kind:"waiting",label:`Hjälp ${g.name||"gästen"} i receptionen — Receptionen`,location:"Receptionen"}));
+    return items;
+  }
+  function breakfastMissionItems(){
+    const i=currentHotelPeriodIndex();if(i!==2&&i!==3)return [];
+    const items=[];
+    if(!state.breakfastReady)items.push({key:"breakfast",kind:"buffet",label:"Starta frukostbuffén — Frukostrestaurangen",location:"Frukostrestaurangen",priority:true});
+    const dirty=dirtyBreakfastTables().length;if(dirty)items.push({key:"breakfast",kind:"tables",label:`Duka av ${dirty} smutsiga frukostbord — Frukostrestaurangen`,location:"Frukostrestaurangen"});
+    const pending=breakfastGuestsPendingToday();if(pending)items.push({key:"breakfast",kind:"guests",label:"Frukostgäster väntar på service — Frukostrestaurangen",location:"Frukostrestaurangen"});
+    return items;
+  }
+  function housekeepingMissionItems(){
+    const i=currentHotelPeriodIndex();if(i<3||i>5)return [];
+    refreshDailyTaskCompletion();if(state.tasks.clean)return [];
+    const items=[];
+    const dnd=pendingDndManagerRoomId();
+    if(dnd)items.push({key:"clean",kind:"dnd",label:`DND på rum ${dnd} behöver chefskontroll — Housekeeping / rum ${dnd}`,location:`Rum ${dnd}`});
+    const roomId=currentHskRoomId();if(roomId&&!dnd)items.push({key:"clean",kind:"room",label:`Rum ${roomId} behöver housekeeping — HSK-office / rum ${roomId}`,location:`Rum ${roomId}`});
+    const litter=Array.isArray(state.ambientLitter)?state.ambientLitter.length:0;if(litter)items.push({key:"clean",kind:"litter",label:`Plocka ${litter} skräp i allmänna ytor — Lobby / allmänna ytor`,location:"Lobby"});
+    if(!items.length&&!hskDailyWorkComplete())items.push({key:"clean",kind:"hsk",label:"Housekeepingarbete väntar — HSK-office",location:"HSK-office"});
+    return items;
+  }
+  function phoneMissionItems(){
+    if(!periodAllowsPhoneCalls()||state.tasks.phoneBooking)return [];
+    const status=phoneCallStatus();if(status==="idle"||status==="completed")return [];
+    const countdown=phoneCallCountdownSeconds();
+    const label=status==="arming"?`Inkommande reservationssamtal kopplas fram (${countdown} sek) — Receptionstelefonen`:status==="ringing"?"Receptionstelefonen ringer — Receptionen":status==="awaiting_reservation"?"Registrera telefonreservationen i PMS — Receptionen":status==="in_call"?"Fortsätt reservationssamtalet — Receptionstelefonen":"Telefonbokning väntar — Receptionen";
+    return [{key:"phoneBooking",kind:"phone",label,location:"Receptionen"}];
+  }
+  function problemMissionItems(){
+    if(Number(state.problemTaskAssignedDay||0)!==Number(state.day||1)||state.tasks.problem)return [];
+    return [{key:"problem",kind:"problem",label:"Lös dagens gästserviceproblem — Lobby / Reception",location:"Lobby / Reception"}];
+  }
+  function missionSupportItems(){
+    refreshDailyTaskCompletion();
+    const items=[...breakfastMissionItems(),...receptionMissionItemsForPeriod(),...housekeepingMissionItems(),...phoneMissionItems(),...problemMissionItems()];
+    markCurrentPeriodHasWork(items.length);
+    return items;
+  }
+  function hotelPeriodRequirementState(){
+    const pending=missionSupportItems(),complete=pending.length===0;
+    const requirement=complete?"Inga aktuella arbetsuppgifter återstår i den här perioden.":`${pending.length} aktuell${pending.length===1?"":"a"} arbetsuppgift${pending.length===1?"":"er"} återstår.`;
+    return {complete,requirement,period:currentHotelPeriod(),pending};
+  }
+  function currentHotelPeriodTaskKeys(){return [...new Set(missionSupportItems().map(item=>item.key))];}
 
   function applyPeriodDelayConsequences(){
     let affected=0;
@@ -2044,6 +2110,8 @@
     nextGuestReleaseAt=now+350;
     nextAmbientGuestAt=periodAllowsAmbientGuests()?now+2200:Number.POSITIVE_INFINITY;
     nextAmbientPhoneAt=periodAllowsPhoneCalls()&&!state.tasks.phoneBooking?now+3500:Number.POSITIVE_INFINITY;
+    if(currentHotelPeriodIndex()===6&&!state.tasks.problem&&Array.isArray(state.scenarios)&&state.scenarios.some(s=>s.department==="guestservice"))state.problemTaskAssignedDay=Number(state.day||1);
+    if(periodAllowsPhoneCalls()&&!state.tasks.phoneBooking&&phoneCallStatus()==="idle")startIncomingPhoneCall();
     guestAgents.forEach((guest,index)=>{
       if(!guest)return;
       if(guest.state==="inRoom")guest.nextActionAt=periodAllowsGuestRoomActivity()?now+450+index*180:Number.POSITIVE_INFINITY;
@@ -2054,17 +2122,21 @@
 
   function advanceHotelPeriod(){
     const req=hotelPeriodRequirementState();
-    // v.01-196: eleven får själv byta hotellperiod även om allt inte är klart.
-    // Kvarvarande uppgifter ligger kvar och väntande gäster kan fortfarande påverkas av att tiden går.
     if(document.querySelector(".modal.show")){showTip("Stäng det pågående arbetsmomentet innan du byter hotellperiod.");return;}
     applyPeriodDelayConsequences();
-    const i=currentHotelPeriodIndex();
-    if(!req.complete)recordAssessment("hotel_period_advanced_with_pending_work",{period:req.period.short,periodName:req.period.name,day:Number(state.day||1),requirement:req.requirement||""});
-    recordAssessment("hotel_period_completed",{period:req.period.short,periodName:req.period.name,day:Number(state.day||1),allCoreWorkComplete:Boolean(req.complete)});
+    const i=currentHotelPeriodIndex(),entry=periodScoreEntry();let periodPoints=0;
+    if(entry.hadWork&&!entry.settled){
+      if(req.complete){state.score=Number(state.score||0)+25;periodPoints=25;recordAssessment("period_score_bonus",{period:req.period.short,periodName:req.period.name,day:Number(state.day||1),points:25,allWorkComplete:true});}
+      else{state.score=Math.max(0,Number(state.score||0)-25);periodPoints=-25;recordAssessment("period_score_penalty",{period:req.period.short,periodName:req.period.name,day:Number(state.day||1),points:-25,remainingTasks:req.pending?.length||0,allWorkComplete:false});}
+      entry.settled=true;
+    }
+    if(!req.complete)recordAssessment("hotel_period_advanced_with_pending_work",{period:req.period.short,periodName:req.period.name,day:Number(state.day||1),requirement:req.requirement||"",remainingTasks:req.pending?.length||0});
+    recordAssessment("hotel_period_completed",{period:req.period.short,periodName:req.period.name,day:Number(state.day||1),allCoreWorkComplete:Boolean(req.complete),periodPoints});
     if(i===HOTEL_PERIODS.length-1){advanceHotelDay(true);return;}
-    state.hotelPeriodIndex=i+1;state.hotelPeriodVersion=192;
+    state.hotelPeriodIndex=i+1;state.hotelPeriodVersion=199;
     activateCurrentHotelPeriod();saveState();updateHud();renderReceptionPms();updateMission();
-    showTip(`${currentHotelPeriod().label} · ${currentHotelPeriod().name}.`);
+    const scoreNote=periodPoints>0?" · +25 bonus":periodPoints<0?" · −25 poäng":"";
+    showTip(`${currentHotelPeriod().label} · ${currentHotelPeriod().name}${scoreNote}.`);
   }
 
   function hasPendingReceptionWorkToday(){
@@ -2088,7 +2160,9 @@
 
   function dailyTasksComplete(){
     refreshDailyTaskCompletion();
-    return DAILY_TASK_KEYS.every(key=>Boolean(state.tasks[key]));
+    const phoneRequired=Number(state.phoneTaskAssignedDay||0)===Number(state.day||1);
+    const problemRequired=Number(state.problemTaskAssignedDay||0)===Number(state.day||1);
+    return Boolean(state.tasks.checkin)&&Boolean(state.tasks.clean)&&Boolean(state.tasks.breakfast)&&(!phoneRequired||Boolean(state.tasks.phoneBooking))&&(!problemRequired||Boolean(state.tasks.problem));
   }
 
   function resetDailyTasksForNewDay(){
@@ -2100,6 +2174,8 @@
     state.tasks.problem=false;
     state.tasks.phoneBooking=false;
     state.phoneTaskCompletedDay=0;
+    state.phoneTaskAssignedDay=0;
+    state.problemTaskAssignedDay=0;
     state.phoneCallHeardDay=0;
     state.phoneCallStatus="idle";
     state.phoneCallCountdownEnd=0;
@@ -4963,7 +5039,7 @@
     const facilitySatisfaction=facilityDailySatisfactionBonus();
     if(facilitySatisfaction>0)applyGuestSatisfactionLift(Math.max(1,Math.round(facilitySatisfaction/2)),"facility_daily_guest_satisfaction");
     state.day=Number(state.day||1)+1;
-    state.hotelPeriodIndex=0;state.hotelPeriodVersion=192;
+    state.hotelPeriodIndex=0;state.hotelPeriodVersion=199;
     state.phoneTaskDay=Number(state.day||1);
     resetDailyTasksForNewDay();
     // Dagens kvarvarande ankomster som aldrig checkades in blir möjliga No Show-fall.
@@ -6881,6 +6957,7 @@
       return;
     }
     state.phoneCallStatus="arming";
+    state.phoneTaskAssignedDay=Number(state.day||1);
     state.phoneCallCountdownEnd=Date.now()+10000;
     state.phoneCallProgress=0;
     state.phoneCallBranch="";
@@ -8078,27 +8155,17 @@
     updateMissionPanel();
     refreshDailyTaskCompletion();
     const phoneStatus=phoneCallStatus();
-    const phoneCountdown=phoneCallCountdownSeconds();
-    const labels={
-      breakfast:!state.breakfastReady?"PRIORITET: Starta frukostbuffén innan gästerna kommer":dirtyBreakfastTables().length?`Frukost: duka av ${dirtyBreakfastTables().length} smutsiga bord`:activeBreakfastTables().some(t=>["reserved","occupied"].includes(t.status))?"Frukost: gäster äter – håll borden under uppsikt":breakfastGuestsPendingToday()?"Frukost: invänta dagens frukostgäster":"Frukost: buffén är klar",
-      checkin:state.tasks.checkin?"Reception: dagens C/I, C/O och No Show är klara":"Reception: hantera dagens C/I, C/O och No Show",
-      phoneBooking:state.tasks.phoneBooking?"Reception: dagens telefonbokning är klar":phoneStatus==="idle"?"Reception: tryck SVARA för att koppla fram ett inkommande samtal":phoneStatus==="arming"?`Reception: samtalet kopplas fram (${phoneCountdown} sek)`:phoneStatus==="ringing"?"Receptionstelefonen ringer – gå till telefonen och svara":phoneStatus==="awaiting_reservation"?"Telefonsamtalet är klart – spara reservationen i PMS":"Telefonsamtal pågår – fortsätt samtalet",
-      clean:state.tasks.clean?"Housekeeping: dagens uppgifter är klara":pendingDndManagerRoomId()?(dndWorkflow?`HSK: DND-kontroll rum ${dndWorkflow.roomId} – Alex och Omar arbetar tillsammans`:`HSK: rum ${pendingDndManagerRoomId()} · DND rapporterad – Omar väntar, tillkalla hotellchef`):(hskWorkflow?hskProgressStatus().mission:publicLitterWorkflow?publicLitterStatus().mission:currentHskRoomId()?hskProgressStatus().mission:(Array.isArray(state.ambientLitter)&&state.ambientLitter.length?`HSK: plocka ${state.ambientLitter.length} skräp i allmänna ytor`:"Housekeeping: dagens uppgifter är klara")),
-      problem:"Lös dagens gästserviceproblem"
-    };
-    if(selectedMissionTaskKey&&state.tasks[selectedMissionTaskKey])selectedMissionTaskKey=null;
-    const period=currentHotelPeriod(),periodReq=hotelPeriodRequirementState();
+    const period=currentHotelPeriod(),periodReq=hotelPeriodRequirementState(),items=periodReq.pending||[];
     const missionPeriodText=document.getElementById("missionPeriodText");if(missionPeriodText)missionPeriodText.textContent=period.short;
-    const periodStatus=document.getElementById("periodStatus");if(periodStatus){periodStatus.classList.toggle("ready",periodReq.complete);periodStatus.innerHTML=`<strong>${periodReq.complete?"✓ Periodens kärnuppgifter är klara":"Periodens kärnuppgifter"}</strong>${escapeHtml(periodReq.requirement)}<span class="period-focus">Fokus: ${escapeHtml(period.focus)}</span>`;}
+    const periodStatus=document.getElementById("periodStatus");if(periodStatus){periodStatus.classList.toggle("ready",periodReq.complete);periodStatus.innerHTML=`<strong>${periodReq.complete?"✓ Inget aktuellt arbete kvar":"Aktuellt arbete"}</strong>${escapeHtml(periodReq.requirement)}<span class="period-focus">Fokus: ${escapeHtml(period.focus)}</span>`;}
     const missionList=document.getElementById("missionList");
-    missionList.innerHTML=currentHotelPeriodTaskKeys().map(k=>{
-      const done=Boolean(state.tasks[k]),selected=selectedMissionTaskKey===k,priority=k==="breakfast"&&!state.breakfastReady;
-      const phoneTask=k==="phoneBooking";
-      const hskTask=k==="clean";
-      const hskInfo=hskTask?hskProgressStatus():null;
-      const pendingDndRoom=hskTask?pendingDndManagerRoomId():null;
-      const actionText=phoneTask?(phoneStatus==="idle"?"SVARA":phoneStatus==="arming"?"VÄNTA":phoneStatus==="ringing"?"GÅ TILL":phoneStatus==="awaiting_reservation"?"SPARA":"FORTSÄTT"):(hskTask&&pendingDndRoom?(dndWorkflow?"PÅGÅR":"TILLKALLA CHEF"):hskTask&&hskWorkflow?hskInfo.action:hskTask&&publicLitterWorkflow?publicLitterStatus().action:hskTask&&hskInfo?.stage==="waiting"?"VÄNTAR":hskTask?"FIXA":selected?"VALD":"FIXA");
-      return `<div class="mission-row ${priority?"priority":""} ${selected?"selected":""}"><span class="check ${done?"done":""}">${done?"✓":"!"}</span><span class="mission-label">${labels[k]}</span>${done?"":`<button type="button" class="mission-fix ${selected&&!phoneTask?"selected":""}" data-fix-task="${k}">${actionText}</button>`}</div>`;
+    if(!missionList)return;
+    if(selectedMissionTaskKey&&!items.some(item=>item.key===selectedMissionTaskKey))selectedMissionTaskKey=null;
+    if(!items.length){missionList.innerHTML='<div class="info" style="margin-top:8px"><strong>✓ Inga aktuella arbetsuppgifter.</strong><br>Fortsätt hotelldriften eller gå vidare till nästa period när du är redo.</div>';return;}
+    missionList.innerHTML=items.map((item,index)=>{
+      const selected=selectedMissionTaskKey===item.key,priority=Boolean(item.priority);
+      const actionText=item.key==="phoneBooking"?(phoneStatus==="arming"?"VÄNTA":phoneStatus==="ringing"?"GÅ TILL":phoneStatus==="awaiting_reservation"?"SPARA":"FORTSÄTT"):item.key==="clean"&&pendingDndManagerRoomId()?"TILLKALLA CHEF":selected?"VALD":"HJÄLP MIG";
+      return `<div class="mission-row ${priority?"priority":""} ${selected?"selected":""}"><span class="check">!</span><span class="mission-label">${escapeHtml(item.label)}</span><button type="button" class="mission-fix ${selected&&item.key!=="phoneBooking"?"selected":""}" data-fix-task="${escapeHtml(item.key)}" data-mission-index="${index}">${actionText}</button></div>`;
     }).join("");
     missionList.querySelectorAll("[data-fix-task]").forEach(button=>button.onclick=event=>{
       event.stopPropagation();
@@ -8490,6 +8557,8 @@
   }
   function assessmentEvidenceValue(item){
     const type=String(item?.type||"");
+    if(type==="hotel_period_advanced_with_pending_work"||type==="hotel_period_delay")return -1;
+    if(type==="hotel_period_completed")return item?.allCoreWorkComplete?1:0;
     if(item?.correct===true)return 2;
     if(item?.correct===false)return -1;
     if(type==="checkin_completed"){
@@ -8526,33 +8595,79 @@
   function progressionProfileForPackage(pkg){return progressionProfileFromEvents(Array.isArray(pkg?.assessmentLog)?pkg.assessmentLog:[]);}
   function scoreboardLoad(){try{const v=JSON.parse(localStorage.getItem(TEACHER_SCOREBOARD_KEY)||"{}");return v&&typeof v==="object"?v:{students:{}};}catch(e){return {students:{}};}}
   function scoreboardSave(board){try{localStorage.setItem(TEACHER_SCOREBOARD_KEY,JSON.stringify(board));}catch(e){console.warn("Scoreboard kunde inte sparas",e);}}
-  function progressionAverage(profile){const vals=PROGRESSION_AREAS.map(a=>Number(profile?.[a.key]?.level||0));return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10:0;}
-  function saveScoreboardSnapshot(pkg){
-    if(!pkg||!pkg.student)return;
-    const code=normalizeStudentCode(pkg.student.code||"");if(!code)return;
-    const board=scoreboardLoad();if(!board.students)board.students={};if(!board.students[code])board.students[code]={code,history:[]};
+  function progressionAverage(profile){const vals=PROGRESSION_AREAS.map(a=>{const x=profile?.[a.key]||{};return Number(x.evidence||0)>0?Number(x.level||0):null;}).filter(v=>v!==null);return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10:0;}
+  function reportIdForPackage(pkg,code,day){const summary=pkg?.summary||{};return [code,String(pkg?.exportedAt||""),Number(day||1),Number(summary.score||0),Number(summary.loggedDecisions||0),Number(summary.totalLoggedDecisions||0)].join("|");}
+  function scoreboardSnapshotFromPackage(pkg){
+    const code=normalizeStudentCode(pkg?.student?.code||"");if(!code)return null;
     const profile=(pkg.progressionSummary?.domains&&typeof pkg.progressionSummary.domains==="object")?pkg.progressionSummary.domains:progressionProfileForPackage(pkg),summary=pkg.summary||{},day=Number(summary.day||1);
-    const snapshot={day,exportedAt:pkg.exportedAt||new Date().toISOString(),score:Number(summary.score||0),guestAverage:resultGuestAverage(pkg),money:Number(summary.money||0),domains:profile,progressAverage:progressionAverage(profile)};
-    const history=Array.isArray(board.students[code].history)?board.students[code].history:[];const index=history.findIndex(x=>Number(x.day)===day);
-    if(index>=0)history[index]=snapshot;else history.push(snapshot);history.sort((a,b)=>Number(a.day)-Number(b.day));board.students[code].history=history.slice(-40);scoreboardSave(board);renderTeacherScoreboard();
+    const snap={reportId:reportIdForPackage(pkg,code,day),day,exportedAt:pkg.exportedAt||new Date().toISOString(),score:Number(summary.score||0),guestAverage:resultGuestAverage(pkg),money:Number(summary.money||0),loggedDecisions:Number(summary.totalLoggedDecisions??summary.loggedDecisions??pkg.progressionSummary?.eventCount??0),domains:profile,progressAverage:progressionAverage(profile)};
+    snap.totalResult=combinedResultForSnapshot(snap);return {code,snapshot:snap};
   }
-  function trendForHistory(history){if(!Array.isArray(history)||history.length<2)return "→";const a=Number(history[history.length-2]?.progressAverage||0),b=Number(history[history.length-1]?.progressAverage||0);return b>a?"↑":b<a?"↓":"→";}
+  function saveScoreboardSnapshot(pkg){
+    if(!pkg||!pkg.student)return {saved:false};
+    const made=scoreboardSnapshotFromPackage(pkg);if(!made)return {saved:false};const {code,snapshot}=made;
+    const board=scoreboardLoad();if(!board.students)board.students={};if(!board.students[code])board.students[code]={code,name:"",history:[]};
+    const student=board.students[code];student.code=code;if(typeof student.name!=="string")student.name="";
+    const history=Array.isArray(student.history)?student.history:[];
+    if(history.some(x=>String(x.reportId||"")===snapshot.reportId)){return {saved:false,duplicate:true,code,snapshot};}
+    history.push(snapshot);history.sort((a,b)=>{const ta=Date.parse(a.exportedAt||"")||0,tb=Date.parse(b.exportedAt||"")||0;return ta===tb?Number(a.day||0)-Number(b.day||0):ta-tb;});student.history=history.slice(-120);scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();return {saved:true,duplicate:false,code,snapshot};
+  }
+  function studentCodeParts(code){const value=normalizeStudentCode(code||"");const idx=value.lastIndexOf("-");return idx>0?{classCode:value.slice(0,idx),studentNo:value.slice(idx+1)}:{classCode:value,studentNo:"—"};}
+  const SCORE_METRICS=[
+    {key:"checkin",label:"Check-in",short:"C/I",color:"#4f67d8"},{key:"service",label:"Service",short:"SER",color:"#9b59b6"},{key:"housekeeping",label:"Städ",short:"HSK",color:"#2e9b78"},{key:"breakfast",label:"Frukost",short:"FRU",color:"#e59a2f"},{key:"economy",label:"Ekonomi",short:"EKO",color:"#3c8bb5"},{key:"satisfaction",label:"Gästnöjdhet",short:"GÄST",color:"#d45d6f"}
+  ];
+  function domainPercent(snapshot,key){const x=snapshot?.domains?.[key]||{};if(Number(x.evidence||0)<=0&&Number(x.level||0)<=0)return null;return Math.max(0,Math.min(100,Number(x.level||0)*25));}
+  function scoreMetricsForSnapshot(snapshot){
+    const rec=domainPercent(snapshot,"reception"),phone=domainPercent(snapshot,"phone"),guest=domainPercent(snapshot,"guestservice"),hsk=domainPercent(snapshot,"housekeeping"),breakfast=domainPercent(snapshot,"breakfast"),management=domainPercent(snapshot,"management");
+    const svcParts=[phone,guest].filter(Number.isFinite);const service=svcParts.length?svcParts.reduce((a,b)=>a+b,0)/svcParts.length:null;
+    const anyEvidence=[rec,service,hsk,breakfast,management].some(Number.isFinite);
+    const satisfaction=anyEvidence&&Number.isFinite(Number(snapshot?.guestAverage))?Math.max(0,Math.min(100,Number(snapshot.guestAverage))):null;
+    return {checkin:rec,service,housekeeping:hsk,breakfast,economy:management,satisfaction};
+  }
+  function combinedResultForSnapshot(snapshot){const metrics=scoreMetricsForSnapshot(snapshot);const vals=SCORE_METRICS.map(m=>metrics[m.key]).filter(Number.isFinite);return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10:0;}
+  function latestStudentTotal(student){const h=student?.history||[];return h.length?combinedResultForSnapshot(h[h.length-1]):0;}
+  function studentProgressBonus(student){const h=student?.history||[];if(h.length<2)return 0;const before=combinedResultForSnapshot(h[h.length-2]),latest=combinedResultForSnapshot(h[h.length-1]);return latest>before?50:0;}
+  function trendForHistory(history){if(!Array.isArray(history)||history.length<2)return "→";const a=combinedResultForSnapshot(history[history.length-2]),b=combinedResultForSnapshot(history[history.length-1]);return b>a?"↑":b<a?"↓":"→";}
+  function saveStudentLocalName(code,name){const board=scoreboardLoad(),student=board.students?.[code];if(!student)return;student.name=String(name||"").trim().slice(0,40);scoreboardSave(board);renderTeacherHighscores();}
   function renderTeacherScoreboard(){
     const root=document.getElementById("scoreboardView");if(!root)return;const board=scoreboardLoad(),students=Object.values(board.students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);
-    if(!students.length){root.innerHTML='<div class="info">Scoreboarden är tom. Läs in en elevprogression eller tryck <strong>Lägg in sampledata</strong>.</div>';return;}
-    students.sort((a,b)=>Number(b.history.at(-1)?.score||0)-Number(a.history.at(-1)?.score||0));
-    root.innerHTML=`<div class="scoreboard-wrap"><table class="scoreboard-table"><thead><tr><th>Elev</th><th>Dag</th><th>Hotellpoäng</th><th>Gäst</th>${PROGRESSION_AREAS.map(a=>`<th>${a.short}</th>`).join("")}<th>Snitt</th><th>Trend</th></tr></thead><tbody>${students.map(s=>{const latest=s.history.at(-1),d=latest.domains||{};return `<tr data-score-student="${escapeHtml(s.code)}"><td>${escapeHtml(s.code)}</td><td>${Number(latest.day||1)}</td><td>${Number(latest.score||0)}</td><td>${Number(latest.guestAverage||0)}%</td>${PROGRESSION_AREAS.map(a=>`<td><span class="scoreboard-level">${Number(d[a.key]?.level||0)}</span></td>`).join("")}<td>${Number(latest.progressAverage||0).toFixed(1)}</td><td class="scoreboard-trend">${trendForHistory(s.history)}</td></tr>`;}).join("")}</tbody></table></div>`;
-    root.querySelectorAll("[data-score-student]").forEach(row=>row.addEventListener("click",()=>renderScoreboardStudentDetail(row.dataset.scoreStudent)));
+    if(!students.length){root.innerHTML='<div class="info">Ingen progression sparad ännu. Klistra in ett elevmejl under <strong>Importera progression</strong>.</div>';const d=document.getElementById("scoreboardDetail");if(d)d.innerHTML="";return;}
+    students.sort((a,b)=>{const pa=studentCodeParts(a.code),pb=studentCodeParts(b.code);return pa.classCode.localeCompare(pb.classCode,"sv")||pa.studentNo.localeCompare(pb.studentNo,"sv",{numeric:true});});
+    root.innerHTML=`<div class="scoreboard-wrap"><table class="scoreboard-table"><thead><tr><th>Klass</th><th>Elevnr</th><th>Förnamn</th><th>Senaste dag</th><th>Samlat resultat</th>${SCORE_METRICS.map(m=>`<th>${m.short}</th>`).join("")}<th>Rapporter</th></tr></thead><tbody>${students.map(s=>{const latest=s.history.at(-1),parts=studentCodeParts(s.code),metrics=scoreMetricsForSnapshot(latest),total=combinedResultForSnapshot(latest);return `<tr data-score-student="${escapeHtml(s.code)}"><td>${escapeHtml(parts.classCode)}</td><td>${escapeHtml(parts.studentNo)}</td><td><input class="student-name-input" data-student-name="${escapeHtml(s.code)}" value="${escapeHtml(s.name||"")}" placeholder="Förnamn"></td><td>${Number(latest.day||1)}</td><td><span class="score-total-pill">${total.toFixed(1)}%</span></td>${SCORE_METRICS.map(m=>`<td>${Number.isFinite(metrics[m.key])?`${Math.round(metrics[m.key])}%`:"—"}</td>`).join("")}<td>${s.history.length}</td></tr>`;}).join("")}</tbody></table></div>`;
+    root.querySelectorAll("[data-score-student]").forEach(row=>row.addEventListener("click",e=>{if(e.target.closest("input"))return;renderScoreboardStudentDetail(row.dataset.scoreStudent);}));
+    root.querySelectorAll("[data-student-name]").forEach(input=>{input.addEventListener("change",()=>saveStudentLocalName(input.dataset.studentName,input.value));input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();input.blur();}});});
   }
-  function renderScoreboardStudentDetail(code){
-    const detail=document.getElementById("scoreboardDetail"),student=scoreboardLoad().students?.[code];if(!detail||!student?.history?.length)return;const latest=student.history.at(-1),domains=latest.domains||{};
-    detail.innerHTML=`<div class="student-result-view"><div class="student-result-head"><div><h4>${escapeHtml(code)} · progression till Dag ${Number(latest.day||1)}</h4><span class="student-result-badge">Testmodell 0–4</span></div><small>${student.history.length} sparade dag(ar)</small></div><div class="progress-scale">${PROGRESSION_AREAS.map(a=>{const x=domains[a.key]||{};return `<div class="progress-scale-card"><span>${escapeHtml(a.label)}</span><b>${Number(x.level||0)}/4</b><small>${Number(x.evidence||0)} evidens · ${Number(x.needsWork||0)} att utveckla</small></div>`;}).join("")}</div><div class="info"><strong>Historik:</strong> ${student.history.map(h=>`Dag ${h.day}: ${Number(h.progressAverage||0).toFixed(1)}/4`).join(" · ")}</div></div>`;
+  function chartSvgForStudent(student,activeKey="all"){
+    const history=student?.history||[],w=760,h=260,left=42,right=18,top=16,bottom=34,plotW=w-left-right,plotH=h-top-bottom;
+    const x=i=>left+(history.length<=1?plotW/2:(i/(history.length-1))*plotW),y=v=>top+(100-v)/100*plotH;
+    let svg=`<svg class="progress-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Progressionsdiagram">`;
+    [0,25,50,75,100].forEach(v=>{const yy=y(v);svg+=`<line class="progress-chart-grid" x1="${left}" x2="${w-right}" y1="${yy}" y2="${yy}"></line><text class="progress-chart-axis" x="4" y="${yy+3}">${v}%</text>`;});
+    history.forEach((snap,i)=>{svg+=`<text class="progress-chart-axis" x="${x(i)}" y="${h-10}" text-anchor="middle">${escapeHtml(`D${Number(snap.day||1)}`)}</text>`;});
+    SCORE_METRICS.filter(m=>activeKey==="all"||m.key===activeKey).forEach(metric=>{const pts=[];history.forEach((snap,i)=>{const value=scoreMetricsForSnapshot(snap)[metric.key];if(Number.isFinite(value))pts.push({x:x(i),y:y(value),value});});if(!pts.length)return;svg+=`<polyline class="progress-chart-line" stroke="${metric.color}" points="${pts.map(p=>`${p.x},${p.y}`).join(" ")}"></polyline>`;pts.forEach(p=>svg+=`<circle class="progress-chart-dot" fill="${metric.color}" cx="${p.x}" cy="${p.y}" r="4"><title>${escapeHtml(metric.label)} ${Math.round(p.value)}%</title></circle>`);});
+    return svg+`</svg>`;
+  }
+  function renderScoreboardStudentDetail(code,activeKey="all"){
+    const detail=document.getElementById("scoreboardDetail"),student=scoreboardLoad().students?.[code];if(!detail||!student?.history?.length)return;const latest=student.history.at(-1),parts=studentCodeParts(code),total=combinedResultForSnapshot(latest);
+    const historyRows=student.history.slice().reverse().map((snap,revIndex)=>{const metrics=scoreMetricsForSnapshot(snap),originalIndex=student.history.length-1-revIndex;return `<tr><td>Dag ${Number(snap.day||1)}<br><small>${escapeHtml(formatResultDate(snap.exportedAt))}</small></td><td><b>${combinedResultForSnapshot(snap).toFixed(1)}%</b></td>${SCORE_METRICS.map(m=>`<td>${Number.isFinite(metrics[m.key])?`${Math.round(metrics[m.key])}%`:"—"}</td>`).join("")}<td><button class="history-delete" type="button" data-delete-report="${originalIndex}" data-delete-student="${escapeHtml(code)}">Radera</button></td></tr>`;}).join("");
+    detail.innerHTML=`<div class="student-result-view"><div class="student-result-head"><div><h4>${escapeHtml(parts.classCode)} · elev ${escapeHtml(parts.studentNo)}${student.name?` · ${escapeHtml(student.name)}`:""}</h4><div class="student-identity-row"><span class="student-identity-chip">Kod: ${escapeHtml(code)}</span><span class="student-identity-chip">${student.history.length} rapporter</span></div></div></div><div class="latest-total-card"><span>Senaste samlade resultat</span><b>${total.toFixed(1)}%</b></div><div class="progress-chart-card"><div class="progress-chart-tools"><button type="button" data-chart-metric="all" class="${activeKey==="all"?"active":""}">Alla</button>${SCORE_METRICS.map(m=>`<button type="button" data-chart-metric="${m.key}" class="${activeKey===m.key?"active":""}">${escapeHtml(m.label)}</button>`).join("")}</div>${chartSvgForStudent(student,activeKey)}<div class="progress-legend">${SCORE_METRICS.filter(m=>activeKey==="all"||m.key===activeKey).map(m=>`<span style="--legend-color:${m.color}">${escapeHtml(m.label)}</span>`).join("")}</div></div><div class="student-result-section"><h5>Historik · rapport för rapport</h5><div style="overflow:auto"><table class="history-table"><thead><tr><th>Rapport</th><th>Total</th>${SCORE_METRICS.map(m=>`<th>${m.short}</th>`).join("")}<th></th></tr></thead><tbody>${historyRows}</tbody></table></div><div class="info">Fel rapport? Radera den här och klistra sedan in rätt elevmejl igen.</div></div></div>`;
+    detail.querySelectorAll("[data-chart-metric]").forEach(btn=>btn.addEventListener("click",()=>renderScoreboardStudentDetail(code,btn.dataset.chartMetric)));
+    detail.querySelectorAll("[data-delete-report]").forEach(btn=>btn.addEventListener("click",()=>deleteStudentReport(btn.dataset.deleteStudent,Number(btn.dataset.deleteReport))));
+  }
+  function deleteStudentReport(code,index){const board=scoreboardLoad(),student=board.students?.[code];if(!student?.history?.[index])return;if(!confirm(`Radera den valda rapporten för ${code}?`))return;student.history.splice(index,1);if(!student.history.length)delete board.students[code];scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();const detail=document.getElementById("scoreboardDetail");if(board.students?.[code]?.history?.length)renderScoreboardStudentDetail(code);else if(detail)detail.innerHTML="";showTip("Rapporten är raderad.");}
+  function rankMedal(i){return i===0?"🥇":i===1?"🥈":i===2?"🥉":String(i+1);}
+  function renderTeacherHighscores(){
+    const root=document.getElementById("highscoreView");if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);
+    if(!students.length){root.innerHTML='<div class="info">Ingen progression sparad ännu.</div>';return;}
+    const individual=students.map(s=>({student:s,total:latestStudentTotal(s),parts:studentCodeParts(s.code)})).sort((a,b)=>b.total-a.total||a.student.code.localeCompare(b.student.code,"sv"));
+    const groups={};students.forEach(s=>{const cls=studentCodeParts(s.code).classCode;(groups[cls]||(groups[cls]=[])).push(s);});
+    const classes=Object.entries(groups).map(([classCode,members])=>{const performance=members.reduce((sum,s)=>sum+latestStudentTotal(s),0)/members.length;const eligible=members.filter(s=>s.history.length>=2),improved=eligible.filter(s=>studentProgressBonus(s)>0);const bonusAverage=eligible.length?improved.reduce((sum,s)=>sum+studentProgressBonus(s),0)/eligible.length:0;return {classCode,members:members.length,performance,bonusAverage,improved:improved.length,eligible:eligible.length,score:performance+bonusAverage};}).sort((a,b)=>b.score-a.score||b.performance-a.performance);
+    root.innerHTML=`<div class="highscore-grid"><div class="highscore-card"><h4>👤 Individuell highscore</h4><table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Resultat</th></tr></thead><tbody>${individual.map((x,i)=>`<tr><td class="rank-medal">${rankMedal(i)}</td><td>${escapeHtml(x.parts.classCode)}</td><td>${escapeHtml(x.student.name||x.parts.studentNo||x.student.code)}</td><td><b>${x.total.toFixed(1)}%</b></td></tr>`).join("")}</tbody></table></div><div class="highscore-card"><h4>🏫 Klass-highscore</h4><table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Klasspoäng</th><th>Prestation</th><th>Prog.bonus</th><th>Aktiva</th></tr></thead><tbody>${classes.map((x,i)=>`<tr><td class="rank-medal">${rankMedal(i)}</td><td><b>${escapeHtml(x.classCode)}</b></td><td class="class-score">${x.score.toFixed(1)} p</td><td>${x.performance.toFixed(1)}</td><td>+${x.bonusAverage.toFixed(1)} p <small>(${x.improved}/${x.eligible||0})</small></td><td>${x.members}</td></tr>`).join("")}</tbody></table></div></div>`;
   }
   function loadScoreboardSample(){
-    const board=scoreboardLoad();board.students=Object.assign({},board.students||{});
-    const make=(code,rows)=>board.students[code]={code,history:rows.map(r=>{const domains={};PROGRESSION_AREAS.forEach((a,i)=>domains[a.key]={key:a.key,label:a.label,level:r.levels[i],evidence:Math.max(1,r.levels[i]+1),positive:r.levels[i],needsWork:r.levels[i]<3?1:0,raw:r.levels[i]*2});return {day:r.day,exportedAt:new Date().toISOString(),score:r.score,guestAverage:r.guest,money:r.money,domains,progressAverage:Math.round(r.levels.reduce((a,b)=>a+b,0)/6*10)/10};})};
-    make("SAMPLE-A",[{day:1,score:650,guest:82,money:6750,levels:[1,1,2,1,1,0]},{day:2,score:1420,guest:88,money:7340,levels:[2,2,3,2,2,1]},{day:3,score:2360,guest:94,money:8120,levels:[3,3,3,3,3,2]}]);
-    make("SAMPLE-B",[{day:1,score:780,guest:90,money:6800,levels:[2,1,1,2,2,1]},{day:2,score:1280,guest:84,money:7210,levels:[2,1,2,2,2,2]},{day:3,score:2010,guest:89,money:7900,levels:[3,2,2,3,3,2]}]);scoreboardSave(board);renderTeacherScoreboard();showTip("Sampledata är inlagd i scoreboarden.");
+    const board=scoreboardLoad();board.students=Object.assign({},board.students||{});const now=Date.now();
+    const make=(code,name,rows)=>board.students[code]={code,name,history:rows.map((r,ri)=>{const domains={};PROGRESSION_AREAS.forEach((a,i)=>domains[a.key]={key:a.key,label:a.label,level:r.levels[i],evidence:r.levels[i]>0?Math.max(1,r.levels[i]+1):0,positive:r.levels[i],needsWork:r.levels[i]&&r.levels[i]<3?1:0,raw:r.levels[i]*2});const snap={reportId:`sample-${code}-${ri}`,day:r.day,exportedAt:new Date(now-(rows.length-ri)*86400000).toISOString(),score:r.score,guestAverage:r.guest,money:r.money,loggedDecisions:10,domains,progressAverage:0};snap.progressAverage=progressionAverage(domains);snap.totalResult=combinedResultForSnapshot(snap);return snap;})};
+    make("HR26-01","Sara",[{day:1,score:650,guest:82,money:6750,levels:[1,1,2,1,1,0]},{day:2,score:1420,guest:88,money:7340,levels:[2,2,3,2,2,1]},{day:3,score:2360,guest:94,money:8120,levels:[3,3,3,3,3,2]}]);
+    make("HR26-02","Ali",[{day:1,score:780,guest:90,money:6800,levels:[2,1,1,2,2,1]},{day:2,score:1280,guest:84,money:7210,levels:[2,1,2,2,2,2]},{day:3,score:2010,guest:89,money:7900,levels:[3,2,2,3,3,2]}]);scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();showTip("Sampledata är inlagd.");
   }
 
   function progressionEmailPayload(){
@@ -8606,8 +8721,9 @@
       const raw=progressionJsonFromMailText(textarea?.value||"");
       const pkg=normalizeStudentResultPackage(raw);
       loadedStudentResultPackage=pkg;
-      renderStudentResultPackage(pkg,"Progression från mejl");
-      showTip(`Progressionen för ${pkg.student?.code||"eleven"} är inläst.`);
+      const imported=renderStudentResultPackage(pkg,"Progression från mejl");
+      if(imported?.duplicate)showTip(`Den här rapporten för ${pkg.student?.code||"eleven"} är redan sparad.`);else showTip(`Progressionen för ${pkg.student?.code||"eleven"} är sparad.`);
+      if(textarea){textarea.value="";setTimeout(()=>textarea.focus(),0);}
     }catch(err){
       console.error(err);loadedStudentResultPackage=null;
       if(view){view.hidden=false;view.innerHTML='<div class="result bad"><strong>Progressionen kunde inte läsas.</strong><br>Kopiera hela JSON-blocket från elevens mejl och försök igen.</div>';}
@@ -8622,7 +8738,7 @@
     const progressPayload=progressionEmailPayload();
     const progressionJson=JSON.stringify(progressPayload);
     const subject=`Hotel Manager progression · ${code} · Dag ${day}`;
-    const body=`Hej!\n\nHär kommer min progression från Hotel Manager.\nElevkod: ${code} · Dag ${day} · Hotellpoäng: ${Number(state.score||0)}\n\nKopiera JSON-raden nedan och klistra in den i Hotel Manager: Lärarläge → Läs elevresultat.\n\n--- HOTEL MANAGER PROGRESSION JSON ---\n${progressionJson}\n--- SLUT JSON ---`;
+    const body=`Hej!\n\nHär kommer min progression från Hotel Manager.\nElevkod: ${code} · Dag ${day} · Hotellpoäng: ${Number(state.score||0)}\n\nLäraren kan kopiera hela mejlet och klistra in det i Hotel Manager: Lärarläge → Importera progression.\n\n--- HOTEL MANAGER PROGRESSION JSON ---\n${progressionJson}\n--- SLUT JSON ---`;
     return {email,code,day,progressPayload,progressionJson,subject,body};
   }
   async function copyTextRobust(text){
@@ -8705,7 +8821,7 @@
 
   let loadedStudentResultPackage=null;
   const assessmentLabels={
-    session_started:"Startade spelomgång",hotel_period_completed:"Hotellperiod klar",hotel_period_advanced_with_pending_work:"Bytte hotellperiod med kvarvarande arbete",hotel_period_delay:"Dröjsmål mellan hotellperioder",guest_contact_verified:"Gästuppgifter kontrollerade",checkout_payment_taken:"Betalning vid check-out",checkin_completed:"Check-in slutförd",checkin_information:"Information vid check-in",checkin_welcome:"Välkomnande vid check-in",early_arrival_service:"Tidig ankomst · bemötande",early_arrival_returned:"Tidig ankomst · gäst återkom",reception_delay_handled:"Reception · dröjsmål",service_recovery_perk:"Service recovery · gratis kaffe",happy_guest_bonus:"Gästglädjebonus",hotel_points_exchange:"Växlat hotellpoäng till pengar",
+    session_started:"Startade spelomgång",hotel_period_completed:"Hotellperiod klar",hotel_period_advanced_with_pending_work:"Bytte hotellperiod med kvarvarande arbete",hotel_period_delay:"Dröjsmål mellan hotellperioder",period_score_bonus:"Periodbonus +25",period_score_penalty:"Periodavdrag −25",guest_contact_verified:"Gästuppgifter kontrollerade",checkout_payment_taken:"Betalning vid check-out",checkin_completed:"Check-in slutförd",checkin_information:"Information vid check-in",checkin_welcome:"Välkomnande vid check-in",early_arrival_service:"Tidig ankomst · bemötande",early_arrival_returned:"Tidig ankomst · gäst återkom",reception_delay_handled:"Reception · dröjsmål",service_recovery_perk:"Service recovery · gratis kaffe",happy_guest_bonus:"Gästglädjebonus",hotel_points_exchange:"Växlat hotellpoäng till pengar",
     phone_booking_no_sale:"Telefonbokning · ingen försäljning",phone_availability_checked:"Telefonbokning · tillgänglighet kontrollerad",phone_fullbooked_choice:"Telefonbokning · val vid fullbokat",phone_overbooking:"Telefonbokning · överbokning",phone_room_number_disclosed:"Telefonbokning · uppgav rumsnummer före incheckning",breakfast_buffet_prepared:"Frukostbuffé klar",breakfast_not_ready:"Frukost inte klar",
     housekeeping_started:"Housekeeping startad",housekeeping_completed:"Housekeeping klar",housekeeping_stayover_window_opened:"Gäst ute · städfönster",housekeeping_stayover_cleaned_in_window:"Stayover städat i tid",housekeeping_stayover_ready_on_return:"Gäst återvände till städat rum",housekeeping_stayover_skipped_dnd:"Stayover hoppades över p.g.a. DND",housekeeping_stayover_missed:"Missad stayover-städning",housekeeping_knock:"Knackning",housekeeping_announce:"HOUSEKEEPING",
     housekeeping_enter:"Inträde på rum",housekeeping_wrong_room:"Fel rum",housekeeping_dnd_reported:"DND rapporterad",housekeeping_wait_guest_inside:"Väntade på gäst",
@@ -8764,7 +8880,9 @@
     view.hidden=false;
     document.getElementById("restoreStudentResultBtn")?.addEventListener("click",restoreLoadedStudentResult);
     document.getElementById("downloadLoadedStudentResultBtn")?.addEventListener("click",downloadLoadedStudentResult);
-    saveScoreboardSnapshot(pkg);
+    const imported=saveScoreboardSnapshot(pkg);
+    if(imported?.snapshot){const total=combinedResultForSnapshot(imported.snapshot);view.insertAdjacentHTML("afterbegin",`<div class="latest-total-card"><span>Nytt samlat resultat</span><b>${total.toFixed(1)}%</b></div>`);}
+    return imported;
   }
   function downloadLoadedStudentResult(){
     const pkg=loadedStudentResultPackage;if(!pkg){showTip("Läs ett elevresultat först.");return;}
@@ -8972,6 +9090,7 @@
     renderTeacherPhraseEditor();
     loadTeacherSettings();
     renderTeacherScoreboard();
+    renderTeacherHighscores();
     document.getElementById("teacherModal").classList.add("show");
     const pending=pendingTeacherResultCode();
     if(pending){
@@ -9016,7 +9135,7 @@
   document.getElementById("clearStudentProgressionPasteBtn")?.addEventListener("click",()=>{const box=document.getElementById("studentProgressionPaste");if(box)box.value="";});
   document.getElementById("readStudentResultCodeBtn")?.addEventListener("click",()=>readStudentResultCode());
   document.getElementById("loadScoreboardSampleBtn")?.addEventListener("click",loadScoreboardSample);
-  document.getElementById("clearScoreboardBtn")?.addEventListener("click",()=>{if(confirm("Rensa hela den lokala scoreboarden på lärardatorn?")){localStorage.removeItem(TEACHER_SCOREBOARD_KEY);renderTeacherScoreboard();const d=document.getElementById("scoreboardDetail");if(d)d.innerHTML="";}});
+  document.getElementById("clearScoreboardBtn")?.addEventListener("click",()=>{if(confirm("Rensa hela den lokala scoreboarden på lärardatorn?")){localStorage.removeItem(TEACHER_SCOREBOARD_KEY);renderTeacherScoreboard();renderTeacherHighscores();const d=document.getElementById("scoreboardDetail");if(d)d.innerHTML="";}});
   document.getElementById("startSampleJourneyBtn")?.addEventListener("click",startSampleGuestJourney);
   document.getElementById("studentResultFile").addEventListener("change",()=>{const view=document.getElementById("studentResultView");if(view)view.hidden=true;loadedStudentResultPackage=null;});
   document.getElementById("managerPanelBtn").onclick=openHotelDevelopment;
@@ -9052,6 +9171,7 @@
     if(b.dataset.teacherTab==="phrases") renderTeacherPhraseEditor();
     if(b.dataset.teacherTab==="settings") loadTeacherSettings();
     if(b.dataset.teacherTab==="scoreboard") renderTeacherScoreboard();
+    if(b.dataset.teacherTab==="highscore") renderTeacherHighscores();
   });
 
   document.getElementById("startBtn").onclick=startOrContinueStudent;
