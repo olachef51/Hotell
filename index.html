@@ -761,6 +761,9 @@
   .student-profile-box label{margin:0 0 6px;color:#35406c}
   .student-profile-box input{width:100%;border:2px solid #cfd8f2;border-radius:12px;padding:11px 12px;font-weight:900;text-transform:uppercase;background:#fff}
   .student-profile-help{font-size:11px!important;line-height:1.4!important;margin:7px 0 0!important;color:#68718e!important}
+  .student-code-error{display:none;margin:7px 0 0;font-size:11px;font-weight:950;line-height:1.35;color:#a93731;background:#fff0ef;border:1px solid #efb8b3;border-radius:10px;padding:7px 9px}
+  .student-code-error.show{display:block}
+  .student-profile-box input.invalid{border-color:#d64b43;background:#fff8f7;box-shadow:0 0 0 3px rgba(214,75,67,.10)}
   .start-profile-row{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:8px}
   .profile-switch-btn{border:0;border-radius:12px;padding:9px 12px;background:#eef1fa;color:#35406c;font-weight:950}
   .saved-students-panel{max-width:470px;margin:10px auto 14px;text-align:left}
@@ -950,7 +953,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-199</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-200</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1458,7 +1461,7 @@
     <div class="hotel-logo">🏨</div>
     <h1>Hotellchefen</h1>
     <p>Styr personalen i ett hotell med stor lobby, riktigt receptions-backoffice, HSK-office och bagagerum.</p>
-    <div class="student-profile-box"><label for="studentCodeInput">Elevkod</label><input id="studentCodeInput" type="text" maxlength="16" autocomplete="off" placeholder="Exempel: HT24-07"><p class="student-profile-help">Använd en kod som läraren kan koppla till rätt elev. Undvik personnummer och andra onödiga personuppgifter.</p></div>
+    <div class="student-profile-box"><label for="studentCodeInput">Elevkod</label><input id="studentCodeInput" type="text" maxlength="16" autocomplete="off" placeholder="Exempel: HR26-07" inputmode="text"><p class="student-profile-help"><strong>Format: KLASS-ELEVNUMMER</strong> · exempel <strong>HR26-07</strong>. Koden används för att sortera rätt klass och elev i lärarläget.</p><div class="student-code-error" id="studentCodeError" aria-live="polite"></div></div>
     <div class="saved-students-panel" id="savedStudentsPanel">
       <div class="saved-students-head"><span>Hotell sparade på den här datorn</span><span class="saved-students-count" id="savedStudentsCount">0</span></div>
       <div class="saved-students-list" id="savedStudentsList"></div>
@@ -1468,7 +1471,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-199 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-200 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1486,14 +1489,35 @@
   const AUTO_START_KEY = "index_hotell_auto_start_v1";
   const TEACHER_UNLOCK_KEY = "index_hotell_teacher_unlocked_v1";
   const TEACHER_EMAIL_KEY = "index_hotell_teacher_email_v1";
-  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-199: standardadress följer med direkt i GitHub-filen
+  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-200: standardadress följer med direkt i GitHub-filen
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
   const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
-  const HOTEL_VERSION = "v.01-199";
-  const MASTER_CONTENT_VERSION = "v.01-199";
+  const HOTEL_VERSION = "v.01-200";
+  const MASTER_CONTENT_VERSION = "v.01-200";
   const TEACHER_PASSWORD = "password1234";
   function normalizeStudentCode(value){return String(value||"").trim().toUpperCase().replace(/[^A-ZÅÄÖ0-9_-]/g,"").slice(0,16);}
+  function validStudentCodeFormat(value){
+    const code=normalizeStudentCode(value);
+    if(!/^[A-ZÅÄÖ0-9]{2,12}-\d{1,3}$/.test(code))return false;
+    const classCode=code.slice(0,code.lastIndexOf("-"));
+    return /[A-ZÅÄÖ]/.test(classCode);
+  }
+  function studentCodeFormatMessage(code){
+    const value=normalizeStudentCode(code);
+    if(!value)return "Skriv elevkoden i formatet KLASS-ELEVNUMMER, till exempel HR26-07.";
+    if(!value.includes("-"))return `Koden ${value} saknar bindestreck. Använd till exempel HR26-07.`;
+    return "Elevkoden ska vara KLASS-ELEVNUMMER, till exempel HR26-07. Elevnumret efter bindestrecket ska vara siffror.";
+  }
+  function showStudentCodeValidation(code,force=false){
+    const input=document.getElementById("studentCodeInput"),error=document.getElementById("studentCodeError");
+    const value=normalizeStudentCode(code);
+    if(input&&input.value!==value)input.value=value;
+    const valid=validStudentCodeFormat(value);
+    if(input)input.classList.toggle("invalid",Boolean(force&&!valid));
+    if(error){error.textContent=force&&!valid?studentCodeFormatMessage(value):"";error.classList.toggle("show",Boolean(force&&!valid));}
+    return valid;
+  }
   function studentSaveKey(code){return `index_hotell_student_v115_${normalizeStudentCode(code)}`;}
   function studentAutoBackupKey(code){const safe=normalizeStudentCode(code)||"LOCAL";return `${AUTO_BACKUP_PREFIX}${safe}`;}
   const currentStudentCode = normalizeStudentCode(localStorage.getItem(CURRENT_STUDENT_KEY)||"");
@@ -8918,7 +8942,8 @@
   }
   function restoreLoadedStudentResult(){
     const pkg=loadedStudentResultPackage,backup=pkg?.backup?.state;if(!backup){showTip("Den här filen innehåller ingen spelbackup.");return;}
-    const code=normalizeStudentCode(pkg.student?.code||backup.studentCode||"");if(!code){showTip("Elevkoden saknas i filen.");return;}
+    let code=normalizeStudentCode(pkg.student?.code||backup.studentCode||"");if(!code){showTip("Elevkoden saknas i filen.");return;}
+    if(!validStudentCodeFormat(code)){const replacement=normalizeStudentCode(prompt(`Backupen använder den äldre elevkoden ${code}.\n\nSkriv elevens nya kod som KLASS-ELEVNUMMER, till exempel HR26-07:`)||"");if(!replacement)return;if(!validStudentCodeFormat(replacement)){showTip(studentCodeFormatMessage(replacement));return;}code=replacement;}
     if(!confirm(`Öppna backupen för elev ${code}? Den sparas som elevens lokala spelprofil på den här datorn.`))return;
     const restored=mergeStudentProgressWithCurrentMaster(backup,code);
     localStorage.setItem(studentSaveKey(code),JSON.stringify(restored));localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion:pkg.hotelVersion||"äldre version",toVersion:HOTEL_VERSION,day:Number(restored.day||1)}));location.reload();
@@ -8943,7 +8968,14 @@
     const reader=new FileReader();
     reader.onload=()=>{
       try{
-        const {pkg,backup,code}=extractPortableStudentSave(JSON.parse(reader.result));
+        const extracted=extractPortableStudentSave(JSON.parse(reader.result));
+        const {pkg,backup}=extracted;let code=extracted.code;
+        if(!validStudentCodeFormat(code)){
+          const replacement=normalizeStudentCode(prompt(`Filen använder den äldre elevkoden ${code}.\n\nSkriv elevens nya kod som KLASS-ELEVNUMMER, till exempel HR26-07:`)||"");
+          if(!replacement)return;
+          if(!validStudentCodeFormat(replacement)){setLoadGameStatus(studentCodeFormatMessage(replacement),"bad");showTip(studentCodeFormatMessage(replacement));return;}
+          code=replacement;
+        }
         const migrated=mergeStudentProgressWithCurrentMaster(backup,code);
         const fromVersion=String(pkg.hotelVersion||"äldre version");
         const message=`${code} · Dag ${Number(migrated.day||1)} · ${Number(migrated.score||0)} hotellpoäng. Sparad med ${fromVersion}. Ladda progressionen i ${HOTEL_VERSION}? Nya master-scenarier och masterinställningar från ${HOTEL_VERSION} används.`;
@@ -9007,11 +9039,26 @@
     const normalized=normalizeStudentCode(code);
     if(!normalized)return;
     localStorage.setItem(CURRENT_STUDENT_KEY,normalized);
-    localStorage.setItem(AUTO_START_KEY,"1");
+    if(validStudentCodeFormat(normalized)){localStorage.setItem(AUTO_START_KEY,"1");}
+    else{localStorage.removeItem(AUTO_START_KEY);localStorage.setItem("index_hotell_legacy_code_notice_v1",normalized);}
     location.reload();
   }
 
-  function startOrContinueStudent(){const input=document.getElementById("studentCodeInput");const code=normalizeStudentCode(input?.value||"");if(!code){showTip("Skriv elevkoden innan hotellet startas.");input?.focus();return;}if(code!==currentStudentCode){localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");location.reload();return;}started=true;document.getElementById("startScreen").style.display="none";startGuestFlow();focusCameraOnWorldPoint(880,960);recordAssessment("session_started",{studentCode:code});saveState();const loadNotice=localStorage.getItem(LOAD_NOTICE_KEY);if(loadNotice){localStorage.removeItem(LOAD_NOTICE_KEY);try{const info=JSON.parse(loadNotice);showTip(`✓ ${info.code||code} laddad från ${info.fromVersion||"äldre version"} till ${info.toVersion||HOTEL_VERSION}. Fortsätter på Dag ${Number(info.day||state.day||1)}.`);}catch(e){showTip("✓ Elevens sparade hotell är laddat i den nya spelversionen.");}}else{showTip("Elevprofilen sparas automatiskt lokalt. Avsluta lektionen för att skicka progressionsunderlaget till läraren.");}}
+  function startOrContinueStudent(){
+    const input=document.getElementById("studentCodeInput"),code=normalizeStudentCode(input?.value||"");
+    if(!showStudentCodeValidation(code,true)){showTip(studentCodeFormatMessage(code));input?.focus();return;}
+    if(code!==currentStudentCode){
+      // v.01-200: om en gammal elevkod saknar KLASS-ELEVNUMMER flyttas den lokala progressionen säkert till den nya koden.
+      if(currentStudentCode&&!validStudentCodeFormat(currentStudentCode)){
+        try{
+          const oldKey=studentSaveKey(currentStudentCode),newKey=studentSaveKey(code),raw=localStorage.getItem(oldKey);
+          if(raw&&!localStorage.getItem(newKey)){const migrated=JSON.parse(raw);migrated.studentCode=code;localStorage.setItem(newKey,JSON.stringify(migrated));localStorage.removeItem(oldKey);}
+        }catch(e){console.warn("Kunde inte flytta gammal elevprofil till ny elevkod",e);}
+      }
+      localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");location.reload();return;
+    }
+    started=true;document.getElementById("startScreen").style.display="none";startGuestFlow();focusCameraOnWorldPoint(880,960);recordAssessment("session_started",{studentCode:code});saveState();const loadNotice=localStorage.getItem(LOAD_NOTICE_KEY);if(loadNotice){localStorage.removeItem(LOAD_NOTICE_KEY);try{const info=JSON.parse(loadNotice);showTip(`✓ ${info.code||code} laddad från ${info.fromVersion||"äldre version"} till ${info.toVersion||HOTEL_VERSION}. Fortsätter på Dag ${Number(info.day||state.day||1)}.`);}catch(e){showTip("✓ Elevens sparade hotell är laddat i den nya spelversionen.");}}else{showTip("Elevprofilen sparas automatiskt lokalt. Avsluta lektionen för att skicka progressionsunderlaget till läraren.");}
+  }
 
   canvas.addEventListener("contextmenu",e=>e.preventDefault());
 
@@ -9322,9 +9369,17 @@
 
   const studentCodeInput=document.getElementById("studentCodeInput");
   const activeStudentLabel=document.getElementById("activeStudentLabel");
-  if(studentCodeInput)studentCodeInput.value=currentStudentCode||"";
+  if(studentCodeInput){
+    studentCodeInput.value=currentStudentCode||"";
+    studentCodeInput.addEventListener("input",()=>{const normalized=normalizeStudentCode(studentCodeInput.value);if(studentCodeInput.value!==normalized)studentCodeInput.value=normalized;showStudentCodeValidation(normalized,false);});
+    studentCodeInput.addEventListener("blur",()=>{if(studentCodeInput.value.trim())showStudentCodeValidation(studentCodeInput.value,true);});
+    studentCodeInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();startOrContinueStudent();}});
+  }
   if(activeStudentLabel)activeStudentLabel.textContent=currentStudentCode?`Aktiv elev: ${currentStudentCode}`:"Ingen elev vald";
   renderSavedStudentProfiles();
+  const legacyCodeNotice=localStorage.getItem("index_hotell_legacy_code_notice_v1");
+  if(legacyCodeNotice){localStorage.removeItem("index_hotell_legacy_code_notice_v1");setTimeout(()=>{showStudentCodeValidation(legacyCodeNotice,true);showTip(`Gammal elevkod ${legacyCodeNotice}. Skriv ny kod som KLASS-ELEVNUMMER, t.ex. HR26-07. Progressionen flyttas automatiskt.`);studentCodeInput?.focus();},80);}
+
 
   sanitizeReservationStatuses();
   refreshDailyTaskCompletion();
