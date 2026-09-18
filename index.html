@@ -1011,7 +1011,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-212</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-213</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1507,12 +1507,12 @@
       </div>
       <div class="teacher-settings-card">
         <h3>✉ Progression till läraren</h3>
-        <p>Standardmottagare i GitHub-filen är <strong>ola.ekdahl@malmo.se</strong>. Här kan du vid behov ange en annan e-postadress på just den här datorn.</p>
+        <p>Progression från <strong>Avsluta lektion</strong> skickas alltid till <strong>ola.ekdahl@malmo.se</strong>. Adressen är låst så att en gammal lokal inställning inte kan styra utskicket fel.</p>
         <div class="teacher-settings-row">
-          <label for="teacherEmailInput">Lärarens e-postadress
-            <input type="email" id="teacherEmailInput" autocomplete="email" placeholder="namn@skola.se">
+          <label for="teacherEmailInput">Fast mottagare
+            <input type="email" id="teacherEmailInput" value="ola.ekdahl@malmo.se" readonly aria-readonly="true">
           </label>
-          <button class="primary" id="saveTeacherSettingsBtn" type="button">Spara e-postadress</button>
+          <button class="primary" id="saveTeacherSettingsBtn" type="button">Återställ mottagare</button>
         </div>
         <div class="teacher-settings-status" id="teacherSettingsStatus" aria-live="polite"></div>
       </div>
@@ -1595,7 +1595,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-212 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-213 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1614,14 +1614,14 @@
   const TEACHER_UNLOCK_KEY = "index_hotell_teacher_unlocked_v1";
   const TEACHER_EMAIL_KEY = "index_hotell_teacher_email_v1";
   const TEACHER_DIFFICULTY_KEY = "index_hotell_teacher_difficulty_v1";
-  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-212: standardadress följer med direkt i GitHub-filen
+  const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-213: fast mottagare för elevens lektionsutskick
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
   const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-212";
-  const MASTER_CONTENT_VERSION = "v.01-212";
+  const HOTEL_VERSION = "v.01-213";
+  const MASTER_CONTENT_VERSION = "v.01-213";
   const TEACHER_PASSWORD = "password1234";
   const GUEST_DIFFICULTY_LEVELS={
     1:{label:"Introduktion",graceMinutes:10,waitLossPer10:6,reviewImpact:.25,recoveryMultiplier:1.40,economyCostMultiplier:.70,scoreMultiplier:.85},
@@ -8958,7 +8958,11 @@
     clampCameraPan();
   }, {passive:false});
 
-  function teacherEmail(){return String(localStorage.getItem(TEACHER_EMAIL_KEY)||DEFAULT_TEACHER_EMAIL||"").trim();}
+  // v.01-213: elevutskick är låsta till Ola. Äldre lokalt sparade mottagare får inte skriva över standardadressen.
+  function teacherEmail(){
+    try{localStorage.removeItem(TEACHER_EMAIL_KEY);}catch(_e){}
+    return DEFAULT_TEACHER_EMAIL;
+  }
   function isValidTeacherEmail(value){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value||"").trim());}
   function renderTeacherDifficultyPreview(){
     const select=document.getElementById("teacherDifficultySelect"),target=document.getElementById("teacherDifficultyPreview");if(!target)return;
@@ -8976,19 +8980,16 @@
   function saveSupportSettingsFromTeacher(){const next=normalizeSupportSettings(state.supportSettings);document.querySelectorAll("[data-support-key]").forEach(input=>next[input.dataset.supportKey]=Boolean(input.checked));next.extraWaitMinutes=Number(document.getElementById("supportExtraWaitSelect")?.value||0);const samePreset=Object.entries(SUPPORT_PRESETS).find(([name,preset])=>Object.keys(DEFAULT_SUPPORT_SETTINGS).every(k=>k==="mode"||String(normalizeSupportSettings(preset)[k])===String(next[k])));next.mode=samePreset?samePreset[0]:(supportIsActive(next)?"custom":"standard");state.supportSettings=normalizeSupportSettings(next);saveState();renderTeacherSupportSettings();updateMission();showTip("Elevens stödprofil är sparad lokalt.");}
   function loadTeacherSettings(){
     const input=document.getElementById("teacherEmailInput"),status=document.getElementById("teacherSettingsStatus"),email=teacherEmail();
-    if(input)input.value=email;
-    if(status){status.textContent=email?`Sparad mottagare: ${email}`:"Ingen läraradress är sparad ännu.";status.classList.toggle("saved",Boolean(email));}
+    if(input){input.value=email;input.readOnly=true;}
+    if(status){status.textContent=`✓ Fast mottagare: ${email}`;status.classList.add("saved");}
     const difficulty=document.getElementById("teacherDifficultySelect");if(difficulty)difficulty.value=String(currentDifficultyLevel());renderTeacherDifficultyPreview();renderTeacherSupportSettings();
   }
   function saveTeacherSettings(){
-    const input=document.getElementById("teacherEmailInput"),status=document.getElementById("teacherSettingsStatus"),email=String(input?.value||"").trim();
-    if(!isValidTeacherEmail(email)){
-      if(status){status.textContent="Skriv en giltig e-postadress, till exempel namn@skola.se.";status.classList.remove("saved");}
-      input?.focus();return false;
-    }
-    localStorage.setItem(TEACHER_EMAIL_KEY,email);
-    if(status){status.textContent=`✓ Sparad mottagare: ${email}`;status.classList.add("saved");}
-    showTip("Lärarens e-postadress är sparad på den här datorn.");
+    const input=document.getElementById("teacherEmailInput"),status=document.getElementById("teacherSettingsStatus"),email=DEFAULT_TEACHER_EMAIL;
+    try{localStorage.removeItem(TEACHER_EMAIL_KEY);}catch(_e){}
+    if(input){input.value=email;input.readOnly=true;}
+    if(status){status.textContent=`✓ Fast mottagare: ${email}`;status.classList.add("saved");}
+    showTip(`Mottagaren är låst till ${email}.`);
     return true;
   }
   function exportStudentState(){const progress=clone(state);delete progress.scenarios;delete progress.checkinPhrases;progress.masterContentVersion=MASTER_CONTENT_VERSION;return progress;}
