@@ -322,9 +322,9 @@
   .booking-scroll{overflow-x:auto;padding-bottom:4px}
   /* PMS-kalendern använder halva dygn som grid-enhet. Varje streckad linje är exakt mitt på en dag. */
   .booking-calendar{
-    min-width:1380px;
+    width:max-content;
+    min-width:100%;
     display:grid;
-    grid-template-columns:190px repeat(20,minmax(54px,1fr));
     grid-template-rows:72px;
     grid-auto-rows:56px;
     position:relative;
@@ -1011,7 +1011,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-214</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-215</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1595,7 +1595,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-214 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-215 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1620,10 +1620,11 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-214";
-  const MASTER_CONTENT_VERSION = "v.01-214";
+  const HOTEL_VERSION = "v.01-215";
+  const MASTER_CONTENT_VERSION = "v.01-215";
   const TEACHER_PASSWORD = "password1234";
 
+  // v.01-215: hela 365-dagarskalendern renderas i en sammanhängande horisontellt scrollbar PMS-vy.
   // v.01-214: den tidigare 8-dagars testkalendern är utökad till 365 spel-/bokningsdagar.
   // Två historiska datum behålls före dag 1 så befintliga testbokningar och startscenariot fortsätter fungera.
   const HOTEL_CALENDAR_BASE_DATE = new Date(2026,4,18,12,0,0,0);
@@ -7181,14 +7182,13 @@
   function renderBookingCalendar(){
     const target=document.getElementById("pmsBookingBoard");if(!target)return;
     const todayIndex=getTodayIndex();
-    const maxViewStart=Math.max(0,HOTEL_CALENDAR_TOTAL_DAYS-HOTEL_CALENDAR_VIEW_DAYS);
-    if(bookingCalendarViewStart===null||!Number.isFinite(Number(bookingCalendarViewStart)))bookingCalendarViewStart=calendarViewStartAroundToday();
-    bookingCalendarViewStart=Math.max(0,Math.min(maxViewStart,Number(bookingCalendarViewStart||0)));
-    const viewStart=bookingCalendarViewStart,viewEnd=Math.min(HOTEL_CALENDAR_TOTAL_DAYS,viewStart+HOTEL_CALENDAR_VIEW_DAYS);
-    const days=Array.from({length:viewEnd-viewStart},(_,offset)=>hotelCalendarDayInfo(viewStart+offset));
+    const days=Array.from({length:HOTEL_CALENDAR_TOTAL_DAYS},(_,index)=>hotelCalendarDayInfo(index));
     const roomIds=builtRoomIds();
     const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
     const roomStatusLabel=room=>housekeepingStatus(room).label;
+    const halfDayWidth=54,dayWidth=halfDayWidth*2,totalHalfColumns=HOTEL_CALENDAR_TOTAL_DAYS*2,maxGridLine=2+totalHalfColumns;
+    if(bookingCalendarViewStart===null||!Number.isFinite(Number(bookingCalendarViewStart)))bookingCalendarViewStart=calendarViewStartAroundToday();
+    bookingCalendarViewStart=clamp(Number(bookingCalendarViewStart||0),0,HOTEL_CALENDAR_LAST_INDEX);
     const presentation=booking=>{
       const room=state.rooms.find(item=>item.id===booking.roomId);
       const start=Number(booking.start||0),end=start+Number(booking.nights||1);
@@ -7220,28 +7220,38 @@
       if(start>todayIndex)return {bg:"#e4ccff",line2:"Bokad reservation"};
       return {bg:booking.color||"#dce7ef",line2:booking.status==="reserved"?"Bokad reservation":"Bokning"};
     };
-    const firstLabel=hotelCalendarDayLabel(viewStart),lastLabel=hotelCalendarDayLabel(viewEnd-1);
-    let html=`<div class="pms-toolbar"><div class="pms-toolbar-group"><button class="pms-nav" data-calendar-nav="-1" aria-label="Tidigare datum" ${viewStart<=0?"disabled":""}>‹</button><strong>Bokningar & check-in</strong><button class="pms-nav" data-calendar-nav="1" aria-label="Senare datum" ${viewStart>=maxViewStart?"disabled":""}>›</button><button class="pms-today" id="bookingCalendarTodayBtn" type="button">Idag</button><button class="pms-new-reservation" id="newReservationBtn">＋ Ny reservation</button></div><div class="pms-help">${escapeHtml(firstLabel)} – ${escapeHtml(lastLabel)} · 365-dagars kalender</div></div><div class="booking-scroll booking-room-scroll"><div class="booking-calendar"><div class="calendar-corner" style="grid-row:1;grid-column:1">RUM</div>`;
-    days.forEach(day=>{const relative=day.index-viewStart,gridStart=2+relative*2;html+=`<div class="calendar-day ${day.index===todayIndex?"today":""}" style="grid-row:1;grid-column:${gridStart}/span 2">${day.index===todayIndex?`<strong>IDAG</strong>`:`<strong>${day.dow}</strong>`}<b>${day.date}</b><small>${day.month} ${day.year}</small></div>`;});
-    roomIds.forEach((roomId,rowIndex)=>{const row=rowIndex+2,room=state.rooms.find(item=>item.id===roomId),hk=housekeepingStatus(room),sign=String(room?.doorSign||"none").toUpperCase();html+=`<div class="calendar-room" style="grid-row:${row};grid-column:1"><b>Rum ${roomId} · ${escapeHtml(roomTypeForId(roomId))}</b><span class="calendar-room-status ${hk.key}">${escapeHtml(roomStatusLabel(room))}${sign!=="NONE"?`<span class="calendar-room-sign">${escapeHtml(sign)}</span>`:""}</span></div>`;for(let half=0;half<HOTEL_CALENDAR_VIEW_DAYS*2;half++){const classes=["calendar-half"];if(half%2===0)classes.push("day-start");else classes.push("midline");html+=`<div class="${classes.join(" ")}" style="grid-row:${row};grid-column:${half+2}"></div>`;}});
+    let html=`<div class="pms-toolbar"><div class="pms-toolbar-group"><button class="pms-nav" data-calendar-nav="-1" aria-label="Tidigare datum">‹</button><strong>Bokningar & check-in</strong><button class="pms-nav" data-calendar-nav="1" aria-label="Senare datum">›</button><button class="pms-today" id="bookingCalendarTodayBtn" type="button">Idag</button><button class="pms-new-reservation" id="newReservationBtn">＋ Ny reservation</button></div><div class="pms-help" id="bookingCalendarRange"></div></div><div class="booking-scroll booking-room-scroll"><div class="booking-calendar" style="grid-template-columns:190px repeat(${totalHalfColumns},${halfDayWidth}px)"><div class="calendar-corner" style="grid-row:1;grid-column:1">RUM</div>`;
+    days.forEach(day=>{const gridStart=2+day.index*2;html+=`<div class="calendar-day ${day.index===todayIndex?"today":""}" style="grid-row:1;grid-column:${gridStart}/span 2">${day.index===todayIndex?`<strong>IDAG</strong>`:`<strong>${day.dow}</strong>`}<b>${day.date}</b><small>${day.month} ${day.year}</small></div>`;});
+    roomIds.forEach((roomId,rowIndex)=>{const row=rowIndex+2,room=state.rooms.find(item=>item.id===roomId),hk=housekeepingStatus(room),sign=String(room?.doorSign||"none").toUpperCase();html+=`<div class="calendar-room" style="grid-row:${row};grid-column:1"><b>Rum ${roomId} · ${escapeHtml(roomTypeForId(roomId))}</b><span class="calendar-room-status ${hk.key}">${escapeHtml(roomStatusLabel(room))}${sign!=="NONE"?`<span class="calendar-room-sign">${escapeHtml(sign)}</span>`:""}</span></div>`;for(let half=0;half<totalHalfColumns;half++){const classes=["calendar-half"];if(half%2===0)classes.push("day-start");else classes.push("midline");html+=`<div class="${classes.join(" ")}" style="grid-row:${row};grid-column:${half+2}"></div>`;}});
     state.bookings.forEach(booking=>{
       const displayRoom=booking.roomId||preferredRoomForBooking(booking)||103,rowIndex=roomIds.indexOf(displayRoom);if(rowIndex<0)return;
       const row=rowIndex+2,startDay=Number(booking.start||0),endDay=startDay+Math.max(1,Number(booking.nights||1));
-      const visibleStart=Math.max(startDay,viewStart),visibleEnd=Math.min(endDay,viewEnd);if(visibleEnd<=visibleStart)return;
-      const startLine=startDay<viewStart?2:clamp(3+2*(visibleStart-viewStart),2,22);
-      const endLine=endDay>viewEnd?22:clamp(3+2*(visibleEnd-viewStart),3,22);if(endLine<=startLine)return;
+      const visibleStart=Math.max(startDay,0),visibleEnd=Math.min(endDay,HOTEL_CALENDAR_TOTAL_DAYS);if(visibleEnd<=visibleStart)return;
+      const startLine=startDay<0?2:clamp(3+2*visibleStart,2,maxGridLine);
+      const endLine=endDay>HOTEL_CALENDAR_TOTAL_DAYS?maxGridLine:clamp(3+2*visibleEnd,3,maxGridLine);if(endLine<=startLine)return;
       const selected=Number(state.receptionCheckin.selectedBookingId)===booking.id,p=presentation(booking);
       const oneDay=Number(booking.nights||1)<=1;
       html+=`<button class="booking-block ${oneDay?"one-day":""} ${booking.status==="arrival"?"arrival":""} ${selected?"selected":""}" data-booking-id="${booking.id}" style="grid-row:${row};grid-column:${startLine}/${endLine};background:${p.bg}"><span class="booking-guest">${escapeHtml(booking.guest)}</span><span class="booking-status">${escapeHtml(p.line2)}</span></button>`;
     });
     target.innerHTML=html+`</div></div>`;
     target.querySelectorAll("[data-booking-id]").forEach(button=>button.onclick=()=>openBookingDetail(Number(button.dataset.bookingId)));
-    target.querySelectorAll("[data-calendar-nav]").forEach(button=>button.onclick=()=>{
-      const direction=Number(button.dataset.calendarNav||0);
-      bookingCalendarViewStart=Math.max(0,Math.min(maxViewStart,viewStart+direction*HOTEL_CALENDAR_VIEW_DAYS));
-      renderBookingCalendar();
-    });
-    const todayBtn=target.querySelector("#bookingCalendarTodayBtn");if(todayBtn)todayBtn.onclick=()=>{bookingCalendarViewStart=calendarViewStartAroundToday();renderBookingCalendar();};
+    const scroller=target.querySelector(".booking-room-scroll"),rangeLabel=target.querySelector("#bookingCalendarRange"),navButtons=[...target.querySelectorAll("[data-calendar-nav]")];
+    const updateVisibleRange=()=>{
+      if(!scroller)return;
+      const first=clamp(Math.floor(scroller.scrollLeft/dayWidth),0,HOTEL_CALENDAR_LAST_INDEX);
+      const usableWidth=Math.max(dayWidth,scroller.clientWidth-190);
+      const count=Math.max(1,Math.ceil(usableWidth/dayWidth)+1);
+      const last=clamp(first+count-1,first,HOTEL_CALENDAR_LAST_INDEX);
+      bookingCalendarViewStart=first;
+      if(rangeLabel)rangeLabel.textContent=`${hotelCalendarDayLabel(first)} – ${hotelCalendarDayLabel(last)} · 365-dagars kalender`;
+      navButtons.forEach(button=>{const direction=Number(button.dataset.calendarNav||0);button.disabled=direction<0?scroller.scrollLeft<=2:scroller.scrollLeft>=scroller.scrollWidth-scroller.clientWidth-2;});
+    };
+    if(scroller){
+      requestAnimationFrame(()=>{scroller.scrollLeft=clamp(bookingCalendarViewStart,0,HOTEL_CALENDAR_LAST_INDEX)*dayWidth;updateVisibleRange();});
+      scroller.addEventListener("scroll",updateVisibleRange,{passive:true});
+    }
+    navButtons.forEach(button=>button.onclick=()=>{if(!scroller)return;const direction=Number(button.dataset.calendarNav||0);scroller.scrollBy({left:direction*HOTEL_CALENDAR_VIEW_DAYS*dayWidth,behavior:"smooth"});});
+    const todayBtn=target.querySelector("#bookingCalendarTodayBtn");if(todayBtn)todayBtn.onclick=()=>{if(!scroller)return;bookingCalendarViewStart=calendarViewStartAroundToday();scroller.scrollTo({left:bookingCalendarViewStart*dayWidth,behavior:"smooth"});};
     const newReservationBtn=target.querySelector("#newReservationBtn");if(newReservationBtn)newReservationBtn.onclick=openNewReservationModal;
   }
 
