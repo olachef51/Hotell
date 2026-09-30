@@ -1017,6 +1017,33 @@
   @media(max-width:900px){.support-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.support-options,.daily-report-grid,.review-history-summary{grid-template-columns:1fr}}
 
+  /* v.01-221 · Elevstyrd svårighet + HSK-gästdialog */
+  #studentDifficultyBtn{border:0;border-radius:18px;padding:9px 12px;background:#eef3ff;color:#2e468d;font-weight:1000;box-shadow:0 4px 0 rgba(49,60,152,.16);white-space:nowrap}
+  #studentDifficultyBtn:hover{filter:brightness(.98)}
+  .student-difficulty-box{width:min(720px,95vw)}
+  .student-difficulty-intro{margin:0 0 12px;color:#5a6481;font-size:13px;line-height:1.45}
+  .student-mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:10px 0 14px}
+  .student-mode-card{border:2px solid #dce3f4;border-radius:14px;padding:12px;background:#f8faff;color:#2d3c68;text-align:left;font-weight:1000}
+  .student-mode-card small{display:block;margin-top:4px;color:#6c7890;font-weight:750;line-height:1.35}
+  .student-mode-card.active{border-color:#6678ed;background:#eef1ff;box-shadow:0 0 0 2px rgba(102,120,237,.12)}
+  .student-difficulty-row{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:10px;align-items:end}
+  .student-difficulty-row label{margin:0}
+  .student-difficulty-row select{width:100%;padding:10px 12px;border:2px solid #dce3f4;border-radius:10px;background:#fff;font-weight:900;color:#2d3c68}
+  .student-support-title{margin:16px 0 5px;font-size:15px;color:#2d3c68}
+  .student-support-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .student-support-buttons button{border:2px solid #dbe5f2;border-radius:12px;background:#fff;padding:10px;text-align:left;color:#334567;font-weight:1000}
+  .student-support-buttons button small{display:block;font-weight:750;color:#6c7890;margin-top:3px;line-height:1.3}
+  .student-support-buttons button.active{background:#e9f4ff;border-color:#6f9ed2;color:#244f7c}
+  .student-difficulty-save{width:100%;margin-top:14px}
+  .hsk-guest-box{width:min(680px,94vw)}
+  .hsk-guest-dialogue{display:grid;gap:10px;margin-top:8px}
+  .hsk-guest-bubble{border-radius:16px;padding:13px 15px;background:#f2f5f7;border:2px solid #dce4e8;color:#30404d;font-weight:850;line-height:1.45}
+  .hsk-guest-bubble strong{display:block;margin-bottom:4px;color:#21324b}
+  .hsk-guest-choices{display:grid;gap:8px;margin-top:12px}
+  .hsk-guest-choices button{border:2px solid #d9dfec;background:#fff;border-radius:13px;padding:11px 13px;text-align:left;font-weight:900;color:#273858}
+  .hsk-guest-choices button:hover{border-color:#6278ef;background:#f4f6ff}
+  @media(max-width:900px){#studentDifficultyBtn{font-size:12px;padding:8px 9px}.student-mode-grid,.student-support-buttons{grid-template-columns:1fr}.student-difficulty-row{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1024,13 +1051,14 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-219</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-221</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
     <button class="next-day-btn" id="nextDayBtn" type="button">Nästa period ▶</button>
     <div class="small-pill" id="happyPill">😊 <span id="happyText">70</span>%</div>
     <button class="reviews-hud-btn" id="reviewsBtn" type="button">★ Recensioner</button>
+    <button id="studentDifficultyBtn" type="button">🎚 Svårighet & hjälp</button>
     <button id="teacherBtn">⚙ Lärarläge</button>
     <button id="endLessonBtn" type="button">📤 Avsluta lektion</button>
   </div>
@@ -1067,6 +1095,34 @@
 
 
 
+
+<div class="modal" id="studentDifficultyModal">
+  <div class="box student-difficulty-box">
+    <div class="box-head"><h2>🎚 Svårighet & hjälp</h2><button class="close" data-close="studentDifficultyModal">Stäng</button></div>
+    <p class="student-difficulty-intro">Välj den nivå som passar dig. Du kan ändra när som helst. Hjälpläget använder samma stödfunktioner som finns i lärarinställningarna.</p>
+    <div class="student-mode-grid">
+      <button type="button" class="student-mode-card" data-student-mode="easy"><strong>🌱 Enklare</strong><small>Nivå 2 + stöd med tydligare hjälp, färre svar och ny chans.</small></button>
+      <button type="button" class="student-mode-card" data-student-mode="normal"><strong>🏨 Normal</strong><small>Nivå 4 + standardläge utan extra hjälp.</small></button>
+      <button type="button" class="student-mode-card" data-student-mode="challenge"><strong>⭐ Utmaning</strong><small>Nivå 7 + standardläge med högre krav och högre poängmultiplikator.</small></button>
+    </div>
+    <div class="student-difficulty-row">
+      <label for="studentDifficultySelect">Exakt svårighetsnivå
+        <select id="studentDifficultySelect">
+          <option value="1">1 · Introduktion</option><option value="2">2 · Nybörjare</option><option value="3">3 · Grundnivå</option><option value="4">4 · Normal</option><option value="5">5 · Yrkesnivå</option><option value="6">6 · Erfaren</option><option value="7">7 · Hög standard</option><option value="8">8 · Premiumhotell</option><option value="9">9 · Lyxhotell</option><option value="10">10 · Hotel Manager Challenge</option>
+        </select>
+      </label>
+      <div class="difficulty-preview" id="studentDifficultyPreview"></div>
+    </div>
+    <h3 class="student-support-title">Hjälp under spelet</h3>
+    <div class="student-support-buttons">
+      <button type="button" data-student-support="standard"><strong>Standard</strong><small>Ingen extra hjälp.</small></button>
+      <button type="button" data-student-support="support"><strong>Stöd</strong><small>Enklare text, färre svar, ledtrådar, tydliga bekräftelser och möjlighet att försöka igen.</small></button>
+      <button type="button" data-student-support="extra"><strong>Extra stöd</strong><small>Steg-för-steg, ingen tidspress, lugnare skärm och fler stödfunktioner.</small></button>
+    </div>
+    <div class="info" id="studentSupportCurrentInfo"></div>
+    <button class="primary student-difficulty-save" id="saveStudentDifficultyBtn" type="button">Spara och fortsätt spela</button>
+  </div>
+</div>
 
 <div class="modal" id="hotelDevelopmentModal">
   <div class="box development-box">
@@ -1257,6 +1313,14 @@
       <button class="hsk-clean-now" id="hskCleanNowBtn">Städa rummet</button>
       <button class="hsk-skip-room" id="hskSkipRoomBtn">Hoppa över rummet</button>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="hskGuestConversationModal">
+  <div class="box hsk-guest-box">
+    <div class="box-head"><h2 id="hskGuestConversationTitle">🚪 Gäst svarar</h2><button class="close" data-close="hskGuestConversationModal">Stäng</button></div>
+    <div class="hsk-guest-dialogue" id="hskGuestConversationBody"></div>
+    <div class="hsk-guest-choices" id="hskGuestConversationChoices"></div>
   </div>
 </div>
 
@@ -1568,7 +1632,7 @@
   </div>
 </div>
 
-<div class="modal" id="lessonEndModal"><div class="box lesson-end-box"><div class="box-head"><h2>📤 Avsluta lektion</h2><button class="close" data-close="lessonEndModal">Stäng</button></div><p>Skicka dagens progression till läraren. Ett kompakt progressionspaket skrivs direkt i mejlets text och elevens fullständiga hotell fortsätter autosparas lokalt.</p><div class="lesson-summary-grid" id="lessonSummaryGrid"></div><div class="lesson-recipient" id="lessonRecipientInfo"></div><div class="privacy-note"><strong>Dataminimering:</strong> mejlet använder elevkod och innehåller inte personnummer. Det innehåller sammanställd progression, resultat och evidensnivåer – inte hela spelbackupen.</div><div class="lesson-actions"><button class="primary" id="shareProgressBtn" type="button">✉ Skicka progression via mejl</button><button class="secondary" id="copyProgressBtn" type="button">📋 Kopiera progression</button><button class="secondary" id="downloadProgressBtn" type="button" title="Spara en kopia av spelet på datorn">💾 Spara spelet</button></div><div class="progress-fallback" id="progressFallbackPanel" hidden><strong>Om mejlappen inte öppnas</strong><p>Tryck på <strong>Öppna e-postapp manuellt</strong> för att försöka igen. Du kan också öppna Outlook eller Gmail direkt härifrån, eller kopiera mejltexten.</p><textarea id="progressFallbackText" readonly spellcheck="false"></textarea><div class="progress-fallback-actions"><button class="secondary" id="copyProgressTextBtn" type="button">📋 Kopiera mejltext</button><button class="secondary" id="openMailAppManualBtn" type="button">✉ Öppna e-postapp manuellt</button><button class="secondary" id="openOutlookWebBtn" type="button">🌐 Outlook webb</button><button class="secondary" id="openGmailWebBtn" type="button">🌐 Gmail webb</button></div></div><div class="info"><strong>Så fungerar Skicka:</strong> spelet försöker öppna standardappen för e-post. Samtidigt görs progressionen tillgänglig för kopiering. Om datorn saknar en kopplad mejlapp kan eleven använda Outlook webb eller Gmail webb och klistra in texten. Knappen <strong>Spara spelet</strong> sparar en kopia av elevens hotell som en fil i datorns vanliga nedladdningsmapp.</div></div></div>
+<div class="modal" id="lessonEndModal"><div class="box lesson-end-box"><div class="box-head"><h2>📤 Avsluta lektion</h2><button class="close" data-close="lessonEndModal">Stäng</button></div><p>Skicka dagens progression till läraren. Huvudknappen öppnar <strong>Outlook på webben</strong> med mottagare, ämne och progressionspaket färdigifyllt. Progressionen kopieras samtidigt som extra reserv.</p><div class="lesson-summary-grid" id="lessonSummaryGrid"></div><div class="lesson-recipient" id="lessonRecipientInfo"></div><div class="privacy-note"><strong>Dataminimering:</strong> mejlet använder elevkod och innehåller inte personnummer. Det innehåller sammanställd progression, resultat och evidensnivåer – inte hela spelbackupen.</div><div class="lesson-actions"><button class="primary" id="shareProgressBtn" type="button">🌐 Skicka progression via Outlook</button><button class="secondary" id="copyProgressBtn" type="button">📋 Kopiera progression</button><button class="secondary" id="downloadProgressBtn" type="button" title="Spara en kopia av spelet på datorn">💾 Spara spelet</button></div><div class="progress-fallback" id="progressFallbackPanel" hidden><strong>Reserv om Outlook inte öppnas</strong><p>Progressionen finns kvar här. Kopiera mejltexten eller prova vanlig e-postapp, Outlook webb eller Gmail webb manuellt.</p><textarea id="progressFallbackText" readonly spellcheck="false"></textarea><div class="progress-fallback-actions"><button class="secondary" id="copyProgressTextBtn" type="button">📋 Kopiera mejltext</button><button class="secondary" id="openMailAppManualBtn" type="button">✉ Öppna e-postapp manuellt</button><button class="secondary" id="openOutlookWebBtn" type="button">🌐 Outlook webb</button><button class="secondary" id="openGmailWebBtn" type="button">🌐 Gmail webb</button></div></div><div class="info"><strong>Så fungerar Skicka:</strong> Outlook på webben är förstahandsvägen för att fungera likadant på fler skoldatorer. Progressionen kopieras dessutom automatiskt. Ett fel i datorns lokala lagring får inte längre stoppa försöket att öppna mejlet. <strong>Spara spelet</strong> skapar fortfarande en separat elevfil som reserv.</div></div></div>
 
 <div class="modal" id="guestReviewModal">
   <div class="box review-box">
@@ -1608,7 +1672,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-219 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-221 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1633,10 +1697,14 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-219";
-  const MASTER_CONTENT_VERSION = "v.01-219";
+  const HOTEL_VERSION = "v.01-221";
+  const MASTER_CONTENT_VERSION = "v.01-221";
   const TEACHER_PASSWORD = "password1234";
 
+  // v.01-221: HSK blockerar inte längre på inaktiva/spöklika gästagenter. En verklig gäst på rummet svarar efter dörrrutinen och eleven får hantera en kort yrkesdialog.
+  // Eleven kan nu själv välja svårighetsnivå och hjälp/stödprofil utan att öppna Lärarläge.
+  // v.01-220: robust progressionsutskick öppnar Outlook webb direkt och localStorage-fel stoppar inte utskicket.
+  // Receptionen visar gästens ärende tydligt och ritar gästen ovanpå receptionspersonal/uppgiftsmarkeringar.
   // v.01-219: Gästinformation leder nu till saknade kontaktuppgifter före hotellinformationen. HSK använder gästens faktiska position vid rumsinträde.
   // v.01-218: arbetslistan synkas med gäster som faktiskt väntar i receptionen, inklusive early C/I 12–15.
   // Lärarläget visar också förbättringar/försämringar, styrkor, utvecklingsområden och dagens konkreta progression.
@@ -1687,7 +1755,7 @@
   };
   function clampDifficultyLevel(value){return Math.max(1,Math.min(10,Math.round(Number(value)||4)));}
   function teacherDifficultyPreference(){try{return clampDifficultyLevel(localStorage.getItem(TEACHER_DIFFICULTY_KEY)||4);}catch(_e){return 4;}}
-  function currentDifficultyLevel(){let stored=null;try{stored=localStorage.getItem(TEACHER_DIFFICULTY_KEY);}catch(_e){}return clampDifficultyLevel(stored||state?.difficultyLevel||4);}
+  function currentDifficultyLevel(){const own=Number(state?.difficultyLevel);return Number.isFinite(own)&&own>=1?clampDifficultyLevel(own):teacherDifficultyPreference();}
   const DEFAULT_SUPPORT_SETTINGS={mode:"standard",simpleLanguage:false,oneTaskAtTime:false,stepByStep:false,showWhere:false,fewerChoices:false,hints:false,retryAfterWrong:false,secondChance:false,noTimePressure:false,fewerGuests:false,simpleProblems:false,noSpecialEvents:false,repeatPractice:false,readAloud:false,reducedUi:false,confirmations:false,helpButton:false,extraWaitMinutes:0};
   const SUPPORT_PRESETS={
     standard:Object.assign({},DEFAULT_SUPPORT_SETTINGS),
@@ -1701,6 +1769,41 @@
   function supportSummaryForExport(){const x=currentSupportSettings();return {active:supportIsActive(x),mode:x.mode,features:supportFeatureCount(x)};}
   function applySupportBodyClass(){const x=currentSupportSettings();document.body?.classList.toggle("support-reduced-ui",Boolean(x.reducedUi));}
   function currentDifficultySettings(){const level=currentDifficultyLevel(),cfg=Object.assign({level},GUEST_DIFFICULTY_LEVELS[level]||GUEST_DIFFICULTY_LEVELS[4]),support=currentSupportSettings();if(support.noTimePressure)cfg.waitLossPer10=0;cfg.graceMinutes=Math.max(0,Number(cfg.graceMinutes||0)+Number(support.extraWaitMinutes||0));return cfg;}
+
+  let studentPendingSupportPreset=null;
+  function studentDifficultyPreviewHtml(level){const cfg=GUEST_DIFFICULTY_LEVELS[clampDifficultyLevel(level)]||GUEST_DIFFICULTY_LEVELS[4];return `<strong>Nivå ${cfg===GUEST_DIFFICULTY_LEVELS[clampDifficultyLevel(level)]?clampDifficultyLevel(level):4} · ${escapeHtml(cfg.label)}</strong><br>Tålamod: ${cfg.graceMinutes} min före vanlig väntestress. Driftkostnad: ${Math.round(Number(cfg.economyCostMultiplier||1)*100)}%. Tävlingspoäng: ${Number(cfg.scoreMultiplier||1).toFixed(2)}×.`;}
+  function renderStudentDifficultyPanel(){
+    const select=document.getElementById("studentDifficultySelect"),preview=document.getElementById("studentDifficultyPreview"),support=currentSupportSettings();
+    if(select)select.value=String(currentDifficultyLevel());
+    if(preview)preview.innerHTML=studentDifficultyPreviewHtml(select?.value||currentDifficultyLevel());
+    studentPendingSupportPreset=null;
+    document.querySelectorAll("[data-student-support]").forEach(btn=>btn.classList.toggle("active",btn.dataset.studentSupport===support.mode));
+    document.querySelectorAll("[data-student-mode]").forEach(btn=>btn.classList.remove("active"));
+    const info=document.getElementById("studentSupportCurrentInfo");
+    if(info)info.innerHTML=supportIsActive(support)?`<strong>Nuvarande hjälp:</strong> ${escapeHtml(support.mode==="extra"?"Extra stöd":support.mode==="support"?"Stöd":"Anpassat stöd från läraren")} · ${supportFeatureCount(support)} aktiva stödfunktioner.`:`<strong>Nuvarande hjälp:</strong> Standard · inga extra stödfunktioner.`;
+  }
+  function openStudentDifficulty(){renderStudentDifficultyPanel();document.getElementById("studentDifficultyModal")?.classList.add("show");}
+  function chooseStudentQuickMode(mode){
+    const config=mode==="easy"?{level:2,support:"support"}:mode==="challenge"?{level:7,support:"standard"}:{level:4,support:"standard"};
+    const select=document.getElementById("studentDifficultySelect");if(select)select.value=String(config.level);
+    studentPendingSupportPreset=config.support;
+    document.querySelectorAll("[data-student-mode]").forEach(btn=>btn.classList.toggle("active",btn.dataset.studentMode===mode));
+    document.querySelectorAll("[data-student-support]").forEach(btn=>btn.classList.toggle("active",btn.dataset.studentSupport===config.support));
+    const preview=document.getElementById("studentDifficultyPreview");if(preview)preview.innerHTML=studentDifficultyPreviewHtml(config.level);
+  }
+  function chooseStudentSupportPreset(name){
+    if(!SUPPORT_PRESETS[name])return;studentPendingSupportPreset=name;
+    document.querySelectorAll("[data-student-support]").forEach(btn=>btn.classList.toggle("active",btn.dataset.studentSupport===name));
+    document.querySelectorAll("[data-student-mode]").forEach(btn=>btn.classList.remove("active"));
+  }
+  function saveStudentDifficulty(){
+    const level=clampDifficultyLevel(document.getElementById("studentDifficultySelect")?.value||currentDifficultyLevel());
+    state.difficultyLevel=level;
+    if(studentPendingSupportPreset&&SUPPORT_PRESETS[studentPendingSupportPreset])state.supportSettings=normalizeSupportSettings(clone(SUPPORT_PRESETS[studentPendingSupportPreset]));
+    saveState();applySupportBodyClass();updateMission();updateHud();document.getElementById("studentDifficultyModal")?.classList.remove("show");
+    const support=currentSupportSettings(),supportText=supportIsActive(support)?(support.mode==="extra"?"extra stöd":support.mode==="support"?"stöd":"anpassat stöd"):"standardhjälp";
+    showTip(`Svårighetsnivå ${level} · ${GUEST_DIFFICULTY_LEVELS[level].label} är aktiv med ${supportText}.`);
+  }
 
   // v.01-212: äldre versioner kunde lämna lärarläget upplåst i sessionStorage. Rensa alltid detta vid laddning.
   try{sessionStorage.removeItem(TEACHER_UNLOCK_KEY);}catch(_e){}
@@ -2165,7 +2268,7 @@
   let state = loadState();
   state.supportSettings=normalizeSupportSettings(state.supportSettings);
   if(!Array.isArray(state.dailyReports))state.dailyReports=[];if(!state.returningGuestMemories||typeof state.returningGuestMemories!=="object")state.returningGuestMemories={};if(!Number.isFinite(Number(state.dayOpeningMoney)))state.dayOpeningMoney=Number(state.money||6500);
-  try{if(localStorage.getItem(TEACHER_DIFFICULTY_KEY))state.difficultyLevel=teacherDifficultyPreference();}catch(_e){}
+  if(!Number.isFinite(Number(state.difficultyLevel)))state.difficultyLevel=teacherDifficultyPreference();
   setTimeout(applySupportBodyClass,0);
   state.hotelPeriodIndex=Math.max(0,Math.min(7,Number(state.hotelPeriodIndex??2)));
   state.hotelPeriodVersion=199;
@@ -2758,7 +2861,8 @@
     {
       id:"receptionist", name:"Lina", role:"Receptionist", icon:"🛎️",
       shirt:"#536dde", skill:"Bokning, incheckning, betalning och gästservice.",
-      homeX:940,homeY:1248,stationX:940,stationY:1228
+      // v.01-220: Lina står åt vänster bakom disken så hon inte skymmer gästen eller pratbubblan.
+      homeX:820,homeY:1248,stationX:820,stationY:1228
     },
     {
       id:"housekeeper", name:"Luise", role:"Housekeeping", icon:"🧹",
@@ -3219,6 +3323,59 @@
     if(!hskWorkflow)return;
     const left=Math.max(0,Number(hskWorkflow.announceWaitUntil||0)-performance.now());
     showTip(left>0?"Vänta ett ögonblick till och ge gästen möjlighet att svara.":"Väntetiden är klar. Fortsätt HSK-rutinen.");
+  }
+
+  const HSK_GUEST_CONVERSATIONS=[
+    {key:"later",guestLine:"Hej! Jag är fortfarande på rummet. Kan ni komma tillbaka lite senare?",choices:[
+      {text:"Självklart. Vi kommer tillbaka senare. Tack för att ni sa till.",correct:true,effect:2,feedback:"Bra. Du respekterar gästens integritet och planerar om städningen."},
+      {text:"Vi måste städa nu, så ni behöver lämna rummet.",correct:false,effect:-6,feedback:"Housekeeping ska inte pressa ut en gäst ur rummet för ordinarie städning."},
+      {text:"Okej, då struntar vi i rummet resten av vistelsen.",correct:false,effect:-3,feedback:"Bekräfta önskemålet och planera återbesök i stället för att avskriva servicen helt."}
+    ]},
+    {key:"towels",guestLine:"Hej! Jag vill inte ha städning just nu, men jag skulle gärna vilja ha rena handdukar.",choices:[
+      {text:"Absolut. Jag ordnar rena handdukar och respekterar att ni inte vill ha städning nu.",correct:true,effect:3,feedback:"Bra. Du lyssnar på gästens önskemål och går inte in utan behov."},
+      {text:"Handdukar får ni bara om vi får städa hela rummet.",correct:false,effect:-6,feedback:"Gästservice kan anpassas. Rena handdukar kräver inte att full städning genomförs."},
+      {text:"Ring receptionen i stället, det här är inte housekeepingfråga.",correct:false,effect:-4,feedback:"Rena handdukar är en naturlig housekeepingfråga och bör hanteras direkt."}
+    ]},
+    {key:"leaving",guestLine:"Hej! Jag ska gå ut om en liten stund. Kan ni ta rummet efter det?",choices:[
+      {text:"Självklart. Vi väntar tills ni har lämnat rummet och kommer tillbaka då.",correct:true,effect:2,feedback:"Bra. Du bekräftar gästens önskemål och väntar med inträdet."},
+      {text:"Nej, vi går in nu så blir det klart snabbare.",correct:false,effect:-7,feedback:"Du får inte gå in mot gästens önskemål när det inte finns någon nödsituation."},
+      {text:"Då får ni själva säga till housekeeping senare.",correct:false,effect:-3,feedback:"Personalen bör ta ansvar för att planera återbesöket."}
+    ]}
+  ];
+  function hskGuestConversationScenario(roomId){
+    const index=Math.abs(Number(roomId||0)+Number(state.day||1)+Number(hskWorkflow?.announcements||0))%HSK_GUEST_CONVERSATIONS.length;
+    return HSK_GUEST_CONVERSATIONS[index];
+  }
+  function openHskGuestConversation(){
+    if(!hskWorkflow||hskWorkflow.stage!=="door")return;
+    const roomId=Number(hskWorkflow.roomId);
+    if(!isGuestPhysicallyInRoom(roomId)){showTip("Ingen gäst svarar längre. Fortsätt dörrrutinen.");updateInteraction();return;}
+    const guest=currentRoomGuestAgent(roomId),scenario=hskGuestConversationScenario(roomId);
+    hskWorkflow.guestConversationKey=scenario.key;
+    if(guest)guest.nextActionAt=Math.max(Number(guest.nextActionAt||0),performance.now()+15000);
+    document.getElementById("hskGuestConversationTitle").textContent=`🚪 Rum ${roomId} · ${currentRoomGuestName(roomId)} svarar`;
+    document.getElementById("hskGuestConversationBody").innerHTML=`<div class="hsk-guest-bubble"><strong>${escapeHtml(currentRoomGuestName(roomId))}</strong>${escapeHtml(scenario.guestLine)}</div><div class="info">Välj hur housekeeping ska svara. Luise går inte in så länge gästen är kvar på rummet.</div>`;
+    const choices=document.getElementById("hskGuestConversationChoices");
+    choices.innerHTML=scenario.choices.map((choice,index)=>`<button type="button" data-hsk-guest-choice="${index}">${escapeHtml(choice.text)}</button>`).join("");
+    choices.querySelectorAll("[data-hsk-guest-choice]").forEach(button=>button.onclick=()=>resolveHskGuestConversation(Number(button.dataset.hskGuestChoice)));
+    document.getElementById("hskGuestConversationModal").classList.add("show");
+    recordAssessment("housekeeping_guest_answered",{roomId,guest:currentRoomGuestName(roomId),scenario:scenario.key,announcement:Number(hskWorkflow.announcements||0)});
+  }
+  function resolveHskGuestConversation(choiceIndex){
+    if(!hskWorkflow)return;
+    const roomId=Number(hskWorkflow.roomId),scenario=HSK_GUEST_CONVERSATIONS.find(item=>item.key===hskWorkflow.guestConversationKey)||hskGuestConversationScenario(roomId),choice=scenario.choices[choiceIndex];
+    if(!choice)return;
+    const booking=state.bookings.find(item=>Number(item.roomId)===roomId&&item.status==="inhouse"),guest=currentRoomGuestAgent(roomId),day=Number(state.day||1);
+    const alreadyHandled=Number(booking?.hskGuestConversationDay||0)===day;
+    let before=100,after=100,points=0;
+    if(guest){ensureGuestMood(guest);before=Number(state.guestMoods[guest.id]??100);after=Math.max(0,Math.min(100,before+Number(choice.effect||0)));state.guestMoods[guest.id]=after;guest.nextActionAt=Math.max(Number(guest.nextActionAt||0),performance.now()+4500);}
+    if(choice.correct){points=alreadyHandled?0:30;state.score+=points;}else{points=alreadyHandled?0:-20;state.score=Math.max(0,Number(state.score||0)+points);}
+    if(booking)booking.hskGuestConversationDay=day;
+    recordAssessment("housekeeping_guest_conversation",{roomId,guest:currentRoomGuestName(roomId),scenario:scenario.key,choice:choice.text,correct:Boolean(choice.correct),points,satisfactionBefore:before,satisfactionAfter:after});
+    document.getElementById("hskGuestConversationModal").classList.remove("show");
+    hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();roomEntryState=null;selectedMissionTaskKey=null;
+    saveState();updateHud();updateMission();renderStaffBar();updateInteraction();
+    showTip(`${choice.feedback} ${choice.correct?(points?`+${points} poäng. `:""):""}Rum ${roomId} ligger kvar för housekeeping tills gästen har gått ut.`);
   }
   function hskEnterRoom(){
     if(!hskWorkflow||hskWorkflow.stage!=="door"||Number(hskWorkflow.knocks||0)<4||Number(hskWorkflow.announcements||0)<2)return;
@@ -3963,8 +4120,15 @@
 
   function saveState(){
     state.studentCode=currentStudentCode||state.studentCode||"";
-    localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+    let saved=true;
+    try{
+      localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+    }catch(err){
+      saved=false;
+      console.warn("Hotel Manager: lokal lagring misslyckades. Spelet fortsätter så att progressionen fortfarande kan skickas.",err);
+    }
     updateHud();
+    return saved;
   }
   function saveLocalAutoBackup(reason="autosave"){
     try{
@@ -5904,6 +6068,66 @@
     poly([[x-7,y+8],[x+7,y+8],[x,y+18]],"rgba(255,255,255,.96)");
   }
 
+  // v.01-220: tydlig, separat informationsruta över receptionen.
+  // Den visar vad den främsta gästen faktiskt vill och ritas sist så ingen figur kan skymma den.
+  function frontReceptionGuestForDisplay(){
+    const candidates=guestAgents.filter(guest=>
+      ["waitingReception","waitingDirection","waitingCheckout"].includes(guest.state) &&
+      Math.hypot(Number(guest.x)-receptionQueuePoint.x,Number(guest.y)-receptionQueuePoint.y)<=115
+    );
+    if(!candidates.length)return null;
+    const priority={waitingCheckout:0,waitingDirection:1,waitingReception:2};
+    return candidates.sort((a,b)=>(priority[a.state]??9)-(priority[b.state]??9)||Number(a.y)-Number(b.y))[0];
+  }
+  function receptionGuestRequestText(guest){
+    if(!guest)return "";
+    if(guest.state==="waitingCheckout")return "Jag vill checka ut.";
+    if(guest.state==="waitingDirection"){
+      const q=directionQuestionForGuest(guest,activeBookingForGuest(guest));
+      return String(q?.question||"Jag behöver hjälp med en vägbeskrivning.");
+    }
+    if(guest.state==="waitingReception"){
+      const booking=arrivalBookingForGuest(guest)||activeBookingForGuest(guest);
+      if(booking&&Number(booking.start||0)===getTodayIndex()&&currentHotelPeriodIndex()<5)return "Jag har kommit tidigt och vill checka in.";
+      return "Jag vill checka in.";
+    }
+    return "Jag behöver hjälp i receptionen.";
+  }
+  function wrapCanvasLines(text,maxWidth,maxLines=2){
+    const words=String(text||"").split(/\s+/).filter(Boolean),lines=[];
+    let line="";
+    for(const word of words){
+      const test=line?`${line} ${word}`:word;
+      if(ctx.measureText(test).width<=maxWidth||!line){line=test;continue;}
+      lines.push(line);line=word;
+      if(lines.length>=maxLines-1)break;
+    }
+    if(line&&lines.length<maxLines)lines.push(line);
+    const consumed=lines.join(" ").split(/\s+/).filter(Boolean).length;
+    if(consumed<words.length&&lines.length){
+      let last=lines[lines.length-1];
+      while(last.length>1&&ctx.measureText(last+" …").width>maxWidth)last=last.slice(0,-1);
+      lines[lines.length-1]=last.replace(/[ ,.;:!?-]+$/g,"")+" …";
+    }
+    return lines;
+  }
+  function drawReceptionGuestRequestPanel(){
+    const guest=frontReceptionGuestForDisplay();
+    if(!guest)return;
+    const request=receptionGuestRequestText(guest);
+    const x=940,y=1080,w=360;
+    ctx.save();
+    roundRect(x-w/2,y-48,w,86,13,"rgba(255,252,235,.98)","#536dde");
+    ctx.fillStyle="#536dde";ctx.font="1000 11px Arial";ctx.textAlign="center";
+    ctx.fillText("GÄST VID RECEPTIONEN",x,y-27);
+    ctx.fillStyle="#202a4f";ctx.font="1000 14px Arial";
+    ctx.fillText(String(guest.name||"Gäst"),x,y-9);
+    ctx.font="900 13px Arial";
+    const lines=wrapCanvasLines(request,w-28,2);
+    lines.forEach((line,index)=>ctx.fillText(line,x,y+11+index*16));
+    ctx.textAlign="left";ctx.restore();
+  }
+
   function drawTasks(){
     tasks.forEach(t=>{
       if(state.tasks[t.id] && t.id!=="checkin") return;
@@ -6038,9 +6262,11 @@
           if(hskAnnouncements===0&&hskKnocks<2)interaction={id:"hskKnock",label:`Knacka ${hskKnocks+1}/2`,icon:"🚪"};
           else if(hskAnnouncements===0)interaction={id:"hskAnnounce",label:"Säg Housekeeping 1/2",icon:"🗣️"};
           else if(hskAnnouncements===1&&waiting)interaction={id:"hskWait",label:"Vänta på svar",icon:"⏳"};
+          else if(hskAnnouncements===1&&isGuestPhysicallyInRoom(hskWorkflow.roomId))interaction={id:"hskGuestReply",label:"Prata med gästen",icon:"💬"};
           else if(hskAnnouncements===1&&hskKnocks<4)interaction={id:"hskKnock",label:`Knacka ${hskKnocks-1}/2`,icon:"🚪"};
           else if(hskAnnouncements===1)interaction={id:"hskAnnounce",label:"Säg Housekeeping 2/2",icon:"🗣️"};
           else if(hskAnnouncements>=2&&waiting)interaction={id:"hskWait",label:"Vänta på svar",icon:"⏳"};
+          else if(hskAnnouncements>=2&&isGuestPhysicallyInRoom(hskWorkflow.roomId))interaction={id:"hskGuestReply",label:"Prata med gästen",icon:"💬"};
           else interaction={id:"hskEnter",label:`Gå in rum ${hskWorkflow.roomId}`,icon:"🚪"};
         }
       }else if(hskWorkflow.stage==="inside"){
@@ -6066,7 +6292,7 @@
       document.getElementById("interact").classList.add("show");
       const hskAnnouncements=Number(hskWorkflow?.announcements||0),hskKnocks=Number(hskWorkflow?.knocks||0);
       const hskKnockDisplay=hskAnnouncements===0?`${Math.min(2,hskKnocks+1)}/2`:`${Math.min(2,Math.max(1,hskKnocks-1))}/2`;
-      const labels={hskReportDnd:"RAPPORTERA<br>DND",hskKnock:`KNACKA<br>${hskKnockDisplay}`,hskAnnounce:`SÄG HOUSEKEEPING<br>${Math.min(2,hskAnnouncements+1)}/2`,hskWait:"VÄNTA PÅ<br>SVAR",hskEnter:`GÅ IN<br>RUM ${hskWorkflow?.roomId||""}`,hskPickTrash:"PLOCKA<br>SKRÄP",ambientLitterPickup:"PLOCKA<br>SKRÄP",dndManagerKnock:`KNACKA<br>${Number(dndWorkflow?.knocks||0)+1}/3`,dndManagerAnnounce:"SÄG<br>HOTELLCHEF",dndManagerInspect:"GENOMFÖR<br>KONTROLL"};
+      const labels={hskReportDnd:"RAPPORTERA<br>DND",hskKnock:`KNACKA<br>${hskKnockDisplay}`,hskAnnounce:`SÄG HOUSEKEEPING<br>${Math.min(2,hskAnnouncements+1)}/2`,hskWait:"VÄNTA PÅ<br>SVAR",hskGuestReply:"PRATA MED<br>GÄST",hskEnter:`GÅ IN<br>RUM ${hskWorkflow?.roomId||""}`,hskPickTrash:"PLOCKA<br>SKRÄP",ambientLitterPickup:"PLOCKA<br>SKRÄP",dndManagerKnock:`KNACKA<br>${Number(dndWorkflow?.knocks||0)+1}/3`,dndManagerAnnounce:"SÄG<br>HOTELLCHEF",dndManagerInspect:"GENOMFÖR<br>KONTROLL"};
       document.getElementById("interact").innerHTML=labels[interaction.id]||"UTFÖR<br>UPPGIFT";
       return;
     }
@@ -6105,16 +6331,8 @@
       if(interaction)best=0;
       tasks.forEach(t=>{
         if(state.tasks[t.id] || t.id==="checkin" || t.id==="phoneBooking") return;
-        // v.01-190: visa inte den stora orange UTFÖR UPPGIFT-knappen för HSK när
-        // det enda aktuella rummet fortfarande har gästen inne. Missionraden visar då VÄNTAR.
-        // Publikt skräp får fortfarande plockas även om ett rum väntar på att gästen ska gå ut.
-        if(t.id==="clean"){
-          const hskRoom=currentHskRoomId();
-          const hskState=hskRoom?state.rooms.find(r=>Number(r.id)===Number(hskRoom)):null;
-          const isDnd=String(hskState?.doorSign||"none").toUpperCase()==="DND";
-          const hasPublicLitter=Array.isArray(state.ambientLitter)&&state.ambientLitter.length>0;
-          if(hskRoom&&!isDnd&&isGuestPhysicallyInRoom(hskRoom)&&!hasPublicLitter)return;
-        }
+        // v.01-221: HSK får startas även när gästen faktiskt är inne. Dörrrutinen avgör
+        // om eleven får gå in eller om en gästkonversation ska tas vid dörren.
         const d=Math.hypot(player.x-t.x,player.y-t.y);
         if(d<best){best=d;interaction=t}
       });
@@ -6137,6 +6355,7 @@
     if(interaction.id==="hskKnock"){hskKnock();return;}
     if(interaction.id==="hskAnnounce"){hskAnnounce();return;}
     if(interaction.id==="hskWait"){hskWaitForReply();return;}
+    if(interaction.id==="hskGuestReply"){openHskGuestConversation();return;}
     if(interaction.id==="hskEnter"){hskEnterRoom();return;}
     if(interaction.id==="hskPickTrash"){hskPickTrash(interaction.trashIndex);return;}
     if(interaction.id==="ambientLitterPickup"){
@@ -6925,17 +7144,27 @@
   function currentRoomGuestAgent(roomId){
     const booking=state.bookings.find(item=>Number(item.roomId)===Number(roomId)&&item.status==="inhouse");
     if(!booking)return null;
-    return guestAgentForBooking(booking)||guestAgents.find(guest=>Number(guest.roomId)===Number(roomId)&&guest.state!=="departed")||null;
+    // v.01-221: koppla i första hand till exakt bokning. Gamla/inaktiva figurer får aldrig
+    // räknas som en boende gäst bara för att deras gamla roomId råkar ligga kvar.
+    const exact=guestAgents.find(guest=>!guest.ambient&&Number(guest.bookingId)===Number(booking.id));
+    const named=guestAgentForBooking(booking);
+    const guest=exact||named||null;
+    if(!guest)return null;
+    const guestState=String(guest.state||"");
+    if(["inactive","departed","returnLater"].includes(guestState))return null;
+    return guest;
   }
   function isGuestPhysicallyInRoom(roomId){
     const guest=currentRoomGuestAgent(roomId);
     if(!guest)return false;
-    // v.01-219: fysisk rumsnärvaro avgörs av figurens FAKTISKA position, inte vart den är på väg.
-    // Tidigare räknades en gäst som gick genom korridoren TILL rummet som redan inne,
-    // vilket felaktigt kunde blockera housekeeping trots att gästen syntes utanför rummet.
+    const guestState=String(guest.state||"");
+    if(["inactive","departed","returnLater"].includes(guestState))return false;
+    if(Number(guest.roomId||0)!==Number(roomId))return false;
+    // v.01-221: endast figurens FAKTISKA position kan blockera inträde. Detta eliminerar
+    // spökgäster från äldre sparningar och gäster som redan befinner sig i korridor/lobby.
     const x=Number(guest.x),y=Number(guest.y);
     if(Number.isFinite(x)&&Number.isFinite(y))return pointInsideRoom(roomId,x,y);
-    return guest.state==="inRoom";
+    return guestState==="inRoom";
   }
   function hskRoomAvailabilityText(roomId){
     const booking=state.bookings.find(item=>Number(item.roomId)===Number(roomId)&&item.status==="inhouse");
@@ -8889,9 +9118,9 @@
         // Därför får ett DND-rum starta dörrrutinen även när gästen faktiskt är kvar på rummet.
         const hskMissionRoom=roomId?state.rooms.find(r=>Number(r.id)===Number(roomId)):null;
         const hskMissionDnd=String(hskMissionRoom?.doorSign||"none").toUpperCase()==="DND";
-        // Ett städbart hotellrum prioriteras. Om gästen fortfarande är inne får Luise
-        // i stället ta publikt skräp så housekeeping aldrig låser sig i vänteläget.
-        if(roomId&&(!isGuestPhysicallyInRoom(roomId)||hskMissionDnd)){
+        // v.01-221: även om gästen är inne ska eleven kunna gå fram och träna rätt
+        // dörrrutin. Gästen avslöjas först när hen faktiskt svarar efter knackning/Housekeeping.
+        if(roomId){
           publicLitterWorkflow=null;
           if(!setActiveStaff("housekeeper",false)){
             showTip("Luise är upptagen just nu. Vänta tills hans nuvarande moment är klart.");
@@ -8905,13 +9134,6 @@
         }
         if(publicLitterAvailable){
           startPublicLitterCleanup();
-          return;
-        }
-        if(roomId&&isGuestPhysicallyInRoom(roomId)){
-          selectedMissionTaskKey=null;
-          recordAssessment("housekeeping_wait_guest_inside",{roomId,guest:currentRoomGuestName(roomId),action:"mission_fix_wait"});
-          showTip(`Rum ${roomId}: ${currentRoomGuestName(roomId)} är på rummet. Luise får inte gå in. Uppgiften blir automatiskt städbar när gästen lämnar rummet.`);
-          updateMission();
           return;
         }
         showTip("Det finns ingen aktiv housekeepinguppgift just nu.");
@@ -8951,9 +9173,15 @@
     drawHotelBase();
     drawStaffAtStations();
     drawDndEscort();
-    drawGuests();
+    // v.01-220: uppgiftsmarkeringarna ligger bakom personer och pratbubblor.
     drawTasks();
-    drawPlayer();
+    const receptionGuestVisible=Boolean(frontReceptionGuestForDisplay());
+    const playerBehindReceptionGuest=receptionGuestVisible&&isInReceptionAccessZone();
+    if(playerBehindReceptionGuest)drawPlayer();
+    drawGuests();
+    if(!playerBehindReceptionGuest)drawPlayer();
+    // Ritas allra sist för maximal läsbarhet.
+    drawReceptionGuestRequestPanel();
     ctx.restore();
 
     ctx.restore();
@@ -9651,14 +9879,21 @@
     const content=progressionMailContent();
     if(!isValidTeacherEmail(content.email)){showTip("Lärarens e-postadress saknas. Ange den i Lärarläge → Inställningar.");return;}
     showProgressFallback(content);
-    await copyTextRobust(content.body);
     const url=provider==="gmail"
       ?`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(content.email)}&su=${encodeURIComponent(content.subject)}&body=${encodeURIComponent(content.body)}`
       :`https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(content.email)}&subject=${encodeURIComponent(content.subject)}&body=${encodeURIComponent(content.body)}`;
-    recordAssessment("lesson_export",{method:`webmail_${provider}`,recipient:content.email,day:content.day,progressionEvents:Number(content.progressPayload.n||0)});saveState();
+    // v.01-220: öppna fliken direkt i klickhändelsen. Om vi väntar på Clipboard API först
+    // kan Edge/Chrome tolka window.open som popup och blockera den.
     const win=window.open(url,"_blank");
-    if(win){try{win.opener=null;}catch(e){}showTip("Webbmejlet öppnas i en ny flik. Progressionen är också kopierad.");}
-    else showTip("Webbläsaren blockerade den nya fliken. Progressionen är kopierad – öppna webbmejlet manuellt och klistra in.");
+    if(win){try{win.opener=null;}catch(e){}}
+    recordAssessment("lesson_export",{method:`webmail_${provider}`,recipient:content.email,day:content.day,progressionEvents:Number(content.progressPayload.n||0)});
+    const saved=saveState();
+    const copied=await copyTextRobust(content.body);
+    if(win){
+      showTip(`${provider==="gmail"?"Gmail":"Outlook"} öppnas i en ny flik.${copied?" Progressionen är också kopierad som reserv.":""}${saved?"":" Lokal lagring misslyckades, men mejlet kan fortfarande skickas."}`);
+    }else{
+      showTip(copied?"Webbläsaren blockerade den nya fliken. Progressionen är kopierad – använd Outlook webb-knappen igen eller klistra in manuellt.":"Webbläsaren blockerade den nya fliken. Använd reservrutan för att skicka progressionen.");
+    }
   }
   async function shareProgressJson(){
     const content=progressionMailContent();
@@ -9666,20 +9901,22 @@
     if(!isValidTeacherEmail(email)){showTip("Lärarens e-postadress saknas. Ange den i Lärarläge → Inställningar.");return;}
     if(!Array.isArray(state.sessionHistory))state.sessionHistory=[];
     state.sessionHistory.push({endedAt:new Date().toISOString(),day:content.day,score:Number(state.score||0),hotelSatisfaction:Number(state.happiness||0)});
-    recordAssessment("lesson_export",{method:"compact_progression_json_in_email",recipient:email,day:content.day,progressionEvents:Number(content.progressPayload.n||0)});
-    saveState();
+    recordAssessment("lesson_export",{method:"outlook_web_primary_progression",recipient:email,day:content.day,progressionEvents:Number(content.progressPayload.n||0)});
 
-    // v.01-198: kopiera alltid progressionen först. Inbyggd läraradress + manuell mailto/webbmejl ger säker reserv.
+    // v.01-220: lokal lagring är viktig men får aldrig vara ett villkor för att progressionen ska kunna skickas.
+    const saved=saveState();
     showProgressFallback(content);
+
+    const outlookUrl=`https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(email)}&subject=${encodeURIComponent(content.subject)}&body=${encodeURIComponent(content.body)}`;
+    // Öppna Outlook omedelbart medan klicket fortfarande räknas som en användarhändelse.
+    const win=window.open(outlookUrl,"_blank");
+    if(win){try{win.opener=null;}catch(e){}}
     const copied=await copyTextRobust(content.body);
-    const mailto=`mailto:${email}?subject=${encodeURIComponent(content.subject)}&body=${encodeURIComponent(content.body)}`;
-    try{
-      const link=document.createElement("a");link.href=mailto;link.style.display="none";document.body.appendChild(link);link.click();link.remove();
-      showTip(copied?"Mejlappen försöker öppnas. Progressionen är också kopierad om mejlet inte öppnas.":"Mejlappen försöker öppnas. Om den inte öppnas finns progressionen i reservrutan.");
-    }catch(err){
-      console.error(err);
-      try{window.location.assign(mailto);}catch(fallbackErr){console.error(fallbackErr);}
-      showTip(copied?"Progressionen är kopierad. Använd Outlook/Gmail webb om mejlappen inte öppnas.":"Använd reservrutan eller webbmejl för att skicka progressionen.");
+
+    if(win){
+      showTip(`Outlook webb öppnas med progressionen färdigifylld.${copied?" Progressionen är också kopierad som reserv.":""}${saved?"":" Lokal lagring misslyckades på den här datorn, men utskicket kan fortfarande göras."}`);
+    }else{
+      showTip(copied?"Webbläsaren blockerade Outlook-fliken. Progressionen är kopierad – använd reservknappen Outlook webb eller klistra in manuellt.":"Webbläsaren blockerade Outlook-fliken. Progressionen finns i reservrutan och kan skickas manuellt.");
     }
   }
 
@@ -10043,6 +10280,11 @@
   document.getElementById("startGuestChallengeBtn")?.addEventListener("click",startOptionalGuestChallenge);
   document.getElementById("studentResultFile").addEventListener("change",()=>{const view=document.getElementById("studentResultView");if(view)view.hidden=true;loadedStudentResultPackage=null;});
   document.getElementById("managerPanelBtn").onclick=openHotelDevelopment;
+  document.getElementById("studentDifficultyBtn")?.addEventListener("click",openStudentDifficulty);
+  document.getElementById("studentDifficultySelect")?.addEventListener("change",event=>{const preview=document.getElementById("studentDifficultyPreview");if(preview)preview.innerHTML=studentDifficultyPreviewHtml(event.target.value);document.querySelectorAll("[data-student-mode]").forEach(btn=>btn.classList.remove("active"));});
+  document.querySelectorAll("[data-student-mode]").forEach(button=>button.addEventListener("click",()=>chooseStudentQuickMode(button.dataset.studentMode)));
+  document.querySelectorAll("[data-student-support]").forEach(button=>button.addEventListener("click",()=>chooseStudentSupportPreset(button.dataset.studentSupport)));
+  document.getElementById("saveStudentDifficultyBtn")?.addEventListener("click",saveStudentDifficulty);
   document.querySelectorAll("[data-development-tab]").forEach(button=>button.onclick=()=>{developmentTab=button.dataset.developmentTab;renderHotelDevelopment();});
 
   const staffButtonsContainer=document.getElementById("staffButtons");
