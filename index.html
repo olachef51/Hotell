@@ -1017,7 +1017,7 @@
   @media(max-width:900px){.support-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.support-options,.daily-report-grid,.review-history-summary{grid-template-columns:1fr}}
 
-  /* v.01-224 · HSK personbunden dörrrutin + låst stegsekvens + gästdialog efter inträde + FOH-skräp spritt */
+  /* v.01-225 · HSK personbunden dörrrutin + låst stegsekvens + gästdialog efter inträde + FOH-skräp spritt */
   #studentDifficultyBtn{border:0;border-radius:18px;padding:9px 12px;background:#eef3ff;color:#2e468d;font-weight:1000;box-shadow:0 4px 0 rgba(49,60,152,.16);white-space:nowrap}
   #studentDifficultyBtn:hover{filter:brightness(.98)}
   .student-difficulty-box{width:min(720px,95vw)}
@@ -1051,7 +1051,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-224</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-225</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1672,7 +1672,7 @@
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-224 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-225 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1697,11 +1697,11 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-224";
-  const MASTER_CONTENT_VERSION = "v.01-224";
+  const HOTEL_VERSION = "v.01-225";
+  const MASTER_CONTENT_VERSION = "v.01-225";
   const TEACHER_PASSWORD = "password1234";
 
-  // v.01-224: HSK-dörrrutinen är låst till KNACKA → HOUSEKEEPING → KNACKA → HOUSEKEEPING → GÅ IN. Den generiska rumsdörren får aldrig ta över för Luise vid ett HSK-rum. Gäst upptäcks först efter inträdet och startar då dialog. Publikt skräp är spritt över FOH.
+  // v.01-225: Luise äger dörrinteraktionen även vid rum med incheckad gäst. Första KNACKA växlar alltid till SÄG HOUSEKEEPING 1/2, därefter KNACKA 2/2 → HOUSEKEEPING 2/2 → GÅ IN. Gäst upptäcks först efter inträdet.
   // Eleven kan nu själv välja svårighetsnivå och hjälp/stödprofil utan att öppna Lärarläge.
   // v.01-220: robust progressionsutskick öppnar Outlook webb direkt och localStorage-fel stoppar inte utskicket.
   // Receptionen visar gästens ärende tydligt och ritar gästen ovanpå receptionspersonal/uppgiftsmarkeringar.
@@ -2960,9 +2960,21 @@
     const queued=Array.isArray(state.hskQueue)&&state.hskQueue.some(value=>Number(value)===id);
     return queued||["dirty","occupied_dirty","occupied"].includes(String(room.status||""))||sign==="DND"||sign==="PMUR";
   }
+  function roomHasInhouseBooking(roomId){
+    const id=Number(roomId);
+    return Array.isArray(state.bookings)&&state.bookings.some(item=>Number(item.roomId)===id&&item.status==="inhouse");
+  }
+  function housekeeperOwnsRoomDoor(roomId){
+    const id=Number(roomId);
+    if(state.activeStaffId!=="housekeeper"||!isRoomBuilt(id))return false;
+    // v.01-225: Luise får aldrig falla över till den generiska rumsdörren när
+    // rummet är ett HSK-mål ELLER har en incheckad gäst. Det senare behövs för
+    // att eleven ska kunna genomföra korrekt dörrrutin och först därefter möta gästen.
+    return roomNeedsHousekeepingDoorRoutine(id)||Number(currentHskRoomId()||0)===id||roomHasInhouseBooking(id);
+  }
   function ensureHousekeepingDoorWorkflow(roomId){
     const id=Number(roomId);
-    if(state.activeStaffId!=="housekeeper"||!roomNeedsHousekeepingDoorRoutine(id))return false;
+    if(state.activeStaffId!=="housekeeper"||!housekeeperOwnsRoomDoor(id))return false;
     if(hskWorkflow){
       if(Number(hskWorkflow.roomId)===id&&hskWorkflow.stage==="door")return true;
       showTip(`Luise har redan ett aktivt HSK-moment i rum ${hskWorkflow.roomId}.`);
@@ -2971,7 +2983,8 @@
     const room=state.rooms.find(item=>Number(item.id)===id);
     const sign=String(room?.doorSign||"none").toUpperCase();
     const cleanTask=(typeof tasks!=="undefined"&&Array.isArray(tasks))?tasks.find(item=>item.id==="clean"):null;
-    hskWorkflow={roomId:id,task:cleanTask||{id:"clean",requiredRole:"housekeeper"},staffId:"housekeeper",mode:"ideal",stage:"door",doorStep:0,knocks:0,announcements:0,announced:false,trashCollected:[false,false,false],sign,speechText:"",speechUntil:0,announceWaitUntil:0,entryAuthorized:false};
+    const doorOnly=!roomNeedsHousekeepingDoorRoutine(id)&&Number(currentHskRoomId()||0)!==id;
+    hskWorkflow={roomId:id,task:cleanTask||{id:"clean",requiredRole:"housekeeper"},staffId:"housekeeper",mode:"ideal",stage:"door",doorStep:0,knocks:0,announcements:0,announced:false,trashCollected:[false,false,false],sign,speechText:"",speechUntil:0,announceWaitUntil:0,entryAuthorized:false,doorOnly};
     hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();roomEntryState=null;
     if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
     recordAssessment("housekeeping_started",{roomId:id,staffId:"housekeeper",route:"manual_door",waypoints:0});
@@ -2980,11 +2993,14 @@
     return true;
   }
   function genericRoomKnock(roomId){
-    // v.01-224: När Luise står vid ett HSK-rum konverteras den generiska
+    // v.01-225: När Luise står vid ett HSK-rum konverteras den generiska
     // dörrinteraktionen omedelbart till HSK-rutinen. Då kan ett enda generiskt
     // "knack" aldrig låsa upp GÅ IN.
-    if(state.activeStaffId==="housekeeper"&&roomNeedsHousekeepingDoorRoutine(roomId)){
-      if(ensureHousekeepingDoorWorkflow(roomId)){hskKnock();updateInteraction();}
+    if(state.activeStaffId==="housekeeper"&&housekeeperOwnsRoomDoor(roomId)){
+      if(ensureHousekeepingDoorWorkflow(roomId)){
+        hskKnock();
+        updateInteraction();
+      }
       return;
     }
     roomEntryState={roomId:Number(roomId),knocked:true,staffId:String(state.activeStaffId||"")};
@@ -2994,7 +3010,7 @@
     updateInteraction();
   }
   function genericRoomEnter(roomId){
-    // v.01-224: en knackning tillhör den personal som gjorde den. Personalbyte
+    // v.01-225: en knackning tillhör den personal som gjorde den. Personalbyte
     // ogiltigförklarar den generiska GÅ IN-rätten.
     if(!roomEntryState||Number(roomEntryState.roomId)!==Number(roomId)||!roomEntryState.knocked||String(roomEntryState.staffId||"")!==String(state.activeStaffId||"")){
       roomEntryState=null;
@@ -3004,7 +3020,7 @@
     }
     // Säkerhetslås: housekeeping får aldrig använda den vanliga genvägen in i
     // ett rum som kräver HSK. Starta i stället den fulla dörrrutinen.
-    if(state.activeStaffId==="housekeeper"&&roomNeedsHousekeepingDoorRoutine(roomId)){
+    if(state.activeStaffId==="housekeeper"&&housekeeperOwnsRoomDoor(roomId)){
       if(ensureHousekeepingDoorWorkflow(roomId)){
         showTip(`Följ hela dörrrutinen för rum ${roomId}: KNACKA → HOUSEKEEPING → KNACKA → HOUSEKEEPING → GÅ IN.`);
         updateInteraction();
@@ -3239,12 +3255,13 @@
     const room=state.rooms.find(item=>Number(item.id)===roomId);if(!room)return;
     const needed=room.status==="dirty"||room.status==="occupied_dirty"||room.status==="occupied";
     const sign=String(room.doorSign||"none").toUpperCase();
-    // v.01-224: publikt skräp sprids över hela FOH och markeras lika tydligt som rumsskräp.
+    // v.01-225: publikt skräp sprids över hela FOH och markeras lika tydligt som rumsskräp.
     // v.01-194: Luise får alltid gå FRAM till ett rum som behöver HSK och genomföra
     // korrekt dörrrutin. Om gästen faktiskt är kvar stoppas inträdet först efter
     // knackning + HOUSEKEEPING-rutinen, i hskEnterRoom(). Det gör att eleven tränar
     // själva yrkesrutinen i stället för att spelet avslöjar rumsstatus i förväg.
-    if(!needed&&sign!=="DND"&&sign!=="PMUR"){
+    const doorOnly=!needed&&sign!=="DND"&&sign!=="PMUR"&&roomHasInhouseBooking(roomId);
+    if(!needed&&sign!=="DND"&&sign!=="PMUR"&&!doorOnly){
       state.score=Math.max(0,Number(state.score||0)-20);
       recordAssessment("housekeeping_wrong_room",{roomId,reason:"already_clean"});
       saveState();showTip(`Rum ${roomId} är redan rent. Välj ett rum som behöver HSK: −20 poäng.`);return;
@@ -3257,8 +3274,8 @@
     // inte tillbaka till HSK-stationen. Dörrrutinen startar där eleven faktiskt står.
     if(alreadyAtDoor){player.targetX=player.x;player.targetY=player.y;player.moving=false;}
     else{player.x=omar.stationX;player.y=omar.stationY;player.targetX=player.x;player.targetY=player.y;player.moving=false;}
-    hskWorkflow={roomId,task:task||{id:"clean",requiredRole:"housekeeper"},staffId:"housekeeper",mode,stage:"walking",doorStep:0,knocks:0,announcements:0,announced:false,trashCollected:[false,false,false],sign,speechText:"",speechUntil:0,announceWaitUntil:0};
-    // v.01-224: en vanlig rums-knackning från en annan personal får aldrig följa med in i HSK-flödet.
+    hskWorkflow={roomId,task:task||{id:"clean",requiredRole:"housekeeper"},staffId:"housekeeper",mode,stage:"walking",doorStep:0,knocks:0,announcements:0,announced:false,trashCollected:[false,false,false],sign,speechText:"",speechUntil:0,announceWaitUntil:0,doorOnly};
+    // v.01-225: en vanlig rums-knackning från en annan personal får aldrig följa med in i HSK-flödet.
     roomEntryState=null;
     hskAutoPath=alreadyAtDoor&&outside?[outside]:hskRouteToRoom(roomId);hskAutoPathIndex=0;resetHskPathGuard();
     recordAssessment("housekeeping_started",{roomId,staffId:"housekeeper",route:"corridor",waypoints:hskAutoPath.length});
@@ -3339,7 +3356,7 @@
   function hskKnock(){
     if(!hskWorkflow||hskWorkflow.stage!=="door")return;
     const step=Number(hskWorkflow.doorStep||0);
-    // v.01-224: dörrrutinen har ett eget låst stegnummer. Inga gamla generiska
+    // v.01-225: dörrrutinen har ett eget låst stegnummer. Inga gamla generiska
     // knackningar eller andra counters kan hoppa över HOUSEKEEPING-stegen.
     if(step!==0&&step!==2){
       showTip(step===1?"Säg HOUSEKEEPING innan nästa knackning.":step===3?"Säg HOUSEKEEPING en gång till innan du går in.":"Följ HSK-rutinen i rätt ordning.");
@@ -3463,7 +3480,7 @@
     const roomId=Number(hskWorkflow.roomId);
     const door=roomDoorPoints[roomId],bounds=roomBoundsForId(roomId);if(!door||!bounds)return;
 
-    // v.01-224: efter korrekt dörrrutin går Luise in först. Om en gäst faktiskt
+    // v.01-225: efter korrekt dörrrutin går Luise in först. Om en gäst faktiskt
     // befinner sig där upptäcks det NU och gästkonversationen öppnas efter inträdet.
     const side=roomDoorSide(roomId);
     const guestAgent=currentRoomGuestAgent(roomId);
@@ -3483,6 +3500,15 @@
     focusCameraOnWorldPoint(player.x,player.y);
 
     const guestPresent=isGuestPhysicallyInRoom(roomId);
+    if(!guestPresent&&hskWorkflow.doorOnly){
+      const outside=hskDoorOutsidePoint(roomId);
+      if(outside){player.x=Number(outside.x);player.y=Number(outside.y);player.targetX=player.x;player.targetY=player.y;player.moving=false;}
+      recordAssessment("housekeeping_door_routine_no_clean_needed",{roomId,knocks:Number(hskWorkflow.knocks||0),announcements:Number(hskWorkflow.announcements||0)});
+      hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();roomEntryState=null;
+      renderStaffBar();updateMission();updateInteraction();
+      showTip(`Dörrrutinen var korrekt. Ingen gäst är kvar och rum ${roomId} behöver inte städas just nu.`);
+      return;
+    }
     recordAssessment("housekeeping_enter",{roomId,knockRounds:2,totalKnocks:2,housekeepingAnnouncements:2,waitedForReply:true,guestPresent,entryMode:"safe_inside_position"});
     if(guestPresent){
       hskWorkflow.stage="insideGuest";
@@ -3700,7 +3726,7 @@
     {x:205,y:1920},{x:625,y:1920},{x:205,y:2070},{x:625,y:2070},{x:205,y:2220},{x:625,y:2220}
   ];
 
-  // v.01-224 · Fasta, säkra FOH-punkter för publik skräpplockning.
+  // v.01-225 · Fasta, säkra FOH-punkter för publik skräpplockning.
   // Punkterna ligger i frukostrestaurang, reception/gästyta, lobby och entré så
   // housekeeping behöver röra sig genom hela Front of House i stället för en enda lobbyhörna.
   const FOH_LITTER_POINTS=[
@@ -3736,7 +3762,7 @@
   function seedFohLitterForDay(forceRedistribute=false){
     if(!Array.isArray(state.ambientLitter))state.ambientLitter=[];
     const icons=["🧻","🥤","☕","🍬"];
-    const layoutKey=`v01-224-day-${Number(state.day||1)}`;
+    const layoutKey=`v01-225-day-${Number(state.day||1)}`;
     if(forceRedistribute||String(state.fohLitterLayoutVersion||"")!==layoutKey){
       // Äldre saves kan ha allt skräp staplat i lobbyn. Flytta befintliga fynd
       // till separata FOH-zoner och fyll upp till fyra startfynd.
@@ -3931,7 +3957,7 @@
     ensureAmbientActivityState();
     if(state.ambientLitter.length>=6||Math.random()>.72)return;
     const icons=["🧻","🥤","☕","🍬"];
-    // v.01-224: även skräp som skapas av gäster placeras på en ledig FOH-punkt,
+    // v.01-225: även skräp som skapas av gäster placeras på en ledig FOH-punkt,
     // inte precis bredvid samma loungestol. Det håller städuppgiften utspridd.
     const seed=Math.abs(String(guest?.id||guest?.name||"guest").split("").reduce((sum,ch)=>sum+ch.charCodeAt(0),0)+state.ambientLitter.length);
     const point=nextFohLitterPoint(seed);
@@ -6403,7 +6429,7 @@
         if(hskWorkflow.sign==="DND")interaction={id:"hskReportDnd",label:"Rapportera DND",icon:"⛔"};
         else{
           const doorStep=Number(hskWorkflow.doorStep||0),waiting=performance.now()<Number(hskWorkflow.announceWaitUntil||0);
-          // v.01-224: exakt, separat HSK-state machine. GÅ IN finns endast i steg 4.
+          // v.01-225: exakt, separat HSK-state machine. GÅ IN finns endast i steg 4.
           if(doorStep===0)interaction={id:"hskKnock",label:"Knacka 1/2",icon:"🚪"};
           else if(doorStep===1)interaction={id:"hskAnnounce",label:"Säg Housekeeping 1/2",icon:"🗣️"};
           else if(doorStep===2&&!waiting)interaction={id:"hskKnock",label:"Knacka 2/2",icon:"🚪"};
@@ -6418,7 +6444,7 @@
       }
     }
 
-    // v.01-224: under HSK-dörrrutinen är den generiska rumsdörren helt avstängd.
+    // v.01-225: under HSK-dörrrutinen är den generiska rumsdörren helt avstängd.
     // Detta gäller även under den korta automatiska väntan efter HOUSEKEEPING.
     if(hskWorkflow&&state.activeStaffId==="housekeeper"&&hskWorkflow.stage==="door"&&!interaction){
       document.getElementById("interact").classList.remove("show");
@@ -6451,9 +6477,9 @@
     const markerHasPendingDnd=roomDoorMarker?dndManagerCheckPending(roomDoorMarker.roomId):false;
     if(!interaction&&roomDoorMarker&&!markerHasPendingDnd&&!pointInsideRoom(roomDoorMarker.roomId,player.x,player.y)){
       const roomId=Number(roomDoorMarker.roomId);
-      // v.01-224: Luise använder ALDRIG den generiska dörrgenvägen på ett rum som
+      // v.01-225: Luise använder ALDRIG den generiska dörrgenvägen på ett rum som
       // behöver housekeeping. Även om en annan personal nyss har knackat är HSK-sekvensen ny.
-      if(state.activeStaffId==="housekeeper"&&roomNeedsHousekeepingDoorRoutine(roomId)){
+      if(state.activeStaffId==="housekeeper"&&housekeeperOwnsRoomDoor(roomId)){
         roomEntryState=null;
         if(!hskWorkflow){
           if(ensureHousekeepingDoorWorkflow(roomId)){
@@ -6494,7 +6520,7 @@
       if(interaction)best=0;
       tasks.forEach(t=>{
         if(state.tasks[t.id] || t.id==="checkin" || t.id==="phoneBooking") return;
-        // v.01-224: HSK får startas även när gästen faktiskt är inne. Eleven gör först
+        // v.01-225: HSK får startas även när gästen faktiskt är inne. Eleven gör först
         // hela dörrrutinen och upptäcker eventuell gäst efter inträdet.
         const d=Math.hypot(player.x-t.x,player.y-t.y);
         if(d<best){best=d;interaction=t}
@@ -8703,7 +8729,7 @@
     const roomId=Number(hskWorkflow?.roomId||currentHskRoomId()||0);
     if(!roomId)return {roomId:null,stage:"idle",action:"FIXA",mission:"HSK: inga väntande rum",staff:"Housekeeping"};
     if(!hskWorkflow){
-      // v.01-224: HSK får inte veta om gästen faktiskt befinner sig inne innan dörrrutinen och inträdet.
+      // v.01-225: HSK får inte veta om gästen faktiskt befinner sig inne innan dörrrutinen och inträdet.
       return {roomId,stage:"ready",action:"FIXA",mission:`HSK: rum ${roomId} väntar – genomför dörrrutinen`,staff:`Redo för rum ${roomId}`};
     }
     const stage=String(hskWorkflow.stage||"");
@@ -9286,7 +9312,7 @@
         // Därför får ett DND-rum starta dörrrutinen även när gästen faktiskt är kvar på rummet.
         const hskMissionRoom=roomId?state.rooms.find(r=>Number(r.id)===Number(roomId)):null;
         const hskMissionDnd=String(hskMissionRoom?.doorSign||"none").toUpperCase()==="DND";
-        // v.01-224: även om gästen är inne ska eleven gå fram och göra hela dörrrutinen.
+        // v.01-225: även om gästen är inne ska eleven gå fram och göra hela dörrrutinen.
         // Gästen avslöjas först efter att Luise går in i rummet.
         if(roomId){
           publicLitterWorkflow=null;
@@ -9404,7 +9430,8 @@
         const clickedRoom=state.rooms.find(r=>Number(r.id)===Number(clickedRoomId));
         const sign=String(clickedRoom?.doorSign||"none").toUpperCase();
         const needsHsk=Boolean(clickedRoom&&["dirty","occupied_dirty","occupied"].includes(String(clickedRoom.status||"")));
-        if(needsHsk||sign==="DND"||sign==="PMUR"){
+        const hskDoorOwned=housekeeperOwnsRoomDoor(clickedRoomId);
+        if(needsHsk||sign==="DND"||sign==="PMUR"||hskDoorOwned){
           if(isStaffBusy("housekeeper")){showTip("Luise arbetar redan med ett annat moment.");return;}
           selectedMissionTaskKey="clean";
           startHousekeepingWorkflow({id:"clean",requiredRole:"housekeeper"},"housekeeper","ideal",clickedRoomId);
