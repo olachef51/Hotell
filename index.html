@@ -1120,7 +1120,7 @@
 @media(max-width:1050px){.v231-ranking-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}.v231-insight-grid{grid-template-columns:1fr}.v231-work-summary{grid-template-columns:repeat(2,minmax(100px,1fr))}}
 
 
-/* v.01-231c · Arbetsuppgifter och personal får aldrig överlappa. */
+/* v.01-231d · Arbetsuppgifter/personal överlappar inte. Reaktiva uppgifter visas endast när verklig händelse finns. */
 #mission,#staffBar{box-sizing:border-box}
 @media (min-width:801px){
   #mission{left:10px!important;right:auto!important;top:72px!important;bottom:auto!important;width:min(370px,34vw)!important;max-height:calc(100vh - 84px)!important;z-index:14!important}
@@ -1146,7 +1146,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-231b</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-231d</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1793,8 +1793,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-231c";
-  const MASTER_CONTENT_VERSION = "v.01-231c";
+  const HOTEL_VERSION = "v.01-231d";
+  const MASTER_CONTENT_VERSION = "v.01-231d";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -11057,6 +11057,21 @@
     ]
   ];
 
+  // v.01-231d: Händelsebaserade uppgifter får bara finnas när en verklig händelse finns.
+  // De visas via spelets dynamiska arbetsuppgifter (telefon ringer, gäst väntar, rum behöver HSK osv.).
+  // Om händelsen aldrig uppstår ska den varken visas eller ge avdrag vid periodbyte.
+  const V231_REACTIVE_PERIOD_TASKS=new Set([
+    "0:late_checkin","0:night_service","0:disturbance",
+    "1:early_service",
+    "2:breakfast_guests","2:tables","2:buffet_refill","2:early_frontdesk","2:morning_service",
+    "3:checkout","3:checkout_rooms","3:stayover_dnd","3:guest_service",
+    "4:late_checkout","4:hsk","4:early_ci","4:phone","4:stayover_dnd","4:baggage","4:guest_service",
+    "5:regular_ci","5:queue","5:group_arrival","5:room_not_ready","5:room_problem","5:phone","5:walkin","5:hsk","5:baggage","5:guest_service",
+    "6:remaining_ci","6:guest_problem","6:recovery","6:followup","6:phone","6:requests","6:disturbance",
+    "7:late_ci","7:late_requests","7:disturbance","7:open_problems"
+  ]);
+  function v231RoutineTaskIsReactive(task,index=currentHotelPeriodIndex()){return V231_REACTIVE_PERIOD_TASKS.has(`${Number(index)}:${String(task?.id||"")}`);}
+
   const V231_SKILLS=[
     {key:"ci_welcome",area:"reception",parent:"checkin",label:"Välkomnande",weight:2},
     {key:"ci_id",area:"reception",parent:"checkin",label:"ID-kontroll",weight:3,critical:true},
@@ -11123,12 +11138,18 @@
     return true;
   }
   function v231PeriodRoutineItems(){
-    const rec=v231PeriodRecord(),defs=V231_PERIOD_WORK[currentHotelPeriodIndex()]||[];
+    const index=currentHotelPeriodIndex(),rec=v231PeriodRecord(),defs=V231_PERIOD_WORK[index]||[];
+    // Evidens kan fortfarande slutföra ett reaktivt moment när den riktiga händelsen har hanterats.
     defs.forEach(task=>{if(!rec.tasks[task.id]&&v231TaskEvidenceSatisfied(task,rec))v231FinalizeRoutine(task,"done","automatisk evidens");});
-    return defs.filter(task=>!rec.tasks[task.id]||!["done","handover","skipped"].includes(rec.tasks[task.id].status)).map(task=>({key:`v231-routine:${task.id}`,kind:"periodRoutine",label:task.label,location:`${currentHotelPeriod().name} · obligatorisk huvuduppgift`,priority:Number(task.weight||2)>=3,v231Task:task}));
+    // Reaktiva moment visas aldrig som en generell GENOMFÖR-rad. De visas endast via den faktiska
+    // spelhändelsen i base-listan, t.ex. "Telefonen ringer" eller "Checka in Anna".
+    return defs.filter(task=>!v231RoutineTaskIsReactive(task,index))
+      .filter(task=>!rec.tasks[task.id]||!["done","handover","skipped"].includes(rec.tasks[task.id].status))
+      .map(task=>({key:`v231-routine:${task.id}`,kind:"periodRoutine",label:task.label,location:`${currentHotelPeriod().name} · planerad huvuduppgift`,priority:Number(task.weight||2)>=3,v231Task:task}));
   }
   function completeV231RoutineTask(id){
-    const task=(V231_PERIOD_WORK[currentHotelPeriodIndex()]||[]).find(x=>x.id===id);if(!task)return;
+    const index=currentHotelPeriodIndex(),task=(V231_PERIOD_WORK[index]||[]).find(x=>x.id===id);if(!task)return;
+    if(v231RoutineTaskIsReactive(task,index)){showTip("Den här uppgiften blir aktiv först när en verklig händelse uppstår.");updateMission();return;}
     v231FinalizeRoutine(task,"done","elevkvittering");state.score=Number(state.score||0)+Math.max(5,Number(task.weight||2)*5);saveState();updateMission();updateHud();showTip(`Huvuduppgift klar: ${task.label}.`);
   }
   function acknowledgeV231Handover(id){ensureV231State();const item=state.v231HandoverQueue.find(x=>String(x.id)===String(id));if(!item)return;item.acknowledged=true;recordAssessment("handover_acknowledged",{handoverId:item.id,label:item.label,fromPeriod:item.fromPeriod,toPeriod:currentHotelPeriod().short,correct:true});saveState();updateMission();showTip(`Överlämningen är kvitterad: ${item.label}`);}
@@ -11168,6 +11189,9 @@
     let skippedRoutine=0,handedRoutine=0;
     defs.forEach(task=>{
       if(rec.tasks?.[task.id])return;
+      // En händelsebaserad uppgift som aldrig uppstod ska inte räknas som missad.
+      // Om den faktiskt fortfarande är aktiv ligger den redan i failedDynamic och bedöms där.
+      if(v231RoutineTaskIsReactive(task,i))return;
       if(task.handoverAllowed&&Array.isArray(task.linkedKeys)&&task.linkedKeys.some(k=>handoverKeys.has(k))){if(v231FinalizeRoutine(task,"handover","korrekt överlämning"))handedRoutine++;}
       else if(v231FinalizeRoutine(task,"skipped","periodbyte"))skippedRoutine++;
     });
