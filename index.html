@@ -1118,6 +1118,27 @@
 .v231-area{border:1px solid #d8dde6;border-radius:12px;background:#fff;margin:9px 0;overflow:hidden}.v231-area>summary{cursor:pointer;padding:11px 13px;font-weight:900;background:#f7f9fc}.v231-area-body{padding:0 12px 12px;overflow:auto}
 .v231-skill-table{width:100%;border-collapse:collapse;font-size:12px}.v231-skill-table th,.v231-skill-table td{padding:7px 6px;border-bottom:1px solid #e8ebf0;text-align:left;vertical-align:top}.v231-skill-table th{font-size:10px;text-transform:uppercase;color:#687182}.v231-status{display:inline-block;padding:3px 7px;border-radius:999px;font-weight:900;font-size:10px}.v231-status.s0{background:#eceff3;color:#59616e}.v231-status.s1{background:#fff0c7;color:#7c5512}.v231-status.s2{background:#dff1ff;color:#245f84}.v231-status.s3{background:#dff4e6;color:#226b3a}.v231-critical{font-weight:900;color:#9d332d}.v231-recent{font-family:ui-monospace,Consolas,monospace;letter-spacing:2px;white-space:nowrap}.v231-insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.v231-insight{border:1px solid #d8dde6;border-radius:12px;padding:10px;background:#fff}.v231-insight h5{margin:0 0 7px}.v231-insight p{margin:4px 0;font-size:12px}.v231-work-summary{display:grid;grid-template-columns:repeat(5,minmax(90px,1fr));gap:7px;margin:10px 0}.v231-work-summary div{padding:8px;border-radius:10px;background:#f5f7fa;border:1px solid #e0e4ea}.v231-work-summary span{display:block;font-size:10px;color:#687182}.v231-work-summary b{font-size:16px}.v231-guest-reasons{font-size:12px}.v231-guest-reasons div{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #eef0f3}
 @media(max-width:1050px){.v231-ranking-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}.v231-insight-grid{grid-template-columns:1fr}.v231-work-summary{grid-template-columns:repeat(2,minmax(100px,1fr))}}
+
+
+/* v.01-231c · Arbetsuppgifter och personal får aldrig överlappa. */
+#mission,#staffBar{box-sizing:border-box}
+@media (min-width:801px){
+  #mission{left:10px!important;right:auto!important;top:72px!important;bottom:auto!important;width:min(370px,34vw)!important;max-height:calc(100vh - 84px)!important;z-index:14!important}
+  #staffBar{left:auto!important;right:10px!important;top:auto!important;bottom:18px!important;z-index:13!important}
+}
+@media (max-width:800px){
+  #mission{left:8px!important;right:184px!important;top:72px!important;bottom:8px!important;width:auto!important;max-height:calc(100vh - 88px)!important;box-sizing:border-box!important;z-index:14!important}
+  #staffBar{left:auto!important;right:8px!important;top:72px!important;bottom:auto!important;width:168px!important;box-sizing:border-box!important;z-index:13!important}
+}
+@media (max-width:560px){
+  #mission{left:6px!important;right:154px!important;top:72px!important;bottom:6px!important}
+  #staffBar{right:6px!important;width:142px!important;padding:6px!important}
+  .staff-title{font-size:9px!important;margin-bottom:4px!important}
+  .staff-buttons{gap:3px!important}
+  .staff-btn{grid-template-columns:26px 1fr!important;min-height:40px!important;padding:4px 5px!important;font-size:8.5px!important}
+  .staff-btn .staff-icon{font-size:16px!important}
+  .staff-btn .staff-state{font-size:7.5px!important}
+}
 </style>
 </head>
 <body>
@@ -1772,8 +1793,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-231b";
-  const MASTER_CONTENT_VERSION = "v.01-231b";
+  const HOTEL_VERSION = "v.01-231c";
+  const MASTER_CONTENT_VERSION = "v.01-231c";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
