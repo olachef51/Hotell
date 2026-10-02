@@ -1125,7 +1125,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-230a</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-231b</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1772,8 +1772,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-231";
-  const MASTER_CONTENT_VERSION = "v.01-231";
+  const HOTEL_VERSION = "v.01-231b";
+  const MASTER_CONTENT_VERSION = "v.01-231b";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -11277,6 +11277,92 @@
 
   renderTeacherHighscores=function(){const root=document.getElementById("highscoreView");if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);if(!students.length){root.innerHTML='<div class="info">Ingen progression sparad ännu.</div>';return;}const rows=students.map(s=>({s,l:s.history.at(-1),p:studentDisplayParts(s)})).sort((a,b)=>Number(b.l?.ranking?.total||0)-Number(a.l?.ranking?.total||0)||a.s.code.localeCompare(b.s.code,"sv"));const table=(title,list)=>`<div class="highscore-card"><h4>${title}</h4><table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Yrk.</th><th>Gäst</th><th>Uppg.</th><th>Eko</th><th>Hotellp.</th><th>Ranking</th><th></th></tr></thead><tbody>${list.slice(0,10).map((x,i)=>{const r=x.l.ranking||{};return `<tr><td class="rank-medal">${rankMedal(i)}</td><td>${escapeHtml(x.p.classCode||"—")}</td><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(r.vocational||0).toFixed(0)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(0)}%</td><td>${Number(r.tasks||0).toFixed(0)}%</td><td>${Number(r.economy||0).toFixed(0)}%</td><td>${Number(r.hotelPoints||0).toFixed(0)}%</td><td><b>${Number(r.total||0).toFixed(1)}%</b></td><td><button type="button" class="highscore-action why" data-highscore-explain="${escapeHtml(x.s.code)}">Varför?</button></td></tr>`;}).join("")}</tbody></table></div>`;const standard=rows.filter(x=>!x.l.supportActive),supported=rows.filter(x=>x.l.supportActive);root.innerHTML=`<div class="highscore-grid">${table("🏆 Division 1 · yrkeskunnande & gästupplevelse",standard)}${table("🧩 Stöddivision",supported)}<div id="individualHighscoreDetail"></div></div>`;root.querySelectorAll("[data-highscore-explain]").forEach(btn=>btn.addEventListener("click",()=>renderHighscoreExplanation(btn.dataset.highscoreExplain)));};
 
+
+  // ---------- v.01-231b · historikkompatibilitet ----------
+  function v231bHistoryArray(student){return Array.isArray(student?.history)?student.history:[];}
+  function v231bLegacyDomainEvidence(snapshot){
+    return PROGRESSION_AREAS.reduce((sum,a)=>sum+Number(snapshot?.domains?.[a.key]?.evidence||0),0);
+  }
+  function v231bNewSkillAttempts(snapshot){
+    return Object.values(snapshot?.skillDetail?.skills||{}).reduce((sum,x)=>sum+Number(x?.attempts||0),0);
+  }
+  function v231bIsLegacySnapshot(snapshot){
+    if(!snapshot||typeof snapshot!=="object")return true;
+    if(snapshot.legacyModel===true)return true;
+    const hasNewWork=Number(snapshot?.workStats?.total||0)>0;
+    const hasNewSkills=v231bNewSkillAttempts(snapshot)>0;
+    const hasOldDomains=v231bLegacyDomainEvidence(snapshot)>0;
+    if(snapshot?.ranking?.modelVersion===231&&(hasNewWork||hasNewSkills))return false;
+    if(hasOldDomains&&!hasNewWork&&!hasNewSkills)return true;
+    return snapshot?.ranking?.modelVersion!==231;
+  }
+  function v231bLegacyVocational(snapshot){
+    const vals=PROGRESSION_AREAS.map(a=>{
+      const x=snapshot?.domains?.[a.key]||{};
+      return Number(x.evidence||0)>0||Number(x.level||0)>0?Math.max(0,Math.min(100,Number(x.level||0)*25)):null;
+    }).filter(Number.isFinite);
+    if(vals.length)return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10;
+    const avg=Number(snapshot?.progressAverage);
+    return Number.isFinite(avg)?Math.max(0,Math.min(100,Math.round(avg*25*10)/10)):0;
+  }
+  function v231bLegacyQuality(snapshot){
+    const v=Number(snapshot?.totalResult);
+    if(Number.isFinite(v)&&v>0)return Math.round(v*10)/10;
+    const metrics=scoreMetricsForSnapshot(snapshot),vals=SCORE_METRICS.map(m=>metrics[m.key]).filter(Number.isFinite);
+    return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10:v231bLegacyVocational(snapshot);
+  }
+  function v231bSnapshotModelLabel(snapshot){return v231bIsLegacySnapshot(snapshot)?"Äldre modell":"v.01-231";}
+  function v231bStudentHasHistory(student){return v231bHistoryArray(student).length>0;}
+  function v231bLatestSnapshot(student){const h=v231bHistoryArray(student);return h.length?h[h.length-1]:null;}
+  function v231bLegacyDomainsHtml(snapshot){
+    const rows=PROGRESSION_AREAS.map(area=>{const x=snapshot?.domains?.[area.key]||{};const pct=Math.max(0,Math.min(100,Number(x.level||0)*25));return `<tr><td><strong>${escapeHtml(area.label)}</strong></td><td>${Number(x.evidence||0)>0||Number(x.level||0)>0?`${pct.toFixed(0)}%`:'—'}</td><td>${Number(x.evidence||0)}</td><td>${Number(x.positive||0)}</td><td>${Number(x.needsWork||0)}</td></tr>`;}).join("");
+    return `<div class="info"><strong>Historik före v.01-231.</strong> Den här rapporten bevaras med den äldre bedömningsmodellen. Nya mått för arbetspass, överlämning och 40/35/15/5/5-ranking räknas inte bakåt, eftersom de inte registrerades då.</div><div style="overflow:auto"><table class="history-table"><thead><tr><th>Område</th><th>Progression</th><th>Evidens</th><th>Positiva</th><th>Utveckla</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  function v231bHistoryTable(student){
+    return v231bHistoryArray(student).slice().reverse().map(snap=>{const legacy=v231bIsLegacySnapshot(snap);const result=legacy?v231bLegacyQuality(snap):Number(snap?.ranking?.total||0);return `<tr><td>Dag ${Number(snap?.day||1)}<br><small>${escapeHtml(formatResultDate(snap?.exportedAt))}</small></td><td>${escapeHtml(v231bSnapshotModelLabel(snap))}</td><td><b>${Number(result||0).toFixed(1)}${legacy?'%':'%'}</b></td><td>${legacy?`${v231bLegacyVocational(snap).toFixed(1)}%`:`${Number(snap?.ranking?.vocational||0).toFixed(1)}%`}</td><td>${Number(snap?.guestAverage??snap?.ranking?.guestSatisfaction??0).toFixed(1)}%</td></tr>`;}).join("");
+  }
+  function v231bBackupBoard(){
+    try{const raw=localStorage.getItem(TEACHER_SCOREBOARD_BACKUP_KEY);if(!raw)return null;const b=JSON.parse(raw);return validScoreboardBoard(b)?b:null;}catch(_e){return null;}
+  }
+  function v231bMergePreviousLocalBackup(){
+    const previous=v231bBackupBoard();if(!previous){showTip("Det finns ingen föregående lokal lärarbackup i den här lagringen.");return;}
+    const current=scoreboardLoad(),before=Object.keys(current?.students||{}).length,prevCount=Object.keys(previous?.students||{}).length;
+    if(!confirm(`Slå ihop föregående lokal backup (${prevCount} elevposter) med nuvarande register (${before} elevposter)?\n\nBefintliga rapporter behålls och dubbletter tas bort.`))return;
+    const merged=mergeTeacherBoards(current,previous);scoreboardSave(merged,{keepPrevious:false});renderTeacherScoreboard();renderTeacherHighscores();const after=Object.keys(merged?.students||{}).length;showTip(`Register sammanslaget · ${after} elevposter.`);
+  }
+  function v231bInstallRecoveryUi(){
+    const details=document.querySelector('.teacher-advanced-tools .scoreboard-tools');if(!details||document.getElementById('mergePreviousTeacherProgressBtn'))return;
+    const btn=document.createElement('button');btn.className='secondary';btn.id='mergePreviousTeacherProgressBtn';btn.type='button';btn.textContent='🧩 Slå ihop föregående lokal backup';btn.addEventListener('click',v231bMergePreviousLocalBackup);const clear=document.getElementById('clearScoreboardBtn');details.insertBefore(btn,clear||null);
+    const status=document.getElementById('teacherProgressLocalStatus');if(status){const note=document.createElement('div');note.className='info';note.style.marginTop='8px';note.innerHTML='<strong>Saknas elever efter versionsbyte?</strong> En nedladdad HTML-fil kan få en egen lokal lagring i webbläsaren. Om eleverna inte finns i den lokala backupen här: öppna den äldre spelversionen, välj <strong>Spara lärarbackup</strong>, och läs sedan in filen här. Importen slår ihop registren.';status.insertAdjacentElement('afterend',note);}
+  }
+
+  // Äldre elevmejl/backup ska sparas som äldre modell, inte räknas om till falska 0% i v.01-231-rankingen.
+  const v231bScoreboardSnapshotFromPackageBase=scoreboardSnapshotFromPackage;
+  scoreboardSnapshotFromPackage=function(pkg){
+    const isNew=Boolean(pkg?.summary?.ranking?.modelVersion===231||pkg?.progressionSummary?.modelVersion===231||pkg?.progressionSummary?.skillDetail?.modelVersion===231||String(pkg?.hotelVersion||'').startsWith('v.01-231'));
+    if(isNew)return v231bScoreboardSnapshotFromPackageBase(pkg);
+    const made=v230ScoreboardSnapshotFromPackage(pkg);if(!made)return made;made.snapshot.legacyModel=true;made.snapshot.legacyHotelVersion=String(pkg?.hotelVersion||'äldre version');made.snapshot.totalResult=v231bLegacyQuality(made.snapshot);return made;
+  };
+
+  teacherProgressStudentCount=function(board){return Object.values(board?.students||{}).filter(v231bStudentHasHistory).length;};
+  updateTeacherProgressLocalStatus=function(board=scoreboardLoad()){
+    const status=document.getElementById('teacherProgressLocalStatus');if(!status)return;const all=Object.values(board?.students||{}),withHistory=all.filter(v231bStudentHasHistory).length,backup=v231bBackupBoard(),backupCount=backup?Object.values(backup.students||{}).filter(v231bStudentHasHistory).length:0,when=board?.updatedAt?formatResultDate(board.updatedAt):'ännu inte sparad';
+    status.innerHTML=`<strong>✓ Lokalt lärarregister:</strong> ${withHistory} elever med historik${all.length!==withHistory?` · ${all.length} elevposter totalt`:''} · senast sparat ${escapeHtml(when)}.${backupCount>withHistory?` <strong>Föregående lokal backup innehåller ${backupCount} elever</strong> – använd "Slå ihop föregående lokal backup" nedan.`:''}`;
+  };
+
+  renderTeacherScoreboard=function(){
+    const root=document.getElementById('scoreboardView');if(!root)return;const board=scoreboardLoad();if(ensureAutomaticStudentNumbers(board))scoreboardSave(board);updateTeacherProgressLocalStatus(board);const students=Object.values(board.students||{});if(!students.length){root.innerHTML='<div class="info">Inga elevposter finns i den här lokala lagringen. Om du hade elever i en äldre nedladdad HTML-version: öppna den äldre filen, spara en lärarbackup och läs in den här.</div>';const d=document.getElementById('scoreboardDetail');if(d)d.innerHTML='';return;}students.sort((a,b)=>studentDisplayParts(a).classCode.localeCompare(studentDisplayParts(b).classCode,'sv')||studentDisplayParts(a).studentNo.localeCompare(studentDisplayParts(b).studentNo,'sv',{numeric:true}));root.innerHTML=`<div class="scoreboard-wrap"><table class="scoreboard-table"><thead><tr><th>Elev</th><th>Dag</th><th>Ranking / äldre resultat</th><th>Yrkeskunnande</th><th>Gästnöjdhet</th><th>Uppgifter</th><th>Ekonomi</th><th>Hotellpoäng</th><th>Rapporter</th></tr></thead><tbody>${students.map(s=>{const l=v231bLatestSnapshot(s),p=studentDisplayParts(s);if(!l)return `<tr data-score-student="${escapeHtml(s.code)}"><td><b>${escapeHtml(p.classCode)} · ${escapeHtml(p.studentNo)}</b>${s.name?`<br>${escapeHtml(s.name)}`:''}</td><td>—</td><td><span class="student-identity-chip">Ingen historik</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td></tr>`;const legacy=v231bIsLegacySnapshot(l);if(legacy)return `<tr data-score-student="${escapeHtml(s.code)}"><td><b>${escapeHtml(p.classCode)} · ${escapeHtml(p.studentNo)}</b>${s.name?`<br>${escapeHtml(s.name)}`:''}</td><td>${Number(l.day||1)}</td><td><span class="student-identity-chip">Äldre modell · ${v231bLegacyQuality(l).toFixed(1)}%</span></td><td>${v231bLegacyVocational(l).toFixed(1)}%</td><td>${Number(l.guestAverage||0).toFixed(1)}%</td><td>—</td><td>${Number.isFinite(Number(l.economyScore))?`${Number(l.economyScore).toFixed(1)}%`:'—'}</td><td>${Number(l.score||0)} p</td><td>${v231bHistoryArray(s).length}</td></tr>`;const r=l.ranking||{};return `<tr data-score-student="${escapeHtml(s.code)}"><td><b>${escapeHtml(p.classCode)} · ${escapeHtml(p.studentNo)}</b>${s.name?`<br>${escapeHtml(s.name)}`:''}</td><td>${Number(l.day||1)}</td><td><span class="score-total-pill">${Number(r.total||0).toFixed(1)}%</span></td><td>${Number(r.vocational||0).toFixed(1)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(1)}%</td><td>${Number(r.tasks||0).toFixed(1)}%</td><td>${Number(r.economy||0).toFixed(1)}%</td><td>${Number(r.hotelPoints||0).toFixed(1)}%</td><td>${v231bHistoryArray(s).length}</td></tr>`;}).join('')}</tbody></table></div>`;root.querySelectorAll('[data-score-student]').forEach(row=>row.addEventListener('click',()=>renderScoreboardStudentDetail(row.dataset.scoreStudent)));
+  };
+
+  renderScoreboardStudentDetail=function(code){
+    const detail=document.getElementById('scoreboardDetail'),student=scoreboardLoad().students?.[code];if(!detail||!student)return;const latest=v231bLatestSnapshot(student),parts=studentDisplayParts(student);if(!latest){detail.innerHTML=`<div class="student-result-view"><h4>${escapeHtml(parts.classCode)} · elev ${escapeHtml(parts.studentNo)}${student.name?` · ${escapeHtml(student.name)}`:''}</h4><div class="info">Elevposten finns kvar men saknar importerad rapporthistorik.</div></div>`;return;}const history=`<div class="student-result-section"><h5>Historik · rapport för rapport</h5><div style="overflow:auto"><table class="history-table"><thead><tr><th>Rapport</th><th>Modell</th><th>Resultat</th><th>Yrkeskunnande</th><th>Gäst</th></tr></thead><tbody>${v231bHistoryTable(student)}</tbody></table></div></div>`;if(v231bIsLegacySnapshot(latest)){detail.innerHTML=`<div class="student-result-view"><div class="student-result-head"><div><h4>${escapeHtml(parts.classCode)} · elev ${escapeHtml(parts.studentNo)}${student.name?` · ${escapeHtml(student.name)}`:''}</h4><div class="student-identity-row"><span class="student-identity-chip">Kod: ${escapeHtml(code)}</span><span class="student-identity-chip">${v231bHistoryArray(student).length} rapporter</span></div></div></div><div class="latest-total-card"><span>Senaste resultat · äldre modell</span><b>${v231bLegacyQuality(latest).toFixed(1)}%</b></div>${v231bLegacyDomainsHtml(latest)}${history}</div>`;return;}const r=latest.ranking||{},profile=latest.skillDetail||{skills:{},parents:{},areas:{},strengths:[],development:[]},w=latest.workStats||{},reasons=Array.isArray(latest.guestReasons)?latest.guestReasons:[];detail.innerHTML=`<div class="student-result-view"><div class="student-result-head"><div><h4>${escapeHtml(parts.classCode)} · elev ${escapeHtml(parts.studentNo)}${student.name?` · ${escapeHtml(student.name)}`:''}</h4><div class="student-identity-row"><span class="student-identity-chip">Kod: ${escapeHtml(code)}</span><span class="student-identity-chip">${v231bHistoryArray(student).length} rapporter</span></div></div></div><div class="v231-rank-total"><span>Hotel Manager Ranking<br><small>40% yrkeskunnande · 35% gästnöjdhet · 15% uppgifter · 5% ekonomi · 5% hotellpoäng</small></span><b>${Number(r.total||0).toFixed(1)}%</b></div><div class="v231-ranking-grid"><div class="v231-rank-card"><span>Yrkeskunnande · 40%</span><b>${Number(r.vocational||0).toFixed(1)}%</b></div><div class="v231-rank-card"><span>Gästnöjdhet · 35%</span><b>${Number(r.guestSatisfaction||0).toFixed(1)}%</b></div><div class="v231-rank-card"><span>Arbetsuppgifter · 15%</span><b>${Number(r.tasks||0).toFixed(1)}%</b></div><div class="v231-rank-card"><span>Ekonomi · 5%</span><b>${Number(r.economy||0).toFixed(1)}%</b></div><div class="v231-rank-card"><span>Hotellpoäng · 5%</span><b>${Number(r.hotelPoints||0).toFixed(1)}%</b></div></div><div class="v231-work-summary"><div><span>Genomförda</span><b>${Number(w.completed||0)}</b></div><div><span>Korrekt överlämnade</span><b>${Number(w.handedOver||0)}</b></div><div><span>Hoppade över</span><b>${Number(w.skipped||0)}</b></div><div><span>Totalt bedömda</span><b>${Number(w.total||0)}</b></div><div><span>Aktiv träning</span><b>${escapeHtml(v231TimeText(w.activeSeconds||latest.activeSeconds||0))}</b></div></div>${v231StrengthNeedsHtml(profile)}<div class="v231-insight"><h5>🙂 Varför gästnöjdheten förändrats</h5><div class="v231-guest-reasons">${reasons.length?reasons.map(x=>`<div><span>${escapeHtml(x.label||'')}</span><b>${Number(x.delta||0)>0?'+':''}${Number(x.delta||0).toFixed(1)}</b></div>`).join(''):'<p>Ingen detaljerad gästnöjdhetshistorik i den här rapporten.</p>'}</div></div><h4 style="margin-top:14px">Detaljerat yrkeskunnande</h4><div class="info">● markerar kritiska delar. Ett huvudmoment kan inte bli <strong>Befäst</strong> om en kritisk del fortfarande brister.</div>${v231SkillDetailHtml(profile)}${history}</div>`;
+  };
+
+  renderTeacherHighscores=function(){
+    const root=document.getElementById('highscoreView');if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(v231bStudentHasHistory),newRows=[],legacyRows=[];students.forEach(s=>{const l=v231bLatestSnapshot(s),p=studentDisplayParts(s);(v231bIsLegacySnapshot(l)?legacyRows:newRows).push({s,l,p});});newRows.sort((a,b)=>Number(b.l?.ranking?.total||0)-Number(a.l?.ranking?.total||0));legacyRows.sort((a,b)=>v231bLegacyQuality(b.l)-v231bLegacyQuality(a.l));const tableNew=`<div class="highscore-card"><h4>🏆 Ny ranking · v.01-231</h4>${newRows.length?`<table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Yrk.</th><th>Gäst</th><th>Uppg.</th><th>Eko</th><th>Hotellp.</th><th>Ranking</th></tr></thead><tbody>${newRows.slice(0,10).map((x,i)=>{const r=x.l.ranking||{};return `<tr><td>${rankMedal(i)}</td><td>${escapeHtml(x.p.classCode||'—')}</td><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(r.vocational||0).toFixed(0)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(0)}%</td><td>${Number(r.tasks||0).toFixed(0)}%</td><td>${Number(r.economy||0).toFixed(0)}%</td><td>${Number(r.hotelPoints||0).toFixed(0)}%</td><td><b>${Number(r.total||0).toFixed(1)}%</b></td></tr>`;}).join('')}</tbody></table>`:'<div class="info">Ingen elev har ännu en rapport enligt den nya rankingmodellen.</div>'}</div>`;const tableOld=`<div class="highscore-card"><h4>📚 Äldre historik · bevarad</h4>${legacyRows.length?`<table class="highscore-table"><thead><tr><th>Elev</th><th>Dag</th><th>Äldre resultat</th><th>Yrk.progression</th><th>Gäst</th></tr></thead><tbody>${legacyRows.map(x=>`<tr><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(x.l.day||1)}</td><td><b>${v231bLegacyQuality(x.l).toFixed(1)}%</b></td><td>${v231bLegacyVocational(x.l).toFixed(1)}%</td><td>${Number(x.l.guestAverage||0).toFixed(1)}%</td></tr>`).join('')}</tbody></table><div class="info">Äldre resultat visas separat och rangordnas inte tillsammans med den nya 40/35/15/5/5-modellen.</div>`:'<div class="info">Ingen äldre historik i det här registret.</div>'}</div>`;root.innerHTML=`<div class="highscore-grid">${tableNew}${tableOld}</div>`;
+  };
+
+  v231bInstallRecoveryUi();
   Object.assign(assessmentLabels,{period_work_task_completed:"Huvuduppgift genomförd",period_work_task_handed_over:"Huvuduppgift korrekt överlämnad",period_work_task_skipped:"Huvuduppgift hoppades över",period_work_serious_penalty:"Stort avdrag för ogjort arbete",handover_created:"Överlämning skapad",handover_acknowledged:"Överlämning kvitterad",breakfast_guest_served:"Frukostgäst serverad",breakfast_table_cleaned:"Frukostbord återställt",breakfast_buffet_refilled:"Frukostbuffé påfylld",breakfast_stock_low:"Frukostbuffé börjar ta slut",phone_reservation_saved:"Telefonreservation registrerad",checkout_completed:"Check-out slutförd",guest_environment_satisfaction:"Miljö påverkade gästnöjdheten"});
 
   ensureV231State();v231PeriodRecord();
