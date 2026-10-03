@@ -1180,7 +1180,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-239</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-240</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1836,8 +1836,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-239";
-  const MASTER_CONTENT_VERSION = "v.01-239";
+  const HOTEL_VERSION = "v.01-240";
+  const MASTER_CONTENT_VERSION = "v.01-240";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -2358,9 +2358,11 @@
     noShowCallCount:0,
     phoneTaskDay:1,
     phoneTaskCompletedDay:0,
+    phoneTaskCompletedPeriodKey:"",
+    phoneTaskAssignedPeriodKey:"",
     phoneCallHeardDay:0,
     phoneConversationCompletedDay:0,
-    phoneFlowVersion:"v.01-239",
+    phoneFlowVersion:"v.01-240",
     phoneAutoAnswerPending:false,
     phoneCallStatus:"idle",
     phoneTaskAssignedDay:0,
@@ -2761,20 +2763,54 @@
     const recoverableAwaiting=raw==="awaiting_reservation"&&Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day&&Boolean(state.pendingPhoneReservation);
     if(recoverableAwaiting){
       state.phoneConversationCompletedDay=day;
-      state.phoneFlowVersion="v.01-239";
+      state.phoneFlowVersion="v.01-240";
       return true;
     }
     const invalidAwaiting=raw==="awaiting_reservation"&&Number(state.phoneConversationCompletedDay||0)!==day;
     const hasOldFlow=invalidAwaiting||(assigned!==day&&(raw!==""&&raw!=="idle"||Number(state.phoneCallProgress||0)>0||state.pendingPhoneReservation));
     if(!hasOldFlow)return false;
-    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneConversationCompletedDay=0;state.phoneFlowVersion="v.01-239";state.phoneAutoAnswerPending=false;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneCallAlternativeRoomType="";state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;
+    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneConversationCompletedDay=0;state.phoneFlowVersion="v.01-240";state.phoneAutoAnswerPending=false;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneCallAlternativeRoomType="";state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;
+    return true;
+  }
+  function phoneTaskPeriodKey(day=Number(state.day||1),index=currentHotelPeriodIndex()){return `${Number(day||1)}:${Number(index||0)}`;}
+  function phoneTaskCompleteForCurrentPeriod(){return String(state.phoneTaskCompletedPeriodKey||"")===phoneTaskPeriodKey();}
+  function resetPhoneForNewEligiblePeriod(){
+    if(!periodAllowsPhoneCalls())return false;
+    const key=phoneTaskPeriodKey();
+    if(phoneTaskCompleteForCurrentPeriod())return false;
+    const assignedKey=String(state.phoneTaskAssignedPeriodKey||"");
+    const status=String(state.phoneCallStatus||"");
+    const belongsToCurrent=assignedKey===key&&["arming","ringing","in_call","awaiting_reservation"].includes(status);
+    if(belongsToCurrent)return false;
+    // v.01-240: ett avslutat telefonsamtal i en tidigare period får inte ta bort
+    // telefonuppgiften i nästa bokningsperiod. Varje 12–15, 15–18 och 18–21
+    // får sin egen reservationsuppgift och den startar alltid med ett elevklick.
+    state.tasks.phoneBooking=false;
+    state.phoneTaskAssignedPeriodKey="";
+    state.phoneTaskAssignedDay=0;
+    state.phoneCallHeardDay=0;
+    state.phoneConversationCompletedDay=0;
+    state.phoneAutoAnswerPending=false;
+    state.phoneCallStatus="idle";
+    state.phoneCallCountdownEnd=0;
+    state.phoneCallProgress=0;
+    state.phoneCallBranch="";
+    state.phoneCallAlternativeStart=null;
+    state.phoneCallAlternativeRoomType="";
+    state.phoneAvailabilityCheckOpen=false;
+    state.phoneAvailabilityChecked=false;
+    state.phoneAlternativeCheckOpen=false;
+    state.phoneAlternativeChecked=false;
+    state.pendingPhoneReservation=null;
     return true;
   }
   function phoneMissionItems(){
-    if(!periodAllowsPhoneCalls()||state.tasks.phoneBooking)return [];
-    if(reconcileAlreadySavedPhoneReservation()){saveState();return [];}
+    if(!periodAllowsPhoneCalls())return [];
+    if(resetPhoneForNewEligiblePeriod())saveState();
+    if(phoneTaskCompleteForCurrentPeriod())return [];
+    state.tasks.phoneBooking=false;
     if(resetStalePhoneTaskForCurrentDay())saveState();
-    const status=phoneCallStatus();if(status==="completed")return [];
+    const status=phoneCallStatus();
     const countdown=phoneCallCountdownSeconds();
     const label=status==="idle"?"Starta reservationssamtal":status==="arming"?`Reservationssamtalet startar om ${countdown} sek`:status==="ringing"?"Receptionstelefonen ringer – Lina svarar":status==="awaiting_reservation"?"Registrera telefonreservationen i PMS":status==="in_call"?"Reservationssamtal pågår":"Telefonbokning väntar";
     return [{key:"phoneBooking",kind:"phone",label,location:"Receptionen"}];
@@ -2796,6 +2832,7 @@
     if(!booking)return false;
     state.tasks.phoneBooking=true;
     state.phoneTaskCompletedDay=Number(state.day||1);
+    state.phoneTaskCompletedPeriodKey=phoneTaskPeriodKey();
     state.phoneCallHeardDay=Number(state.day||1);
     state.phoneConversationCompletedDay=Number(state.day||1);
     state.phoneCallStatus="completed";
@@ -2904,7 +2941,7 @@
     nextAmbientGuestAt=periodAllowsAmbientGuests()?now+2200:Number.POSITIVE_INFINITY;
     nextAmbientPhoneAt=periodAllowsPhoneCalls()&&!state.tasks.phoneBooking?now+3500:Number.POSITIVE_INFINITY;
     if(currentHotelPeriodIndex()===6&&!state.tasks.problem&&Array.isArray(state.scenarios)&&state.scenarios.some(s=>s.department==="guestservice"))state.problemTaskAssignedDay=Number(state.day||1);
-    // v.01-239: Telefonbokningen får aldrig starta automatiskt vid periodbyte.
+    // v.01-240: Telefonbokningen får aldrig starta automatiskt vid periodbyte.
     // Eleven måste själv klicka STARTA RESERVATIONSSAMTAL i arbetsuppgiftslistan.
     guestAgents.forEach((guest,index)=>{
       if(!guest)return;
@@ -2947,7 +2984,7 @@
 
   function refreshDailyTaskCompletion(){
     state.tasks.checkin=!hasPendingReceptionWorkToday();
-    state.tasks.phoneBooking=Number(state.phoneTaskCompletedDay||0)===Number(state.day||1);
+    state.tasks.phoneBooking=phoneTaskCompleteForCurrentPeriod();
     state.tasks.clean=hskDailyWorkComplete();
     recomputeBreakfastTask();
     state.tasks.build=Boolean(state.expansionBuilt);
@@ -2955,7 +2992,7 @@
 
   function dailyTasksComplete(){
     refreshDailyTaskCompletion();
-    const phoneRequired=Number(state.phoneTaskAssignedDay||0)===Number(state.day||1);
+    const phoneRequired=String(state.phoneTaskAssignedPeriodKey||"")===phoneTaskPeriodKey();
     const problemRequired=Number(state.problemTaskAssignedDay||0)===Number(state.day||1);
     return Boolean(state.tasks.checkin)&&Boolean(state.tasks.clean)&&Boolean(state.tasks.breakfast)&&(!phoneRequired||Boolean(state.tasks.phoneBooking))&&(!problemRequired||Boolean(state.tasks.problem));
   }
@@ -2969,6 +3006,8 @@
     state.tasks.problem=false;
     state.tasks.phoneBooking=false;
     state.phoneTaskCompletedDay=0;
+    state.phoneTaskCompletedPeriodKey="";
+    state.phoneTaskAssignedPeriodKey="";
     state.phoneTaskAssignedDay=0;
     state.problemTaskAssignedDay=0;
     state.phoneCallHeardDay=0;
@@ -4436,7 +4475,7 @@
     if(!nextAmbientGuestAt)nextAmbientGuestAt=now+6000;
     if(!nextAmbientPhoneAt)nextAmbientPhoneAt=now+8500;
 
-    // v.01-239: Inga automatiska inkommande reservationssamtal.
+    // v.01-240: Inga automatiska inkommande reservationssamtal.
     // Arbetsuppgiften visas i listan men startas först efter ett aktivt elevklick.
     if(periodAllowsPhoneCalls())nextAmbientPhoneAt=Number.POSITIVE_INFINITY;
 
@@ -4495,10 +4534,10 @@
       sessionHistory:Array.isArray(parsed.sessionHistory)?clone(parsed.sessionHistory):[],
       missionCollapsed:Boolean(parsed.missionCollapsed)
     });
-    // v.01-239: ett nytt reservationssamtal får aldrig börja bara för att tiden/perioden ändras.
+    // v.01-240: ett nytt reservationssamtal får aldrig börja bara för att tiden/perioden ändras.
     // Vid uppgradering bevaras ett faktiskt påbörjat eller färdigt samtal, men gamla lägen
     // där telefonen bara stod i arming/ringing återställs till idle så eleven måste klicka själv.
-    if(String(parsed.phoneFlowVersion||"")!=="v.01-239"&&!Boolean(parsed.tasks?.phoneBooking)){
+    if(String(parsed.phoneFlowVersion||"")!=="v.01-240"&&!Boolean(parsed.tasks?.phoneBooking)){
       const parsedDay=Number(parsed.day||1);
       const progress=Math.max(0,Number(parsed.phoneCallProgress||0));
       const heardToday=Number(parsed.phoneCallHeardDay||0)===parsedDay;
@@ -4528,7 +4567,33 @@
         migrated.phoneAutoAnswerPending=false;
       }
     }
-    migrated.phoneFlowVersion="v.01-239";
+    // v.01-240: telefonuppgiften räknas per hotellperiod, inte per hel dag.
+    // När en äldre save öppnas får den aktuella bokningsperioden därför en ny,
+    // klickstartad telefonuppgift utan att tidigare reservationer tas bort.
+    if(String(parsed.phoneFlowVersion||"")!=="v.01-240"){
+      migrated.phoneTaskCompletedPeriodKey="";
+      migrated.phoneTaskAssignedPeriodKey="";
+      if(currentHotelPeriodIndex()>=4&&currentHotelPeriodIndex()<=6){
+        migrated.tasks.phoneBooking=false;
+        migrated.phoneTaskCompletedDay=0;
+        migrated.phoneTaskAssignedDay=0;
+        migrated.phoneCallStatus="idle";
+        migrated.phoneCallCountdownEnd=0;
+        migrated.phoneCallProgress=0;
+        migrated.phoneCallBranch="";
+        migrated.phoneCallAlternativeStart=null;
+        migrated.phoneCallAlternativeRoomType="";
+        migrated.phoneAvailabilityCheckOpen=false;
+        migrated.phoneAvailabilityChecked=false;
+        migrated.phoneAlternativeCheckOpen=false;
+        migrated.phoneAlternativeChecked=false;
+        migrated.phoneAutoAnswerPending=false;
+        migrated.phoneCallHeardDay=0;
+        migrated.phoneConversationCompletedDay=0;
+        migrated.pendingPhoneReservation=null;
+      }
+    }
+    migrated.phoneFlowVersion="v.01-240";
     return migrated;
   }
   function loadAutoBackupState(){
@@ -6645,20 +6710,26 @@
 
   function drawTasks(){
     tasks.forEach(t=>{
-      if(state.tasks[t.id] && t.id!=="checkin") return;
+      const isPhone=t.id==="phoneBooking";
+      const done=Boolean(state.tasks[t.id]);
+      // Telefonen är en fysisk del av receptionen och ska alltid synas.
+      // Övriga uppgiftsikoner kan fortfarande försvinna när arbetet är klart.
+      if(done && t.id!=="checkin" && !isPhone) return;
       const pulse=1+Math.sin(performance.now()/220)*.08;
       ctx.save();ctx.translate(t.x,t.y);
-      ctx.globalAlpha=.22;ctx.fillStyle="#6be27a";
-      ctx.beginPath();ctx.ellipse(0,18,46*pulse,18*pulse,0,0,Math.PI*2);ctx.fill();
-      ctx.globalAlpha=.9;ctx.strokeStyle="#fff";ctx.lineWidth=5;
-      ctx.beginPath();ctx.ellipse(0,18,31*pulse,12*pulse,0,0,Math.PI*2);ctx.stroke();
+      if(!done || t.id==="checkin"){
+        ctx.globalAlpha=.22;ctx.fillStyle="#6be27a";
+        ctx.beginPath();ctx.ellipse(0,18,46*pulse,18*pulse,0,0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=.9;ctx.strokeStyle="#fff";ctx.lineWidth=5;
+        ctx.beginPath();ctx.ellipse(0,18,31*pulse,12*pulse,0,0,Math.PI*2);ctx.stroke();
+      }
       ctx.globalAlpha=1;
       roundRect(-26,-50,52,42,12,"#fff","#30405d");
       ctx.font="25px Arial";ctx.textAlign="center";ctx.fillText(t.icon,0,-20);ctx.textAlign="left";
       ctx.restore();
 
       const phoneStatus=phoneCallStatus();
-      if(t.id==="phoneBooking" && !state.tasks.phoneBooking){
+      if(isPhone && !state.tasks.phoneBooking){
         const bob=Math.sin(performance.now()/170)*4;
         if(phoneStatus==="arming")speech(t.x,t.y-86+bob,`☎ Samtal om ${phoneCallCountdownSeconds()} s`);
         if(phoneStatus==="ringing")speech(t.x,t.y-86+bob,"☎ RING! RING!");
@@ -8328,7 +8399,7 @@
     if(realConversationDone&&Number(state.phoneConversationCompletedDay||0)!==day){
       state.phoneConversationCompletedDay=day;
       state.phoneCallStatus="awaiting_reservation";
-      state.phoneFlowVersion="v.01-239";
+      state.phoneFlowVersion="v.01-240";
       saveState();
     }
     if(!realConversationDone){
@@ -8337,7 +8408,7 @@
       state.phoneTaskAssignedDay=0;
       state.phoneCallHeardDay=0;
       state.phoneConversationCompletedDay=0;
-      state.phoneFlowVersion="v.01-239";
+      state.phoneFlowVersion="v.01-240";
       state.phoneAutoAnswerPending=false;
       state.phoneCallStatus="idle";
       state.phoneCallCountdownEnd=0;
@@ -8426,9 +8497,10 @@
     }
     state.phoneCallStatus="arming";
     state.phoneTaskAssignedDay=Number(state.day||1);
+    state.phoneTaskAssignedPeriodKey=phoneTaskPeriodKey();
     state.phoneCallHeardDay=0;
     state.phoneConversationCompletedDay=0;
-    state.phoneFlowVersion="v.01-239";
+    state.phoneFlowVersion="v.01-240";
     state.phoneAutoAnswerPending=false;
     state.phoneCallCountdownEnd=Date.now()+10000;
     state.phoneCallProgress=0;
@@ -8492,6 +8564,7 @@
     state.score=Math.max(0,Number(state.score||0)+Number(points||0));
     state.tasks.phoneBooking=true;
     state.phoneTaskCompletedDay=Number(state.day||1);
+    state.phoneTaskCompletedPeriodKey=phoneTaskPeriodKey();
     state.phoneCallHeardDay=Number(state.day||1);
     state.phoneCallStatus="completed";
     state.phoneCallCountdownEnd=0;
@@ -9500,7 +9573,7 @@
       if(partySize!==Number(s.partySize||1))mistakes++;
       if(source!=="Telefon")mistakes++;
       booking.phoneBookingMistakes=mistakes+(intentionalPhoneOverbooking?1:0);
-      state.tasks.phoneBooking=true;state.phoneTaskCompletedDay=Number(state.day||1);state.phoneCallHeardDay=Number(state.day||1);state.phoneConversationCompletedDay=Number(state.day||1);state.phoneCallStatus="completed";state.phoneCallCountdownEnd=0;state.pendingPhoneReservation=null;state.phoneCallProgress=5;state.phoneCallBranch=intentionalPhoneOverbooking?"overbooked":"booked";
+      state.tasks.phoneBooking=true;state.phoneTaskCompletedDay=Number(state.day||1);state.phoneTaskCompletedPeriodKey=phoneTaskPeriodKey();state.phoneCallHeardDay=Number(state.day||1);state.phoneConversationCompletedDay=Number(state.day||1);state.phoneCallStatus="completed";state.phoneCallCountdownEnd=0;state.pendingPhoneReservation=null;state.phoneCallProgress=5;state.phoneCallBranch=intentionalPhoneOverbooking?"overbooked":"booked";
       if(intentionalPhoneOverbooking){
         const penalty=300+mistakes*20;
         state.score=Math.max(0,state.score-penalty);
