@@ -530,6 +530,9 @@
   .noshow-call-result{font-size:12px;color:#66737d;font-weight:850;margin-top:2px}
   .noshow-options{display:flex;justify-content:flex-end;margin-top:14px}
   .noshow-options button{border:0;border-radius:13px;padding:12px 16px;font-weight:1000;background:#536ddd;color:#fff}
+  .price-rule-override-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:min(100%,460px);min-height:58px;margin-top:12px;padding:15px 22px;border:0;border-radius:15px;background:#f59e0b;color:#1f2937;font-size:16px;font-weight:1000;line-height:1.15;box-shadow:0 4px 0 #b86f00;cursor:pointer}
+  .price-rule-override-btn:hover{transform:translateY(-1px);box-shadow:0 5px 0 #b86f00}
+  .price-rule-override-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #b86f00}
   .booking-detail-body{padding:14px 16px 16px}
   .booking-detail-body .checkin-steps{margin-bottom:10px}
   .booking-detail-body .detail-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -1174,7 +1177,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-237</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-238</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1830,8 +1833,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-237";
-  const MASTER_CONTENT_VERSION = "v.01-237";
+  const HOTEL_VERSION = "v.01-238";
+  const MASTER_CONTENT_VERSION = "v.01-238";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -2708,8 +2711,8 @@
       // v.01-231: verklig sen ankomst kan dyka upp under 00–03.
       if(i===0&&status==="late_arrival"&&start===today)push(booking,"arrival",`Sen ankomst · checka in ${booking.guest||"gästen"}`,true);
       // Kvarvarande ordinarie ankomster hanteras som N/S i nattkörningen kl. 24.
-      else if(i===7&&["arrival","reserved"].includes(status)&&start===today&&!booking.checkedInCompleted&&!physicallyPresent)push(booking,"noshow",`24:00 · Checka in ${booking.guest||"reservationen"} som N/S`,true);
-      else if((i===3||i===4)&&["arrival","reserved"].includes(status)&&start<today&&end>today&&!physicallyPresent)push(booking,"noshow",`Hantera tidigare N/S · ${booking.guest||"reservation"}`,true);
+      else if(i===7&&["arrival","reserved"].includes(status)&&start===today&&!booking.checkedInCompleted&&!physicallyPresent)push(booking,"noshow",`Kontrollera N/S · ${booking.guest||"reservation"}`,true);
+      else if((i===3||i===4)&&["arrival","reserved"].includes(status)&&start<today&&end>today&&!physicallyPresent)push(booking,"noshow",`Kontrollera N/S · ${booking.guest||"reservation"}`,true);
       // v.01-218: early C/I måste synas i arbetslistan så fort gästen faktiskt står i receptionen.
       else if(i===4&&["arrival","reserved","late_arrival"].includes(status)&&start===today&&physicallyPresent)push(booking,"arrival",`Tidig ankomst · hjälp ${booking.guest||"gästen"} med C/I`,true);
       else if(i>=5&&i<=7&&["arrival","reserved","late_arrival"].includes(status)&&start===today)push(booking,"arrival",status==="late_arrival"?`Sen ankomst · checka in ${booking.guest||"gästen"}`:i===7?`Sen C/I · checka in ${booking.guest||"gästen"}`:`Checka in ${booking.guest||"ankommande gäst"}`,physicallyPresent);
@@ -8096,7 +8099,7 @@
     guestLine.textContent=`Ingen gäst har checkat in på reservationen.`;
     document.getElementById("noShowCallResult").textContent=`Registrera bokningen som N/S i PMS vid nattkörningen${roomId?` · bokat rum ${roomId}`:""}. Detta är en administrativ C/I/N/S-rutin och skapar ingen fysisk gäst i rummet.`;
     const confirm=document.getElementById("noShowConfirmBtn");
-    confirm.textContent="Checka in som N/S · 24:00";
+    confirm.textContent="REGISTRERA SOM N/S";
     confirm.onclick=()=>{
       booking.noShowNightAuditCheckedIn=true;
       booking.noShowProcessedDay=Number(state.day||1);
@@ -8922,7 +8925,7 @@
     if(guestCallBtn){
       const showGuestCall=isNoShowCandidate(booking);
       guestCallBtn.style.display=showGuestCall?"inline-flex":"none";
-      guestCallBtn.textContent="🌙 C/I N/S 24:00";
+      guestCallBtn.textContent="🌙 Kontrollera N/S";
       guestCallBtn.onclick=()=>openNoShowCallModal();
     }
     const callBtn=document.getElementById("bookingCallHskBtn");
@@ -9407,7 +9410,7 @@
     const id=Date.now(),roomType=roomTypeForId(roomId),arrivalRule=Object.assign({},rateRuleFor(roomType,start),{price:roomNightlyRate(roomId)});
     const minStayViolation=Number(nights)<Number(arrivalRule.minStay||1);
     if(minStayViolation&&!reservationPriceRuleOverrideApproved){
-      error.innerHTML=`Prisregeln för ${escapeHtml(roomType)} kräver minst <strong>${Number(arrivalRule.minStay||1)} nätter</strong>, men gästen önskar ${Number(nights)}. Ändra vistelsen eller gör ett medvetet undantag.<br><button type="button" id="overridePriceRuleBtn" style="margin-top:8px">⚠ GÖR UNDANTAG OCH SPARA</button>`;
+      error.innerHTML=`Prisregeln för ${escapeHtml(roomType)} kräver minst <strong>${Number(arrivalRule.minStay||1)} nätter</strong>, men gästen önskar ${Number(nights)}. Ändra vistelsen eller gör ett medvetet undantag.<br><button type="button" id="overridePriceRuleBtn" class="price-rule-override-btn">⚠ GÖR UNDANTAG OCH SPARA</button>`;
       const overrideBtn=document.getElementById("overridePriceRuleBtn");
       if(overrideBtn)overrideBtn.onclick=()=>{reservationPriceRuleOverrideApproved=true;saveNewReservation();};
       return;
@@ -9415,6 +9418,8 @@
     const reservedRoom=state.rooms.find(room=>room.id===roomId),hskCallRequired=start===getTodayIndex() && (!reservedRoom || reservedRoom.status!=="available"),total=calculateReservationTotalForRoom(roomId,start,nights);
     const booking={id,guest,phone,city,address,roomId,preferredRoomId:roomId,roomType,start,nights,partySize,status:start===getTodayIndex()?"arrival":"reserved",source,rate:Number(arrivalRule.price||0),total,paid:false,nameComplete:fullNameEntered,availabilityChecked:reservationAvailabilityChecked,priceRuleOverride:Boolean(minStayViolation&&reservationPriceRuleOverrideApproved),priceRuleMinStay:Number(arrivalRule.minStay||1),overbooked:Boolean(intentionalPhoneOverbooking),overbookingConflictGuest:intentionalPhoneOverbooking?(conflict?.guest||null):null,overbookingPenaltyApplied:false,hskCallRequired,hskCalled:false,hskCallBonusGiven:false,checkIn:hotelCalendarDayLabel(start),checkOut:hotelCalendarDayLabel(start+nights)};
     state.bookings.push(booking);
+    state.receptionCheckin.selectedBookingId=booking.id;
+    bookingCalendarViewStart=clamp(Math.max(0,start-1),0,HOTEL_CALENDAR_LAST_INDEX);
     if(hskCallRequired)addHskRequest(roomId);
     if(!fullNameEntered)state.score=Math.max(0,state.score-30);
     if(reservationAvailabilityChecked)state.score+=25;
@@ -9453,7 +9458,7 @@
     saveState();updateMission();
     document.getElementById("newReservationModal").classList.remove("show");renderBookingCalendar();
     if(state.tasks.phoneBooking&&Number(state.phoneTaskCompletedDay||0)===Number(state.day||1))closePhoneCallPanel();
-    if(hskCallRequired)showTip(`Reservation skapad för ${guest}. Öppna bokningen och ring HSK om rum ${roomId}.${phoneMessage}`);else showTip(`Reservation skapad för ${guest} i rum ${roomId}.${phoneMessage}`);
+    if(hskCallRequired)showTip(`✓ SPARAD I PMS: ${guest}. Reservationen syns nu i bokningskalendern. Öppna bokningen och ring HSK om rum ${roomId}.${phoneMessage}`);else showTip(`✓ SPARAD I PMS: ${guest} · rum ${roomId}. Reservationen syns nu i bokningskalendern.${phoneMessage}`);
   }
 
 
@@ -9715,6 +9720,19 @@
 
   addEventListener("resize",()=>requestAnimationFrame(syncMissionPanelHeight));
 
+  function openNoShowMissionInPms(item){
+    const booking=state.bookings.find(b=>Number(b.id)===Number(item?.bookingId||0));
+    if(!booking){showTip("N/S-reservationen kunde inte hittas. Öppna PMS och kontrollera ankomstlistan.");return;}
+    selectedMissionTaskKey="checkin";
+    state.receptionCheckin.selectedBookingId=booking.id;
+    saveState();
+    switchPmsTab("bookings");
+    renderReceptionPms();
+    document.getElementById("receptionModal")?.classList.add("show");
+    openBookingDetail(booking.id);
+    showTip(`Kontrollera ${booking.guest||"reservationen"} i PMS och välj Kontrollera N/S.`);
+  }
+
   function selectMissionTask(key){
     const taskKey=String(key||"");
     selectedMissionTaskKey=taskKey;
@@ -9773,6 +9791,7 @@
       if(String(key).startsWith("v231-routine:")){completeV231RoutineTask(String(key).slice(13));return;}
       if(String(key).startsWith("v231-handover:")){acknowledgeV231Handover(String(key).slice(14));return;}
       if(key==="v231-breakfast-refill"){refillV231BreakfastBuffet();return;}
+      if(missionItem?.kind==="noshow"){openNoShowMissionInPms(missionItem);return;}
       if(key==="phoneBooking"){
         const task=tasks.find(t=>t.id==="phoneBooking");
         if(resetStalePhoneTaskForCurrentDay()){saveState();updateMission();startIncomingPhoneCall();return;}
@@ -11311,7 +11330,7 @@
     "4:late_checkout","4:hsk","4:early_ci","4:phone","4:stayover_dnd","4:baggage","4:guest_service",
     "5:regular_ci","5:queue","5:group_arrival","5:room_not_ready","5:room_problem","5:phone","5:walkin","5:hsk","5:baggage","5:guest_service",
     "6:remaining_ci","6:guest_problem","6:recovery","6:followup","6:phone","6:requests","6:disturbance",
-    "7:late_ci","7:late_requests","7:disturbance","7:open_problems"
+    "7:late_ci","7:noshow","7:late_requests","7:disturbance","7:open_problems"
   ]);
   function v231RoutineTaskIsReactive(task,index=currentHotelPeriodIndex()){return V231_REACTIVE_PERIOD_TASKS.has(`${Number(index)}:${String(task?.id||"")}`);}
 
@@ -11402,6 +11421,7 @@
       else if(i===7)v231CompleteReactiveTask("late_ci");
     }
     if(t==="checkout_completed"){if(i===2)v231CompleteReactiveTask("early_frontdesk");if(i===3)v231CompleteReactiveTask("checkout");if(i===4)v231CompleteReactiveTask("late_checkout");}
+    if(t==="no_show_night_audit_checkin"&&i===7)v231CompleteReactiveTask("noshow","N/S bekräftad i PMS");
     if(t==="phone_reservation_saved"||t==="phone_booking_no_sale"){if(i>=4&&i<=6)v231CompleteReactiveTask("phone");}
     if(t==="housekeeping_completed"){if(i===3)v231CompleteReactiveTask("checkout_rooms");if(i===4||i===5)v231CompleteReactiveTask("hsk");}
     if(t==="housekeeping_stayover_cleaned_in_window"||t==="housekeeping_dnd_reported"||t==="dnd_manager_check_completed"){if(i===3||i===4)v231CompleteReactiveTask("stayover_dnd");}
@@ -11603,7 +11623,7 @@
     const body=document.getElementById("routineTaskBody"),checks=[...(body?.querySelectorAll('input[data-v232-check="1"]')||[])];if(!checks.length||checks.some(x=>!x.checked)){showTip("Genomför alla kontrollpunkter först.");return;}
     const snap=v232RoutineSnapshot(index,task);if(!snap.canComplete){showTip(snap.blocked||"Det finns arbete kvar som måste utföras först.");v232OpenRoutineTask(index,task);return;}
     const q=body?.querySelector('#v232RoutineAnswer');if(q&&Number(q.value)!==Number(q.dataset.expected)){showTip("Kontrollsvaret stämmer inte med listan. Kontrollera underlaget igen.");q.focus();return;}
-    if(v231FinalizeRoutine(task,"done","v.01-237 verifierad arbetskontroll")){state.score=Number(state.score||0)+Math.max(5,Number(task.weight||2)*5);}
+    if(v231FinalizeRoutine(task,"done","v.01-238 verifierad arbetskontroll")){state.score=Number(state.score||0)+Math.max(5,Number(task.weight||2)*5);}
     v232ClearRoutineDraft(index,task);recordAssessment("routine_control_verified",{taskId:task.id,taskLabel:task.label,period:currentHotelPeriod().short,day:Number(state.day||1),correct:true});saveState();updateMission();updateHud();document.getElementById("routineTaskModal")?.classList.remove("show");v232ActiveRoutineTask=null;showTip(`Huvuduppgift klar efter kontroll: ${task.label}.`);
   }
   function completeV231RoutineTask(id){
