@@ -1180,7 +1180,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-240</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-241</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1836,8 +1836,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-240";
-  const MASTER_CONTENT_VERSION = "v.01-240";
+  const HOTEL_VERSION = "v.01-241";
+  const MASTER_CONTENT_VERSION = "v.01-241";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -11645,6 +11645,13 @@
         break;
       }
       case "departure_list":
+        // v.01-241: Avreselistan ska vara en enkel PMS-kontroll.
+        // Eleven går in i PMS, tittar på dagens avresor och bekräftar detta med EN tydlig checkbox.
+        rows.push(...v232BookingControlRows(todayDepartures));
+        dataTitle="Dagens avresor";
+        checks=["Jag har öppnat PMS och kontrollerat dagens avreselista."];
+        question=null;
+        break;
       case "early_checkout_prep":
         useBookings(todayDepartures,"Dagens avresor","Hur många gäster ska checka ut idag?");
         checks.push("Kontrollera vilka rum som behöver gå vidare till housekeeping efter C/O.");
