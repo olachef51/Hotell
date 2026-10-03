@@ -1120,7 +1120,7 @@
 @media(max-width:1050px){.v231-ranking-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}.v231-insight-grid{grid-template-columns:1fr}.v231-work-summary{grid-template-columns:repeat(2,minmax(100px,1fr))}}
 
 
-/* v.01-233 · Redigerbar elevinfo + arbetsuppgifter kräver faktisk kontroll innan kvittering. */
+/* v.01-234 · Redigerbar elevinfo + arbetsuppgifter kräver faktisk kontroll innan kvittering. */
 #mission,#staffBar{box-sizing:border-box}
 @media (min-width:801px){
   #mission{left:10px!important;right:auto!important;top:72px!important;bottom:auto!important;width:min(370px,34vw)!important;max-height:calc(100vh - 84px)!important;z-index:14!important}
@@ -1141,7 +1141,7 @@
 }
 
 
-/* v.01-233 · planerade arbetsuppgifter måste öppnas och verifieras innan de kan bli klara */
+/* v.01-234 · planerade arbetsuppgifter måste öppnas och verifieras innan de kan bli klara */
 .v232-routine-box{width:min(900px,96vw);max-height:92vh;overflow:auto}
 .v232-routine-intro{margin:0 0 10px;padding:10px 12px;border-radius:12px;background:#eef3ff;border:1px solid #cbd8ff;color:#35466f;font-weight:700}
 .v232-live-status{display:grid;grid-template-columns:repeat(3,minmax(120px,1fr));gap:8px;margin:10px 0}
@@ -1174,7 +1174,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-233</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-234</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1830,8 +1830,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-233";
-  const MASTER_CONTENT_VERSION = "v.01-233";
+  const HOTEL_VERSION = "v.01-234";
+  const MASTER_CONTENT_VERSION = "v.01-234";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -2353,6 +2353,7 @@
     phoneTaskDay:1,
     phoneTaskCompletedDay:0,
     phoneCallHeardDay:0,
+    phoneConversationCompletedDay:0,
     phoneCallStatus:"idle",
     phoneTaskAssignedDay:0,
     problemTaskAssignedDay:0,
@@ -2746,9 +2747,13 @@
   function resetStalePhoneTaskForCurrentDay(){
     if(state.tasks.phoneBooking)return false;
     const day=Number(state.day||1),assigned=Number(state.phoneTaskAssignedDay||0),raw=String(state.phoneCallStatus||"");
-    const hasOldFlow=assigned!==day&&(raw!==""&&raw!=="idle"||Number(state.phoneCallProgress||0)>0||state.pendingPhoneReservation);
+    // v.01-234: En äldre/felaktig awaiting_reservation-status får aldrig hoppa direkt till PMS.
+    // PMS-läget är giltigt först efter att eleven faktiskt har svarat på dagens ringande telefon
+    // och slutfört gästsamtalet i den här versionens telefonflöde.
+    const invalidAwaiting=raw==="awaiting_reservation"&&Number(state.phoneConversationCompletedDay||0)!==day;
+    const hasOldFlow=invalidAwaiting||(assigned!==day&&(raw!==""&&raw!=="idle"||Number(state.phoneCallProgress||0)>0||state.pendingPhoneReservation));
     if(!hasOldFlow)return false;
-    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;
+    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneConversationCompletedDay=0;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;
     return true;
   }
   function phoneMissionItems(){
@@ -2923,6 +2928,7 @@
     state.phoneTaskAssignedDay=0;
     state.problemTaskAssignedDay=0;
     state.phoneCallHeardDay=0;
+    state.phoneConversationCompletedDay=0;
     state.phoneCallStatus="idle";
     state.phoneCallCountdownEnd=0;
     state.phoneCallProgress=0;
@@ -8203,14 +8209,19 @@
   // v.01-169: Ett färdigt telefonsamtal ska inte ligga kvar som "pågående".
   // När gästen har bekräftat uppgifterna återstår endast att registrera reservationen i PMS.
   function finishPhoneConversationForReservation(){
-    if(state.tasks.phoneBooking)return;
-    if(Number(state.phoneCallProgress||0)>=5){
+    if(state.tasks.phoneBooking)return false;
+    const day=Number(state.day||1);
+    // v.01-234: Det räcker inte med ett gammalt progressvärde. Eleven måste ha svarat
+    // på den ringande telefonen idag innan samtalet kan gå vidare till PMS.
+    if(Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day){
       state.phoneCallStatus="awaiting_reservation";
       state.phoneCallCountdownEnd=0;
-      state.phoneCallHeardDay=Number(state.day||1);
+      state.phoneConversationCompletedDay=day;
       saveState();
       updateMission();
+      return true;
     }
+    return false;
   }
 
   function hangUpPhoneCall(){
@@ -8224,8 +8235,29 @@
   // v.01-171: efter samtalet öppnas PMS utan automatisk ifyllnad.
   // Eleven ska själv skapa reservationen och registrera samma rum som valdes under telefonsamtalet.
   function openPhoneReservationWorkspace(){
-    if(Number(state.phoneCallProgress||0)<5){
-      showTip("Slutför telefonsamtalet innan reservationen registreras.");
+    const day=Number(state.day||1);
+    const realConversationDone=Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day&&Number(state.phoneConversationCompletedDay||0)===day;
+    if(!realConversationDone){
+      // v.01-234: Om en gammal sparfil säger "registrera i PMS" utan ett verkligt
+      // genomfört samtal idag, startas telefonmomentet om från början i stället.
+      state.phoneTaskAssignedDay=0;
+      state.phoneCallHeardDay=0;
+      state.phoneConversationCompletedDay=0;
+      state.phoneCallStatus="idle";
+      state.phoneCallCountdownEnd=0;
+      state.phoneCallProgress=0;
+      state.phoneCallBranch="";
+      state.phoneCallAlternativeStart=null;
+      state.phoneAvailabilityCheckOpen=false;
+      state.phoneAvailabilityChecked=false;
+      state.phoneAlternativeCheckOpen=false;
+      state.phoneAlternativeChecked=false;
+      state.pendingPhoneReservation=null;
+      closePhoneCallPanel();
+      saveState();
+      updateMission();
+      startIncomingPhoneCall();
+      showTip("Telefonuppgiften börjar med ett riktigt samtal. Om 10 sekunder ringer receptionstelefonen.");
       return;
     }
     finishPhoneConversationForReservation();
@@ -8259,6 +8291,8 @@
   function phoneCallStatus(){
     if(state.tasks.phoneBooking)return "completed";
     const raw=String(state.phoneCallStatus||"");
+    // v.01-234: awaiting_reservation är bara giltigt efter dagens faktiskt genomförda samtal.
+    if(raw==="awaiting_reservation"&&Number(state.phoneConversationCompletedDay||0)!==Number(state.day||1))return "idle";
     if(raw)return raw;
     if(Number(state.phoneCallProgress||0)>0)return "in_call";
     return "idle";
@@ -8290,6 +8324,8 @@
     }
     state.phoneCallStatus="arming";
     state.phoneTaskAssignedDay=Number(state.day||1);
+    state.phoneCallHeardDay=0;
+    state.phoneConversationCompletedDay=0;
     state.phoneCallCountdownEnd=Date.now()+10000;
     state.phoneCallProgress=0;
     state.phoneCallBranch="";
@@ -9241,7 +9277,7 @@
       if(partySize!==Number(s.partySize||1))mistakes++;
       if(source!=="Telefon")mistakes++;
       booking.phoneBookingMistakes=mistakes+(intentionalPhoneOverbooking?1:0);
-      state.tasks.phoneBooking=true;state.phoneTaskCompletedDay=Number(state.day||1);state.phoneCallHeardDay=Number(state.day||1);state.phoneCallStatus="completed";state.phoneCallCountdownEnd=0;state.pendingPhoneReservation=null;state.phoneCallProgress=5;state.phoneCallBranch=intentionalPhoneOverbooking?"overbooked":"booked";
+      state.tasks.phoneBooking=true;state.phoneTaskCompletedDay=Number(state.day||1);state.phoneCallHeardDay=Number(state.day||1);state.phoneConversationCompletedDay=Number(state.day||1);state.phoneCallStatus="completed";state.phoneCallCountdownEnd=0;state.pendingPhoneReservation=null;state.phoneCallProgress=5;state.phoneCallBranch=intentionalPhoneOverbooking?"overbooked":"booked";
       if(intentionalPhoneOverbooking){
         const penalty=300+mistakes*20;
         state.score=Math.max(0,state.score-penalty);
@@ -11237,7 +11273,7 @@
   };
   function v231PeriodRoutineItems(){
     const index=currentHotelPeriodIndex(),rec=v231PeriodRecord(),defs=V231_PERIOD_WORK[index]||[];
-    // v.01-233: Bara planerade rutinuppgifter får slutföras via verklig evidens eller verifierad kontroll.
+    // v.01-234: Bara planerade rutinuppgifter får slutföras via verklig evidens eller verifierad kontroll.
     // Reaktiva uppgifter får ALDRIG markeras klara bara för att en liknande logghändelse finns.
     // De slutförs enbart av v231CompleteReactiveFromRealEvent när den faktiska spelhändelsen sker.
     defs.forEach(task=>{if(v231RoutineTaskIsReactive(task,index))return;if(!rec.tasks[task.id]&&v231TaskEvidenceSatisfied(task,rec))v231FinalizeRoutine(task,"done","automatisk evidens");});
@@ -11247,7 +11283,7 @@
       .filter(task=>!rec.tasks[task.id]||!["done","handover","skipped"].includes(rec.tasks[task.id].status))
       .map(task=>({key:`v231-routine:${task.id}`,kind:"periodRoutine",label:task.label,location:`${currentHotelPeriod().name} · planerad huvuduppgift`,priority:Number(task.weight||2)>=3,v231Task:task}));
   }
-  // v.01-233: Ett klick på arbetslistan får aldrig i sig markera en planerad huvuduppgift som klar.
+  // v.01-234: Ett klick på arbetslistan får aldrig i sig markera en planerad huvuduppgift som klar.
   // Knappen öppnar i stället en verifieringsruta med hotellets aktuella data.
   let v232ActiveRoutineTask=null;
   function v232BookingStatusLabel(status){
@@ -11409,7 +11445,7 @@
     const body=document.getElementById("routineTaskBody"),checks=[...(body?.querySelectorAll('input[data-v232-check="1"]')||[])];if(!checks.length||checks.some(x=>!x.checked)){showTip("Genomför alla kontrollpunkter först.");return;}
     const snap=v232RoutineSnapshot(index,task);if(!snap.canComplete){showTip(snap.blocked||"Det finns arbete kvar som måste utföras först.");v232OpenRoutineTask(index,task);return;}
     const q=body?.querySelector('#v232RoutineAnswer');if(q&&Number(q.value)!==Number(q.dataset.expected)){showTip("Kontrollsvaret stämmer inte med listan. Kontrollera underlaget igen.");q.focus();return;}
-    if(v231FinalizeRoutine(task,"done","v.01-233 verifierad arbetskontroll")){state.score=Number(state.score||0)+Math.max(5,Number(task.weight||2)*5);}
+    if(v231FinalizeRoutine(task,"done","v.01-234 verifierad arbetskontroll")){state.score=Number(state.score||0)+Math.max(5,Number(task.weight||2)*5);}
     v232ClearRoutineDraft(index,task);recordAssessment("routine_control_verified",{taskId:task.id,taskLabel:task.label,period:currentHotelPeriod().short,day:Number(state.day||1),correct:true});saveState();updateMission();updateHud();document.getElementById("routineTaskModal")?.classList.remove("show");v232ActiveRoutineTask=null;showTip(`Huvuduppgift klar efter kontroll: ${task.label}.`);
   }
   function completeV231RoutineTask(id){
