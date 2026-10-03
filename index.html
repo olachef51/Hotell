@@ -1120,7 +1120,7 @@
 @media(max-width:1050px){.v231-ranking-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}.v231-insight-grid{grid-template-columns:1fr}.v231-work-summary{grid-template-columns:repeat(2,minmax(100px,1fr))}}
 
 
-/* v.01-231d · Arbetsuppgifter/personal överlappar inte. Reaktiva uppgifter visas endast när verklig händelse finns. */
+/* v.01-231f · Redigerbar elevinfo återställd i nya lärarvyn; strikt verkliga arbetsuppgifter behålls. */
 #mission,#staffBar{box-sizing:border-box}
 @media (min-width:801px){
   #mission{left:10px!important;right:auto!important;top:72px!important;bottom:auto!important;width:min(370px,34vw)!important;max-height:calc(100vh - 84px)!important;z-index:14!important}
@@ -1146,7 +1146,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-231d</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-231f</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1793,8 +1793,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-231d";
-  const MASTER_CONTENT_VERSION = "v.01-231d";
+  const HOTEL_VERSION = "v.01-231f";
+  const MASTER_CONTENT_VERSION = "v.01-231f";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -9337,7 +9337,7 @@
     const guestMood=Number(state.guestMoods[(currentGuest||{}).id]??100);
     state.score+=guestMood>=80?60:guestMood<=30?-40:0;
     state.happiness=Math.min(100,state.happiness+(guestMood>=70?5:1));
-    recordAssessment("checkin_completed",{guest:booking.guest,roomId:room.id,identityConfirmed:Boolean(checkin.identityConfirmed),informationGiven:Boolean(checkin.informationGiven),paymentConfirmed:Boolean(checkin.paymentConfirmed),guestSatisfaction:guestMood,score:Number(state.score||0)});
+    recordAssessment("checkin_completed",{guest:booking.guest,roomId:room.id,partySize:Math.max(1,Number(booking.partySize||booking.guestCount||1)),identityConfirmed:Boolean(checkin.identityConfirmed),informationGiven:Boolean(checkin.informationGiven),paymentConfirmed:Boolean(checkin.paymentConfirmed),guestSatisfaction:guestMood,score:Number(state.score||0)});
     sendReceptionGuestToRoom(room.id,booking.guest);
     if(pendingCheckinAssignment)setStaffBusy(pendingCheckinAssignment.staffId,pendingCheckinAssignment.mode==="service"?12:20);
     saveState();updateMission();renderReceptionPms();document.getElementById("receptionModal").classList.remove("show");document.getElementById("bookingDetailModal").classList.remove("show");document.getElementById("roomChoiceModal").classList.remove("show");showCheckinFeedback(booking,room,feedbackItems,scoreBefore);
@@ -9404,7 +9404,7 @@
       const delta=c.correct?Math.max(4,Math.round(12*cfg.recoveryMultiplier)):-Math.max(4,Math.round(8*cfg.reviewImpact));
       const after=Math.max(0,Math.min(100,before+delta));state.guestMoods[complaintGuest.id]=after;activeScenario._complaintResolved=true;
       if(!c.correct)rememberGuestIssue(complaintGuest,"complaint_bad");
-      recordAssessment("complaint_service_recovery",{guest:complaintGuest.name,correct:Boolean(c.correct),difficultyLevel:cfg.level,satisfactionBefore:before,satisfactionAfter:after,change:delta});
+      recordAssessment("complaint_service_recovery",{guest:complaintGuest.name,scenarioId:String(activeScenario?.id||""),title:String(activeScenario?.title||""),department:String(activeScenario?.department||""),correct:Boolean(c.correct),difficultyLevel:cfg.level,satisfactionBefore:before,satisfactionAfter:after,change:delta});
     }
     if(activeScenario._journeyStage){
       const level=currentDifficultyLevel(),mult=difficultyScoreMultiplier(level),challenge=Boolean(activeGuestJourney?.challenge),eventFactor=activeGuestJourney?.vip?1.25:activeGuestJourney?.returning?1.05:activeGuestJourney?.eventType==="reception"?1.10:1;
@@ -9417,7 +9417,7 @@
     }
     recordAssessment("scenario_choice",{scenarioId:activeScenario.id,title:activeScenario.title,department:activeScenario.department,choice:c.text,correct:Boolean(c.correct),elapsedSeconds:elapsed,bonusPoints:bonus});
     const target=document.getElementById("scenarioChoices");target.innerHTML=`<div class="result ${c.correct?"":"bad"}"><strong>${c.correct?"Bra hanterat!":"Det valet behöver förbättras."}</strong><p>${escapeHtml(c.feedback||"")}</p>${bonus?`<p><strong>Tidsbonus:</strong> +${bonus} poäng</p>`:""}</div><button class="primary" id="continueScenario">Fortsätt spela</button>`;
-    if(c.correct){state.money+=120;state.score+=150+bonus;state.happiness=Math.min(100,state.happiness+5);if(activeScenario._completeTask){state.tasks.problem=true;const assignment=activeScenario._assignment;const mode=assignment?.mode||"ideal";const multiplier=mode==="ideal"?1:mode==="reassigned"?.9:.65;state.score+=Math.round(100*multiplier);state.money+=Math.round(90*multiplier);}state.completed.push(activeScenario.id);if(state.lastSupportScenarioId===activeScenario.id)state.lastSupportScenarioId="";}else{state.happiness=Math.max(0,state.happiness-(support.secondChance?1:4));if(support.repeatPractice)state.lastSupportScenarioId=activeScenario.id;}
+    if(c.correct){state.money+=120;state.score+=150+bonus;state.happiness=Math.min(100,state.happiness+5);if(activeScenario._completeTask){state.tasks.problem=true;const assignment=activeScenario._assignment;const mode=assignment?.mode||"ideal";const multiplier=mode==="ideal"?1:mode==="reassigned"?.9:.65;state.score+=Math.round(100*multiplier);state.money+=Math.round(90*multiplier);if(currentHotelPeriodIndex()===6)v231CompleteReactiveTask("guest_problem","löst faktiskt gästproblem");if((currentHotelPeriodIndex()===0||currentHotelPeriodIndex()===6||currentHotelPeriodIndex()===7)&&v231LooksLikeDisturbance(activeScenario))v231CompleteReactiveTask("disturbance","löst faktiskt störningsärende");}state.completed.push(activeScenario.id);if(state.lastSupportScenarioId===activeScenario.id)state.lastSupportScenarioId="";}else{state.happiness=Math.max(0,state.happiness-(support.secondChance?1:4));if(support.repeatPractice)state.lastSupportScenarioId=activeScenario.id;}
     const shouldFollowUp=!c.correct&&String(activeScenario.department||"")==="guestservice"&&!activeScenario._followUpStage;
     saveState();updateMission();document.getElementById("continueScenario").onclick=()=>{if(currentSupportSettings().confirmations&&c.correct)showTip("Bra. Problemet är hanterat.");if(shouldFollowUp){const follow={id:`followup-${Date.now()}`,department:"guestservice",area:"guestservice",title:"Gästen återkommer",problem:`Gästen återkommer eftersom problemet "${activeScenario.title}" inte blev löst. Gästen är nu mer missnöjd. Hur tar du ansvar?`,_followUpStage:true,choices:[{text:"Be om ursäkt för att problemet fortsätter, ta över ärendet, kontrollera vad som redan gjorts och lös nästa steg direkt.",correct:true,feedback:"Rätt. Ett återkommande problem kräver tydligt ägarskap."},{text:"Förklara att kollegan redan gav ett svar och be gästen vänta längre.",correct:false,feedback:"Problemet fortsätter och behöver nu eskaleras och lösas."},{text:"Erbjuda maximal kompensation utan att kontrollera problemet.",correct:false,feedback:"Kompensation ersätter inte själva lösningen."}]};prepareScenarioModal(follow);}else closeConversationDocked("scenarioModal");};
   }
@@ -11137,10 +11137,61 @@
     recordAssessment(status==="done"?"period_work_task_completed":status==="handover"?"period_work_task_handed_over":"period_work_task_skipped",{taskId:task.id,taskLabel:task.label,period:currentHotelPeriod().short,periodName:currentHotelPeriod().name,weight:Number(task.weight||2),source,correct:status!=="skipped",day:Number(state.day||1)});
     return true;
   }
+
+  function v231CompleteReactiveTask(id,source="verklig spelhändelse"){
+    const index=currentHotelPeriodIndex(),task=(V231_PERIOD_WORK[index]||[]).find(x=>x.id===id);
+    if(!task||!v231RoutineTaskIsReactive(task,index))return false;
+    return v231FinalizeRoutine(task,"done",source);
+  }
+  function v231LooksLikeDisturbance(data={}){
+    const text=`${data.scenarioId||""} ${data.title||""}`.toLowerCase();
+    return /(stör|ljud|noise|hög musik|höga röster|natt.*oljud)/i.test(text);
+  }
+  function v231CompleteReactiveFromRealEvent(type,data={}){
+    const i=currentHotelPeriodIndex(),t=String(type||"");
+    // Arbetsuppgift = genomförd händelse. Kvaliteten bedöms separat i yrkesprogressionen.
+    if(t==="checkin_completed"){
+      if(i===0)v231CompleteReactiveTask("late_checkin");
+      else if(i===2)v231CompleteReactiveTask("early_frontdesk");
+      else if(i===4)v231CompleteReactiveTask("early_ci");
+      else if(i===5){v231CompleteReactiveTask("regular_ci");if(Number(data.partySize||1)>1)v231CompleteReactiveTask("group_arrival");}
+      else if(i===6)v231CompleteReactiveTask("remaining_ci");
+      else if(i===7)v231CompleteReactiveTask("late_ci");
+    }
+    if(t==="checkout_completed"){if(i===2)v231CompleteReactiveTask("early_frontdesk");if(i===3)v231CompleteReactiveTask("checkout");if(i===4)v231CompleteReactiveTask("late_checkout");}
+    if(t==="phone_reservation_saved"||t==="phone_booking_no_sale"){if(i>=4&&i<=6)v231CompleteReactiveTask("phone");}
+    if(t==="housekeeping_completed"){if(i===3)v231CompleteReactiveTask("checkout_rooms");if(i===4||i===5)v231CompleteReactiveTask("hsk");}
+    if(t==="housekeeping_stayover_cleaned_in_window"||t==="housekeeping_dnd_reported"||t==="dnd_manager_check_completed"){if(i===3||i===4)v231CompleteReactiveTask("stayover_dnd");}
+    if(t==="breakfast_guest_served"&&i===2)v231CompleteReactiveTask("breakfast_guests");
+    if(t==="breakfast_table_cleaned"&&i===2)v231CompleteReactiveTask("tables");
+    if(t==="breakfast_buffet_refilled"&&i===2)v231CompleteReactiveTask("buffet_refill");
+    if(t==="guest_direction_answer"||t==="service_choice"){
+      const map={0:"night_service",1:"early_service",2:"morning_service",3:"guest_service",4:"guest_service",5:"guest_service",6:"requests",7:"late_requests"};
+      if(map[i])v231CompleteReactiveTask(map[i]);
+    }
+    if(t==="complaint_service_recovery"){
+      if(i===6)v231CompleteReactiveTask("recovery");
+      if((i===0||i===6||i===7)&&v231LooksLikeDisturbance(data))v231CompleteReactiveTask("disturbance");
+    }
+    if(t==="reception_delay_handled"&&i===5)v231CompleteReactiveTask("queue");
+    if(t==="early_arrival_service"&&i===5)v231CompleteReactiveTask("room_not_ready");
+  }
+
+  // Koppla reaktiv arbetsprogression direkt till den verkliga logghändelsen.
+  const v231BaseRecordAssessment=recordAssessment;
+  recordAssessment=function(type,data={}){
+    const result=v231BaseRecordAssessment(type,data);
+    if(!String(type||"").startsWith("period_work_")){
+      try{v231CompleteReactiveFromRealEvent(type,data||{});}catch(err){console.warn("Kunde inte uppdatera reaktiv arbetsuppgift",err);}
+    }
+    return result;
+  };
   function v231PeriodRoutineItems(){
     const index=currentHotelPeriodIndex(),rec=v231PeriodRecord(),defs=V231_PERIOD_WORK[index]||[];
-    // Evidens kan fortfarande slutföra ett reaktivt moment när den riktiga händelsen har hanterats.
-    defs.forEach(task=>{if(!rec.tasks[task.id]&&v231TaskEvidenceSatisfied(task,rec))v231FinalizeRoutine(task,"done","automatisk evidens");});
+    // v.01-231f: Bara planerade rutinuppgifter får slutföras via generell evidens.
+    // Reaktiva uppgifter får ALDRIG markeras klara bara för att en liknande logghändelse finns.
+    // De slutförs enbart av v231CompleteReactiveFromRealEvent när den faktiska spelhändelsen sker.
+    defs.forEach(task=>{if(v231RoutineTaskIsReactive(task,index))return;if(!rec.tasks[task.id]&&v231TaskEvidenceSatisfied(task,rec))v231FinalizeRoutine(task,"done","automatisk evidens");});
     // Reaktiva moment visas aldrig som en generell GENOMFÖR-rad. De visas endast via den faktiska
     // spelhändelsen i base-listan, t.ex. "Telefonen ringer" eller "Checka in Anna".
     return defs.filter(task=>!v231RoutineTaskIsReactive(task,index))
@@ -11396,7 +11447,31 @@
   };
 
   renderTeacherScoreboard=function(){
-    const root=document.getElementById('scoreboardView');if(!root)return;const board=scoreboardLoad();if(ensureAutomaticStudentNumbers(board))scoreboardSave(board);updateTeacherProgressLocalStatus(board);const students=Object.values(board.students||{});if(!students.length){root.innerHTML='<div class="info">Inga elevposter finns i den här lokala lagringen. Om du hade elever i en äldre nedladdad HTML-version: öppna den äldre filen, spara en lärarbackup och läs in den här.</div>';const d=document.getElementById('scoreboardDetail');if(d)d.innerHTML='';return;}students.sort((a,b)=>studentDisplayParts(a).classCode.localeCompare(studentDisplayParts(b).classCode,'sv')||studentDisplayParts(a).studentNo.localeCompare(studentDisplayParts(b).studentNo,'sv',{numeric:true}));root.innerHTML=`<div class="scoreboard-wrap"><table class="scoreboard-table"><thead><tr><th>Elev</th><th>Dag</th><th>Ranking / äldre resultat</th><th>Yrkeskunnande</th><th>Gästnöjdhet</th><th>Uppgifter</th><th>Ekonomi</th><th>Hotellpoäng</th><th>Rapporter</th></tr></thead><tbody>${students.map(s=>{const l=v231bLatestSnapshot(s),p=studentDisplayParts(s);if(!l)return `<tr data-score-student="${escapeHtml(s.code)}"><td><b>${escapeHtml(p.classCode)} · ${escapeHtml(p.studentNo)}</b>${s.name?`<br>${escapeHtml(s.name)}`:''}</td><td>—</td><td><span class="student-identity-chip">Ingen historik</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td></tr>`;const legacy=v231bIsLegacySnapshot(l);if(legacy)return `<tr data-score-student="${escapeHtml(s.code)}"><td><b>${escapeHtml(p.classCode)} · ${escapeHtml(p.studentNo)}</b>${s.name?`<br>${escapeHtml(s.name)}`:''}</td><td>${Number(l.day||1)}</td><td><span class="student-identity-chip">Äldre modell · ${v231bLegacyQuality(l).toFixed(1)}%</span></td><td>${v231bLegacyVocational(l).toFixed(1)}%</td><td>${Number(l.guestAverage||0).toFixed(1)}%</td><td>—</td><td>${Number.isFinite(Number(l.economyScore))?`${Number(l.economyScore).toFixed(1)}%`:'—'}</td><td>${Number(l.score||0)} p</td><td>${v231bHistoryArray(s).length}</td></tr>`;const r=l.ranking||{};return `<tr data-score-student="${escapeHtml(s.code)}"><td><b>${escapeHtml(p.classCode)} · ${escapeHtml(p.studentNo)}</b>${s.name?`<br>${escapeHtml(s.name)}`:''}</td><td>${Number(l.day||1)}</td><td><span class="score-total-pill">${Number(r.total||0).toFixed(1)}%</span></td><td>${Number(r.vocational||0).toFixed(1)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(1)}%</td><td>${Number(r.tasks||0).toFixed(1)}%</td><td>${Number(r.economy||0).toFixed(1)}%</td><td>${Number(r.hotelPoints||0).toFixed(1)}%</td><td>${v231bHistoryArray(s).length}</td></tr>`;}).join('')}</tbody></table></div>`;root.querySelectorAll('[data-score-student]').forEach(row=>row.addEventListener('click',()=>renderScoreboardStudentDetail(row.dataset.scoreStudent)));
+    const root=document.getElementById('scoreboardView');if(!root)return;
+    const board=scoreboardLoad();if(ensureAutomaticStudentNumbers(board))scoreboardSave(board);
+    updateTeacherProgressLocalStatus(board);
+    const students=Object.values(board.students||{});
+    if(!students.length){
+      root.innerHTML='<div class="info">Inga elevposter finns i den här lokala lagringen. Om du hade elever i en äldre nedladdad HTML-version: öppna den äldre filen, spara en lärarbackup och läs in den här.</div>';
+      const d=document.getElementById('scoreboardDetail');if(d)d.innerHTML='';return;
+    }
+    students.sort((a,b)=>studentDisplayParts(a).classCode.localeCompare(studentDisplayParts(b).classCode,'sv')||studentDisplayParts(a).studentNo.localeCompare(studentDisplayParts(b).studentNo,'sv',{numeric:true}));
+    const identityCells=s=>{const p=studentDisplayParts(s);return `<td><b>${escapeHtml(s.code)}</b></td><td><input class="student-meta-input" data-student-meta="classCode" data-student-code="${escapeHtml(s.code)}" value="${escapeHtml(p.classCode)}" placeholder="Klass"></td><td><input class="student-meta-input student-no" data-student-meta="studentNo" data-student-code="${escapeHtml(s.code)}" value="${escapeHtml(p.studentNo)}" placeholder="Nr"></td><td><input class="student-name-input" data-student-meta="name" data-student-code="${escapeHtml(s.code)}" value="${escapeHtml(s.name||'')}" placeholder="Förnamn"></td>`;};
+    root.innerHTML=`<div class="scoreboard-wrap"><table class="scoreboard-table"><thead><tr><th>Elevkod</th><th>Klass</th><th>Elevnr</th><th>Förnamn</th><th>Dag</th><th>Ranking / äldre resultat</th><th>Yrkeskunnande</th><th>Gästnöjdhet</th><th>Uppgifter</th><th>Ekonomi</th><th>Hotellpoäng</th><th>Rapporter</th><th></th></tr></thead><tbody>${students.map(s=>{
+      const l=v231bLatestSnapshot(s);
+      if(!l)return `<tr data-score-student="${escapeHtml(s.code)}">${identityCells(s)}<td>—</td><td><span class="student-identity-chip">Ingen historik</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td><td><button type="button" class="student-delete-btn" data-delete-student="${escapeHtml(s.code)}">🗑 Ta bort</button></td></tr>`;
+      const legacy=v231bIsLegacySnapshot(l);
+      if(legacy)return `<tr data-score-student="${escapeHtml(s.code)}">${identityCells(s)}<td>${Number(l.day||1)}</td><td><span class="student-identity-chip">Äldre modell · ${v231bLegacyQuality(l).toFixed(1)}%</span></td><td>${v231bLegacyVocational(l).toFixed(1)}%</td><td>${Number(l.guestAverage||0).toFixed(1)}%</td><td>—</td><td>${Number.isFinite(Number(l.economyScore))?`${Number(l.economyScore).toFixed(1)}%`:'—'}</td><td>${Number(l.score||0)} p</td><td>${v231bHistoryArray(s).length}</td><td><button type="button" class="student-delete-btn" data-delete-student="${escapeHtml(s.code)}">🗑 Ta bort</button></td></tr>`;
+      const r=l.ranking||{};
+      return `<tr data-score-student="${escapeHtml(s.code)}">${identityCells(s)}<td>${Number(l.day||1)}</td><td><span class="score-total-pill">${Number(r.total||0).toFixed(1)}%</span></td><td>${Number(r.vocational||0).toFixed(1)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(1)}%</td><td>${Number(r.tasks||0).toFixed(1)}%</td><td>${Number(r.economy||0).toFixed(1)}%</td><td>${Number(r.hotelPoints||0).toFixed(1)}%</td><td>${v231bHistoryArray(s).length}</td><td><button type="button" class="student-delete-btn" data-delete-student="${escapeHtml(s.code)}">🗑 Ta bort</button></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+    root.querySelectorAll('[data-score-student]').forEach(row=>row.addEventListener('click',e=>{if(e.target.closest('input,button'))return;renderScoreboardStudentDetail(row.dataset.scoreStudent);}));
+    root.querySelectorAll('[data-student-meta]').forEach(input=>{
+      input.addEventListener('click',e=>e.stopPropagation());
+      input.addEventListener('change',()=>saveStudentLocalMeta(input.dataset.studentCode,input.dataset.studentMeta,input.value));
+      input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();input.blur();}});
+    });
+    root.querySelectorAll('[data-delete-student]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();deleteTeacherStudent(btn.dataset.deleteStudent);}));
   };
 
   renderScoreboardStudentDetail=function(code){
