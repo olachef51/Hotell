@@ -1176,7 +1176,7 @@
 </style>
 
 <style>
-  /* v.01-245 · verifiera PMS-kontroll och återvänd till arbetsuppgiften */
+  /* v.01-246 · verifiera PMS-kontroll och återvänd till arbetsuppgiften */
   .v242-pms-routine-bar{margin:0 22px 10px;padding:12px 14px;border:2px solid #9db1ff;border-radius:14px;background:#eef3ff;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 2px 0 rgba(38,56,82,.08)}
   .v242-pms-routine-bar[hidden]{display:none!important}
   .v242-pms-routine-copy{display:flex;flex-direction:column;gap:7px;min-width:0;color:#24375d}
@@ -1188,7 +1188,7 @@
   @media(max-width:760px){.v242-pms-routine-bar{align-items:stretch;flex-direction:column}.v242-pms-routine-bar #v242PmsReturnBtn{width:100%}}
 </style>
 <style>
-  /* v.01-245 · Kontrollera C/I genom att identifiera HSK-status */
+  /* v.01-246 · Kontrollera C/I genom att identifiera HSK-status */
   .v244-status-quiz{display:grid;gap:12px;margin:14px 0}
   .v244-status-card{border:2px solid #d9e2f3;border-radius:14px;background:#f9fbff;padding:14px}
   .v244-status-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
@@ -1205,7 +1205,7 @@
   .v244-status-feedback.ok{color:#17623c}
   .v244-status-feedback.bad{color:#9a342c}
 
-  /* v.01-245 · visuell HSK-jämförelse + lobbyrond med Luise */
+  /* v.01-246 · visuell HSK-jämförelse + lobbyrond med Luise */
   .v245-routine-layout{display:block}
   .v245-routine-layout.compare{display:grid;grid-template-columns:minmax(420px,1fr) minmax(430px,1fr);gap:14px;align-items:start}
   .v245-hsk-compare{border:2px solid #9fb1eb;border-radius:14px;background:#f7f9ff;padding:12px;max-height:68vh;overflow:auto}
@@ -1235,7 +1235,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-245</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-247</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1909,8 +1909,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-245";
-  const MASTER_CONTENT_VERSION = "v.01-245";
+  const HOTEL_VERSION = "v.01-247";
+  const MASTER_CONTENT_VERSION = "v.01-247";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -3478,7 +3478,7 @@
     player.x=manager.stationX;player.y=manager.stationY;player.targetX=player.x;player.targetY=player.y;player.moving=false;
     const escortX=waitingHousekeeper?Number(rec.housekeeperX):player.x+34;
     const escortY=waitingHousekeeper?Number(rec.housekeeperY):player.y+18;
-    dndWorkflow={roomId:Number(roomId),escortId:escort.id,stage:"walking",knocks:0,announced:false,speechText:"",speechUntil:0,escortX,escortY,escortWaitingAtRoom:waitingHousekeeper};
+    dndWorkflow={roomId:Number(roomId),escortId:escort.id,stage:"walking",doorStep:0,knocks:0,announcements:0,waitedForReply:false,replyWaitUntil:0,speechText:"",speechUntil:0,escortX,escortY,escortWaitingAtRoom:waitingHousekeeper};
     dndAutoPath=dndRouteToRoom(roomId);dndAutoPathIndex=0;
     recordAssessment("dnd_manager_check_started",{roomId:Number(roomId),managerId:"manager",escortId:escort.id,escortName:escort.name,housekeeperWaitedAtDoor:waitingHousekeeper});
     saveState();renderStaffBar();updateMission();focusCameraOnWorldPoint(player.x,player.y);
@@ -3522,34 +3522,52 @@
     drawCharacter(dndWorkflow.escortX,dndWorkflow.escortY,escort.shirt,"#f1bf93",0,0,true,"staff");
     drawNameLabelBelow(dndWorkflow.escortX,dndWorkflow.escortY,escort.name,escort.role,false);
   }
+  // v.01-247: DND-rutinen följer exakt: KNACKA → SÄG HOTELLCHEF →
+  // KNACKA → SÄG HOTELLCHEF → VÄNTA PÅ SVAR → GÅ IN OCH KONTROLLERA.
   function dndManagerKnock(){
     if(!dndWorkflow||dndWorkflow.stage!=="door")return;
-    dndWorkflow.knocks=Math.min(3,Number(dndWorkflow.knocks||0)+1);
-    dndWorkflow.speechText=`KNACK ${dndWorkflow.knocks}/3`;dndWorkflow.speechUntil=performance.now()+900;
-    recordAssessment("dnd_manager_knock",{roomId:dndWorkflow.roomId,knock:dndWorkflow.knocks,escortId:dndWorkflow.escortId});
-    showTip(dndWorkflow.knocks<3?`Knack ${dndWorkflow.knocks}/3.`:"Tre knackningar klara. Alex ska identifiera sig.");
+    const step=Number(dndWorkflow.doorStep||0);
+    if(step!==0&&step!==2)return;
+    dndWorkflow.knocks=Math.min(2,Number(dndWorkflow.knocks||0)+1);
+    dndWorkflow.doorStep=step+1;
+    dndWorkflow.speechText=`KNACK ${dndWorkflow.knocks}/2`;
+    dndWorkflow.speechUntil=performance.now()+900;
+    recordAssessment("dnd_manager_knock",{roomId:dndWorkflow.roomId,knock:dndWorkflow.knocks,escortId:dndWorkflow.escortId,sequenceStep:dndWorkflow.doorStep});
+    showTip(dndWorkflow.knocks===1?"Första knackningen klar. Säg Hotellchef.":"Andra knackningen klar. Säg Hotellchef igen.");
   }
   function dndManagerAnnounce(){
-    if(!dndWorkflow||dndWorkflow.stage!=="door"||dndWorkflow.knocks<3)return;
-    dndWorkflow.announced=true;
-    dndWorkflow.speechText="HOTELLCHEF!";dndWorkflow.speechUntil=performance.now()+3500;dndWorkflow.announceWaitUntil=performance.now()+1400;
-    recordAssessment("dnd_manager_announce",{roomId:dndWorkflow.roomId,text:"Hotellchef",escortId:dndWorkflow.escortId});
-    showTip("Alex identifierar sig och väntar på svar.");
+    if(!dndWorkflow||dndWorkflow.stage!=="door")return;
+    const step=Number(dndWorkflow.doorStep||0);
+    if(step!==1&&step!==3)return;
+    dndWorkflow.announcements=Math.min(2,Number(dndWorkflow.announcements||0)+1);
+    dndWorkflow.doorStep=step+1;
+    dndWorkflow.speechText="HOTELLCHEF!";
+    dndWorkflow.speechUntil=performance.now()+1800;
+    recordAssessment("dnd_manager_announce",{roomId:dndWorkflow.roomId,text:"Hotellchef",announcement:dndWorkflow.announcements,escortId:dndWorkflow.escortId,sequenceStep:dndWorkflow.doorStep});
+    showTip(dndWorkflow.announcements===1?"Alex har sagt Hotellchef. Knacka en gång till.":"Alex har sagt Hotellchef igen. Vänta nu på svar.");
+  }
+  function dndManagerWaitForReply(){
+    if(!dndWorkflow||dndWorkflow.stage!=="door"||Number(dndWorkflow.doorStep||0)!==4)return;
+    dndWorkflow.waitedForReply=true;
+    dndWorkflow.doorStep=5;
+    dndWorkflow.replyWaitUntil=performance.now()+1800;
+    dndWorkflow.speechText="VÄNTAR PÅ SVAR…";
+    dndWorkflow.speechUntil=dndWorkflow.replyWaitUntil;
+    recordAssessment("dnd_manager_wait_for_reply",{roomId:dndWorkflow.roomId,escortId:dndWorkflow.escortId,waitMs:1800,sequenceStep:5});
+    showTip("Alex och Luise väntar på svar innan de går in.");
   }
   function dndManagerInspect(){
-    if(!dndWorkflow||dndWorkflow.stage!=="door"||dndWorkflow.knocks<3||!dndWorkflow.announced)return;
-    if(performance.now()<Number(dndWorkflow.announceWaitUntil||0)){showTip("Vänta ett ögonblick efter att Alex identifierat sig.");return;}
+    if(!dndWorkflow||dndWorkflow.stage!=="door"||Number(dndWorkflow.doorStep||0)<5||!dndWorkflow.waitedForReply)return;
+    if(performance.now()<Number(dndWorkflow.replyWaitUntil||0)){showTip("Vänta på svar innan ni går in.");return;}
     const guestInside=isGuestPhysicallyInRoom(dndWorkflow.roomId);
     const door=roomDoorPoints[dndWorkflow.roomId];if(!door)return;
-    // v.01-190: skolans DND-rutin kräver två personal. Efter rapportering väntar Luise vid
-    // dörren, Alex tillkallas, identifierar sig och därefter går Alex + Luise in TILLSAMMANS.
     dndWorkflow.entryOutcome=guestInside?"two_staff_control_guest_present":"two_staff_room_control";
-    dndWorkflow.speechText=guestInside?"Alex och Luise genomför kontrollen tillsammans.":"Ingen svarar – vi går in tillsammans.";
+    dndWorkflow.speechText=guestInside?"Alex och Luise går in och kontrollerar tillsammans.":"Inget svar – Alex och Luise går in och kontrollerar tillsammans.";
     dndWorkflow.speechUntil=performance.now()+2600;
-    dndWorkflow.stage="entering";dndWorkflow.escortWaitingAtRoom=false;
+    dndWorkflow.stage="entering";dndWorkflow.doorStep=6;dndWorkflow.escortWaitingAtRoom=false;
     dndAutoPath=[{x:door.x,y:door.y},{x:door.insideX,y:door.insideY}];dndAutoPathIndex=0;
-    recordAssessment("dnd_manager_entry_check",{roomId:dndWorkflow.roomId,escortId:dndWorkflow.escortId,guestPresent:guestInside,twoStaff:true,managerAndHousekeeperTogether:true});
-    showTip(`Alex och Luise går nu in tillsammans i rum ${dndWorkflow.roomId} för DND-kontrollen.`);
+    recordAssessment("dnd_manager_entry_check",{roomId:dndWorkflow.roomId,escortId:dndWorkflow.escortId,guestPresent:guestInside,twoStaff:true,managerAndHousekeeperTogether:true,sequence:"knock-announce-knock-announce-wait-enter"});
+    showTip(`Alex och Luise går nu in tillsammans i rum ${dndWorkflow.roomId} och kontrollerar.`);
   }
   // v.01-190: avslutad DND-kontroll får aldrig lämna ett occupied_dirty-rum permanent låst.
   // Efter tvåpersonskontrollen är dagens DND-händelse hanterad. Skylten tas bort i spelet
@@ -6921,6 +6939,34 @@
     updateInteraction();
   }
 
+  // v.01-246: Alex ska kunna gå MANUELLT till ett rapporterat DND-rum och
+  // starta chefskontrollen direkt vid dörren. Luise väntar kvar som andra personal.
+  function beginDndManagerCheckAtDoor(roomId){
+    const id=Number(roomId);
+    if(!dndManagerCheckPending(id)){showTip(`Rum ${id} har ingen väntande DND-kontroll idag.`);return false;}
+    if(state.activeStaffId!=="manager"){showTip(`Välj Alex, hotellchef, för DND-kontrollen i rum ${id}.`);return false;}
+    if(dndWorkflow){
+      if(Number(dndWorkflow.roomId)===id&&dndWorkflow.stage==="door")return true;
+      showTip(`Alex har redan en pågående DND-kontroll i rum ${dndWorkflow.roomId}.`);return false;
+    }
+    const rec=dndManagerRecord(id)||{};
+    const outside=hskDoorOutsidePoint(id);
+    if(!outside||Math.hypot(Number(player.x)-Number(outside.x),Number(player.y)-Number(outside.y))>150){
+      showTip(`Gå fram med Alex till markeringen utanför rum ${id}.`);return false;
+    }
+    const luise=getStaff("housekeeper");
+    if(!luise){showTip("Luise kan inte hittas för tvåpersonskontrollen.");return false;}
+    const escortX=Number.isFinite(Number(rec.housekeeperX))?Number(rec.housekeeperX):outside.x+(roomDoorSide(id)==="right"?-28:28);
+    const escortY=Number.isFinite(Number(rec.housekeeperY))?Number(rec.housekeeperY):outside.y+20;
+    dndWorkflow={roomId:id,escortId:"housekeeper",stage:"door",doorStep:0,knocks:0,announcements:0,waitedForReply:false,replyWaitUntil:0,speechText:"",speechUntil:0,escortX,escortY,escortWaitingAtRoom:true};
+    dndAutoPath=[];dndAutoPathIndex=0;player.targetX=player.x;player.targetY=player.y;player.moving=false;
+    recordAssessment("dnd_manager_check_started",{roomId:id,managerId:"manager",escortId:"housekeeper",escortName:luise.name,housekeeperWaitedAtDoor:true,manualArrival:true});
+    saveState();renderStaffBar();updateMission();
+    showTip(`Alex och Luise är vid rum ${id}. Följ rutinen: knacka → säg Hotellchef → knacka → säg Hotellchef → vänta på svar → gå in och kontrollera.`);
+    updateInteraction();
+    return true;
+  }
+
   function updateInteraction(){
     interaction=null;
 
@@ -6952,9 +6998,14 @@
     }
 
     if(dndWorkflow&&state.activeStaffId==="manager"&&dndWorkflow.stage==="door"){
-      if(Number(dndWorkflow.knocks||0)<3)interaction={id:"dndManagerKnock",label:`Knacka ${Number(dndWorkflow.knocks||0)+1}/3`,icon:"🚪"};
-      else if(!dndWorkflow.announced)interaction={id:"dndManagerAnnounce",label:"Identifiera hotellchef",icon:"🗣️"};
-      else interaction={id:"dndManagerInspect",label:"Genomför DND-kontroll",icon:"🛡️"};
+      const step=Number(dndWorkflow.doorStep||0);
+      if(step===0)interaction={id:"dndManagerKnock",label:"Knacka 1/2",icon:"🚪"};
+      else if(step===1)interaction={id:"dndManagerAnnounce",label:"Säg Hotellchef 1/2",icon:"🗣️"};
+      else if(step===2)interaction={id:"dndManagerKnock",label:"Knacka 2/2",icon:"🚪"};
+      else if(step===3)interaction={id:"dndManagerAnnounce",label:"Säg Hotellchef 2/2",icon:"🗣️"};
+      else if(step===4)interaction={id:"dndManagerWait",label:"Vänta på svar",icon:"⏳"};
+      else if(step===5&&performance.now()<Number(dndWorkflow.replyWaitUntil||0))interaction={id:"dndManagerWaiting",label:"Väntar på svar…",icon:"⏳"};
+      else interaction={id:"dndManagerInspect",label:"Gå in och kontrollera",icon:"🛡️"};
     }
 
     if(!interaction&&publicLitterWorkflow&&state.activeStaffId==="housekeeper"){
@@ -6968,13 +7019,19 @@
       document.getElementById("interact").classList.add("show");
       const hskAnnouncements=Number(hskWorkflow?.announcements||0),hskKnocks=Number(hskWorkflow?.knocks||0);
       const hskKnockDisplay=`${Math.min(2,hskKnocks+1)}/2`;
-      const labels={hskReportDnd:"RAPPORTERA<br>DND",hskKnock:`KNACKA<br>${hskKnockDisplay}`,hskAnnounce:`SÄG HOUSEKEEPING<br>${Math.min(2,hskAnnouncements+1)}/2`,hskGuestReply:"PRATA MED<br>GÄST",hskEnter:`GÅ IN<br>RUM ${hskWorkflow?.roomId||""}`,hskPickTrash:"PLOCKA<br>SKRÄP",ambientLitterPickup:"PLOCKA<br>SKRÄP",dndManagerKnock:`KNACKA<br>${Number(dndWorkflow?.knocks||0)+1}/3`,dndManagerAnnounce:"SÄG<br>HOTELLCHEF",dndManagerInspect:"GENOMFÖR<br>KONTROLL"};
+      const dndStep=Number(dndWorkflow?.doorStep||0);
+      const labels={hskReportDnd:"RAPPORTERA<br>DND",hskKnock:`KNACKA<br>${hskKnockDisplay}`,hskAnnounce:`SÄG HOUSEKEEPING<br>${Math.min(2,hskAnnouncements+1)}/2`,hskGuestReply:"PRATA MED<br>GÄST",hskEnter:`GÅ IN<br>RUM ${hskWorkflow?.roomId||""}`,hskPickTrash:"PLOCKA<br>SKRÄP",ambientLitterPickup:"PLOCKA<br>SKRÄP",dndManagerBegin:"KNACKA<br>1/2",dndManagerKnock:dndStep===0?"KNACKA<br>1/2":"KNACKA<br>2/2",dndManagerAnnounce:dndStep===1?"SÄG HOTELLCHEF<br>1/2":"SÄG HOTELLCHEF<br>2/2",dndManagerWait:"VÄNTA PÅ<br>SVAR",dndManagerWaiting:"VÄNTAR…",dndManagerInspect:"GÅ IN &<br>KONTROLLERA"};
       document.getElementById("interact").innerHTML=labels[interaction.id]||"UTFÖR<br>UPPGIFT";
       return;
     }
 
     const roomDoorMarker=nearestRoomDoorMarker();
     const markerHasPendingDnd=roomDoorMarker?dndManagerCheckPending(roomDoorMarker.roomId):false;
+    // v.01-246: ett rapporterat DND-rum ska inte bli ett dött område för Alex.
+    // När Alex står vid dörrmarkeringen får han starta chefskontrollen där.
+    if(!interaction&&roomDoorMarker&&markerHasPendingDnd&&state.activeStaffId==="manager"&&!pointInsideRoom(roomDoorMarker.roomId,player.x,player.y)){
+      interaction={id:"dndManagerBegin",roomId:Number(roomDoorMarker.roomId),label:`Knacka 1/2 på rum ${roomDoorMarker.roomId}`,icon:"🚪"};
+    }
     if(!interaction&&roomDoorMarker&&!markerHasPendingDnd&&!pointInsideRoom(roomDoorMarker.roomId,player.x,player.y)){
       const roomId=Number(roomDoorMarker.roomId);
       // v.01-229: Luise använder ALDRIG den generiska dörrgenvägen på ett rum som
@@ -6995,7 +7052,7 @@
 
     if(interaction){
       document.getElementById("interact").classList.add("show");
-      const labels={genericRoomKnock:`KNACKA<br>RUM ${interaction.roomId}`,genericRoomEnter:`GÅ IN<br>RUM ${interaction.roomId}`};
+      const labels={genericRoomKnock:`KNACKA<br>RUM ${interaction.roomId}`,genericRoomEnter:`GÅ IN<br>RUM ${interaction.roomId}`,dndManagerBegin:"KNACKA<br>1/2"};
       document.getElementById("interact").innerHTML=labels[interaction.id]||"UTFÖR<br>UPPGIFT";
       return;
     }
@@ -7038,8 +7095,15 @@
     if(interaction.id==="genericRoomKnock"){genericRoomKnock(interaction.roomId);return;}
     if(interaction.id==="genericRoomEnter"){genericRoomEnter(interaction.roomId);return;}
     if(interaction.id==="hskReportDnd"){hskReportDnd();return;}
+    if(interaction.id==="dndManagerBegin"){
+      const id=Number(interaction.roomId);
+      if(beginDndManagerCheckAtDoor(id))dndManagerKnock();
+      return;
+    }
     if(interaction.id==="dndManagerKnock"){dndManagerKnock();return;}
     if(interaction.id==="dndManagerAnnounce"){dndManagerAnnounce();return;}
+    if(interaction.id==="dndManagerWait"){dndManagerWaitForReply();return;}
+    if(interaction.id==="dndManagerWaiting"){showTip("Väntar på svar…");return;}
     if(interaction.id==="dndManagerInspect"){dndManagerInspect();return;}
     if(interaction.id==="hskKnock"){hskKnock();return;}
     if(interaction.id==="hskAnnounce"){hskAnnounce();return;}
@@ -10031,6 +10095,9 @@
         const dndRoom=pendingDndManagerRoomId();
         if(dndRoom){
           if(dndWorkflow){showTip(`Alex och Luise genomför redan DND-rutinen för rum ${dndWorkflow.roomId}.`);return;}
+          const outside=hskDoorOutsidePoint(dndRoom);
+          const managerAlreadyThere=state.activeStaffId==="manager"&&outside&&Math.hypot(Number(player.x)-Number(outside.x),Number(player.y)-Number(outside.y))<=150;
+          if(managerAlreadyThere){beginDndManagerCheckAtDoor(dndRoom);return;}
           summonManagerForDnd(dndRoom);
           return;
         }
@@ -11680,7 +11747,7 @@
   // v.01-237: Ett klick på arbetslistan får aldrig i sig markera en planerad huvuduppgift som klar.
   // Knappen öppnar i stället en verifieringsruta med hotellets aktuella data.
   let v232ActiveRoutineTask=null;
-  // v.01-245: när en kontrolluppgift öppnar PMS ska eleven kunna bekräfta kontrollen
+  // v.01-246: när en kontrolluppgift öppnar PMS ska eleven kunna bekräfta kontrollen
   // i själva PMS-vyn och därefter återvända direkt till samma uppgift.
   let v242PmsRoutineContext=null;
   function v242RoutineDraftSetCheck(index,task,checkIndex,value){
@@ -11977,7 +12044,7 @@
     const statusGroups=[...(body?.querySelectorAll('[data-v244-status-group]')||[])];if(statusGroups.length&&statusGroups.some(x=>String(x.dataset.selected||"")!==String(x.dataset.correct||""))){showTip("Välj rätt HSK-status för alla kommande C/I-rum först.");return;}
     const snap=v232RoutineSnapshot(index,task);if(!snap.canComplete){showTip(snap.blocked||"Det finns arbete kvar som måste utföras först.");v232OpenRoutineTask(index,task);return;}
     const q=body?.querySelector('#v232RoutineAnswer');if(q&&Number(q.value)!==Number(q.dataset.expected)){showTip("Kontrollsvaret stämmer inte med listan. Kontrollera underlaget igen.");q.focus();return;}
-    if(v231FinalizeRoutine(task,"done","v.01-245 verifierad arbetskontroll")){state.score=Number(state.score||0)+Math.max(5,Number(task.weight||2)*5);}
+    if(v231FinalizeRoutine(task,"done","v.01-246 verifierad arbetskontroll")){state.score=Number(state.score||0)+Math.max(5,Number(task.weight||2)*5);}
     v232ClearRoutineDraft(index,task);recordAssessment("routine_control_verified",{taskId:task.id,taskLabel:task.label,period:currentHotelPeriod().short,day:Number(state.day||1),correct:true});if(["prioritize_rooms","hsk_priority"].includes(String(task.id||"")))recordAssessment("ci_room_status_control",{period:currentHotelPeriod().short,day:Number(state.day||1),correct:true});saveState();updateMission();updateHud();document.getElementById("routineTaskModal")?.classList.remove("show");v232ActiveRoutineTask=null;showTip(`Huvuduppgift klar efter kontroll: ${task.label}.`);
   }
   function completeV231RoutineTask(id){
