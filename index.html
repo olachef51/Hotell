@@ -1235,7 +1235,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-251</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-252</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1909,8 +1909,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-251";
-  const MASTER_CONTENT_VERSION = "v.01-251";
+  const HOTEL_VERSION = "v.01-252";
+  const MASTER_CONTENT_VERSION = "v.01-252";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -2827,7 +2827,8 @@
     if(dnd)items.push({key:"clean",kind:"dnd",label:`DND på rum ${dnd} behöver chefskontroll`,location:`Housekeeping / rum ${dnd}`});
     const roomId=currentHskRoomId();if(roomId&&!dnd)items.push({key:"clean",kind:"room",label:`Rum ${roomId} behöver housekeeping`,location:`HSK-office / rum ${roomId}`});
     const litter=Array.isArray(state.ambientLitter)?state.ambientLitter.length:0;if(litter)items.push({key:"clean",kind:"litter",label:`Plocka ${litter} skräp i allmänna ytor`,location:"FOH · restaurang / reception / lobby / entré"});
-    if(!items.length&&!hskDailyWorkComplete())items.push({key:"clean",kind:"hsk",label:"Housekeepingarbete väntar",location:"HSK-office"});
+    // DND som ska respekteras och följas upp senare ska inte skapa en falsk HSK-uppgift nu.
+    if(!items.length&&roomId&&!hskDailyWorkComplete())items.push({key:"clean",kind:"hsk",label:"Housekeepingarbete väntar",location:"HSK-office"});
     return items;
   }
   function resetStalePhoneTaskForCurrentDay(){
@@ -2838,17 +2839,17 @@
     // och slutfört gästsamtalet i den här versionens telefonflöde.
     const recoverableAwaiting=raw==="awaiting_reservation"&&Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day&&Boolean(state.pendingPhoneReservation);
     if(recoverableAwaiting){
-      // v.01-251: gästen ska vara kvar i telefonen medan reservationen registreras.
+      // v.01-252: gästen ska vara kvar i telefonen medan reservationen registreras.
       // Äldre awaiting_reservation återgår därför till ett aktivt samtal.
       state.phoneCallStatus="in_call";
       state.phoneConversationCompletedDay=0;
-      state.phoneFlowVersion="v.01-251";
+      state.phoneFlowVersion="v.01-252";
       return true;
     }
     const invalidAwaiting=raw==="awaiting_reservation"&&Number(state.phoneConversationCompletedDay||0)!==day;
     const hasOldFlow=invalidAwaiting||(assigned!==day&&(raw!==""&&raw!=="idle"||Number(state.phoneCallProgress||0)>0||state.pendingPhoneReservation));
     if(!hasOldFlow)return false;
-    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneConversationCompletedDay=0;state.phoneFlowVersion="v.01-251";state.phoneAutoAnswerPending=false;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneCallAlternativeRoomType="";state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;state.phoneReservationDraft=null;state.phoneReservationReadbackConfirmed=false;state.phoneSavedBookingId=0;
+    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneConversationCompletedDay=0;state.phoneFlowVersion="v.01-252";state.phoneAutoAnswerPending=false;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneCallAlternativeRoomType="";state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;state.phoneReservationDraft=null;state.phoneReservationReadbackConfirmed=false;state.phoneSavedBookingId=0;
     return true;
   }
   function phoneTaskPeriodKey(day=Number(state.day||1),index=currentHotelPeriodIndex()){return `${Number(day||1)}:${Number(index||0)}`;}
@@ -3433,6 +3434,21 @@
   }
   function ensureDndManagerChecks(){
     if(!state.dndManagerChecks||typeof state.dndManagerChecks!=="object")state.dndManagerChecks={};
+    // v.01-252: DND ska inte eskaleras till chef tidigt på dagen och aldrig medan
+    // gästen faktiskt befinner sig på rummet. Äldre felaktiga väntande rapporter
+    // återgår till HSK-kön för senare uppföljning.
+    const periodIndex=currentHotelPeriodIndex();
+    Object.keys(state.dndManagerChecks).forEach(key=>{
+      const roomId=Number(key),rec=state.dndManagerChecks[key];
+      if(!rec||rec.status!=="required"||Number(rec.day)!==Number(state.day||1))return;
+      const guestPresent=(typeof guestAgents!=="undefined")?isGuestPhysicallyInRoom(roomId):false;
+      if(periodIndex<5||guestPresent){
+        delete state.dndManagerChecks[key];
+        if(!Array.isArray(state.hskQueue))state.hskQueue=[];
+        if(roomId&&!state.hskQueue.includes(roomId))state.hskQueue.push(roomId);
+        state.tasks.clean=false;
+      }
+    });
   }
   function dndManagerRecord(roomId){
     ensureDndManagerChecks();
@@ -3447,6 +3463,14 @@
     return Object.keys(state.dndManagerChecks).map(Number).filter(roomId=>dndManagerCheckPending(roomId));
   }
   function pendingDndManagerRoomId(){return pendingDndManagerRoomIds()[0]||null;}
+  function dndManagerReportWindowOpen(){return currentHotelPeriodIndex()>=5;}
+  function dndRoomCanBeReported(roomId){
+    const id=Number(roomId),room=state.rooms.find(r=>Number(r.id)===id);
+    if(!room||String(room.doorSign||"none").toUpperCase()!=="DND")return false;
+    if(!dndManagerReportWindowOpen())return false;
+    if(isGuestPhysicallyInRoom(id))return false;
+    return true;
+  }
   function hskDailyWorkComplete(){
     const litterCount=Array.isArray(state.ambientLitter)?state.ambientLitter.length:0;
     return (!Array.isArray(state.hskQueue)||state.hskQueue.length===0)&&pendingDndManagerRoomIds().length===0&&litterCount===0;
@@ -3537,7 +3561,7 @@
     drawCharacter(dndWorkflow.escortX,dndWorkflow.escortY,escort.shirt,"#f1bf93",0,0,true,"staff");
     drawNameLabelBelow(dndWorkflow.escortX,dndWorkflow.escortY,escort.name,escort.role,false);
   }
-  // v.01-251: DND-rutinen följer exakt: KNACKA → SÄG HOTELLCHEF →
+  // v.01-252: DND-rutinen följer exakt: KNACKA → SÄG HOTELLCHEF →
   // KNACKA → SÄG HOTELLCHEF → VÄNTA PÅ SVAR → GÅ IN OCH KONTROLLERA.
   function dndManagerKnock(){
     if(!dndWorkflow||dndWorkflow.stage!=="door")return;
@@ -3923,9 +3947,25 @@
     showTip(`Ingen gäst är på rum ${roomId}. Luise är inne och kan börja städa. Plocka de tre markerade skräpen.`);
     updateInteraction();
   }
+  function hskRespectDnd(){
+    if(!hskWorkflow)return;
+    const roomId=Number(hskWorkflow.roomId);
+    const outside=hskDoorOutsidePoint(roomId)||{x:player.x,y:player.y};
+    const guestPresent=isGuestPhysicallyInRoom(roomId);
+    player.x=Number(outside.x);player.y=Number(outside.y);player.targetX=player.x;player.targetY=player.y;player.moving=false;
+    recordAssessment("housekeeping_dnd_respected",{roomId,guestPresent,period:currentHotelPeriod().short,day:Number(state.day||1),correct:true});
+    hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();roomEntryState=null;
+    selectedMissionTaskKey=null;
+    player.speechText=guestPresent?"DND respekteras – gästen är på rummet.":"DND respekteras – följs upp senare.";
+    player.speechUntil=performance.now()+2600;
+    saveState();updateMission();renderStaffBar();updateInteraction();
+    if(guestPresent)showTip(`Rum ${roomId}: gästen är på rummet och har DND. Luise går inte in och ingen chefskontroll startas. Följ upp senare när gästen har lämnat rummet.`);
+    else showTip(`Rum ${roomId}: DND respekteras nu. Chefskontroll blir aktuell först från 15–18 om skylten fortfarande sitter kvar och gästen inte är på rummet.`);
+  }
   function hskReportDnd(){
     if(!hskWorkflow)return;
     const roomId=Number(hskWorkflow.roomId);
+    if(!dndManagerReportWindowOpen()||isGuestPhysicallyInRoom(roomId)){hskRespectDnd();return;}
     const outside=hskDoorOutsidePoint(roomId)||{x:player.x,y:player.y};
     player.x=Number(outside.x);player.y=Number(outside.y);player.targetX=player.x;player.targetY=player.y;player.moving=false;
     requireDndManagerCheck(roomId,outside);
@@ -6559,7 +6599,7 @@
             if(guest.returningFromOuting&&booking){finishStayoverReturnCheck(guest,booking);guest.returningFromOuting=false;guest.dailyPhase="resting";}
             guest.nextActionAt=now+16000+index*1200;
           }else if(guest.state==="inLobby"){
-            // v.01-251: riktiga hotellgäster sitter inte kvar i lobbyn hela hotellperioder.
+            // v.01-252: riktiga hotellgäster sitter inte kvar i lobbyn hela hotellperioder.
             // De kopplar av cirka 30 sekunder och fortsätter sedan sin hotellrunda.
             guest.nextActionAt=guest.ambient?now+9000+index*700:now+30000+index*1200;
           }else if(guest.state==="inRestaurant"){
@@ -6989,8 +7029,12 @@
 
     if(hskWorkflow&&state.activeStaffId==="housekeeper"){
       if(hskWorkflow.stage==="door"){
-        if(hskWorkflow.sign==="DND")interaction={id:"hskReportDnd",label:"Rapportera DND",icon:"⛔"};
-        else{
+        if(hskWorkflow.sign==="DND"){
+          const roomId=Number(hskWorkflow.roomId);
+          interaction=dndRoomCanBeReported(roomId)
+            ?{id:"hskReportDnd",label:"Rapportera DND",icon:"⛔"}
+            :{id:"hskRespectDnd",label:isGuestPhysicallyInRoom(roomId)?"Respektera DND · gäst på rummet":"Respektera DND · följ upp senare",icon:"⛔"};
+        }else{
           const doorStep=Number(hskWorkflow.doorStep||0),waiting=performance.now()<Number(hskWorkflow.announceWaitUntil||0);
           // v.01-229: exakt, separat HSK-state machine. GÅ IN finns endast i steg 4.
           if(doorStep===0)interaction={id:"hskKnock",label:"Knacka 1/2",icon:"🚪"};
@@ -7037,7 +7081,7 @@
       const hskAnnouncements=Number(hskWorkflow?.announcements||0),hskKnocks=Number(hskWorkflow?.knocks||0);
       const hskKnockDisplay=`${Math.min(2,hskKnocks+1)}/2`;
       const dndStep=Number(dndWorkflow?.doorStep||0);
-      const labels={hskReportDnd:"RAPPORTERA<br>DND",hskKnock:`KNACKA<br>${hskKnockDisplay}`,hskAnnounce:`SÄG HOUSEKEEPING<br>${Math.min(2,hskAnnouncements+1)}/2`,hskGuestReply:"PRATA MED<br>GÄST",hskEnter:`GÅ IN<br>RUM ${hskWorkflow?.roomId||""}`,hskPickTrash:"PLOCKA<br>SKRÄP",ambientLitterPickup:"PLOCKA<br>SKRÄP",dndManagerBegin:"KNACKA<br>1/2",dndManagerKnock:dndStep===0?"KNACKA<br>1/2":"KNACKA<br>2/2",dndManagerAnnounce:dndStep===1?"SÄG HOTELLCHEF<br>1/2":"SÄG HOTELLCHEF<br>2/2",dndManagerWait:"VÄNTA PÅ<br>SVAR",dndManagerWaiting:"VÄNTAR…",dndManagerInspect:"GÅ IN &<br>KONTROLLERA"};
+      const labels={hskReportDnd:"RAPPORTERA<br>DND",hskRespectDnd:"RESPEKTERA<br>DND",hskKnock:`KNACKA<br>${hskKnockDisplay}`,hskAnnounce:`SÄG HOUSEKEEPING<br>${Math.min(2,hskAnnouncements+1)}/2`,hskGuestReply:"PRATA MED<br>GÄST",hskEnter:`GÅ IN<br>RUM ${hskWorkflow?.roomId||""}`,hskPickTrash:"PLOCKA<br>SKRÄP",ambientLitterPickup:"PLOCKA<br>SKRÄP",dndManagerBegin:"KNACKA<br>1/2",dndManagerKnock:dndStep===0?"KNACKA<br>1/2":"KNACKA<br>2/2",dndManagerAnnounce:dndStep===1?"SÄG HOTELLCHEF<br>1/2":"SÄG HOTELLCHEF<br>2/2",dndManagerWait:"VÄNTA PÅ<br>SVAR",dndManagerWaiting:"VÄNTAR…",dndManagerInspect:"GÅ IN &<br>KONTROLLERA"};
       document.getElementById("interact").innerHTML=labels[interaction.id]||"UTFÖR<br>UPPGIFT";
       return;
     }
@@ -7112,6 +7156,7 @@
     if(interaction.id==="genericRoomKnock"){genericRoomKnock(interaction.roomId);return;}
     if(interaction.id==="genericRoomEnter"){genericRoomEnter(interaction.roomId);return;}
     if(interaction.id==="hskReportDnd"){hskReportDnd();return;}
+    if(interaction.id==="hskRespectDnd"){hskRespectDnd();return;}
     if(interaction.id==="dndManagerBegin"){
       const id=Number(interaction.roomId);
       if(beginDndManagerCheckAtDoor(id))dndManagerKnock();
@@ -8519,7 +8564,7 @@
     saveState();
   }
 
-  // v.01-251: När gästen har bekräftat uppgifterna ska samtalet INTE avslutas.
+  // v.01-252: När gästen har bekräftat uppgifterna ska samtalet INTE avslutas.
   // Gästen ligger kvar på tråden medan eleven registrerar reservationen.
   function finishPhoneConversationForReservation(){
     if(state.tasks.phoneBooking)return false;
@@ -8528,7 +8573,7 @@
       state.phoneCallStatus="in_call";
       state.phoneCallCountdownEnd=0;
       state.phoneConversationCompletedDay=0;
-      state.phoneFlowVersion="v.01-251";
+      state.phoneFlowVersion="v.01-252";
       saveState();
       updateMission();
       return true;
@@ -8560,7 +8605,7 @@
     updateMission();
   }
 
-  // v.01-251: registreringen görs medan gästen fortfarande är kvar i telefonen.
+  // v.01-252: registreringen görs medan gästen fortfarande är kvar i telefonen.
   // Reservationsformuläret öppnas bredvid samtalet; ingen automatisk "lägg på" sker.
   function openPhoneReservationWorkspace(){
     const day=Number(state.day||1);
@@ -8569,7 +8614,7 @@
       state.phoneTaskAssignedDay=0;
       state.phoneCallHeardDay=0;
       state.phoneConversationCompletedDay=0;
-      state.phoneFlowVersion="v.01-251";
+      state.phoneFlowVersion="v.01-252";
       state.phoneAutoAnswerPending=false;
       state.phoneCallStatus="idle";
       state.phoneCallCountdownEnd=0;
@@ -8590,7 +8635,7 @@
     }
     state.phoneCallStatus="in_call";
     state.phoneConversationCompletedDay=0;
-    state.phoneFlowVersion="v.01-251";
+    state.phoneFlowVersion="v.01-252";
     saveState();
     document.getElementById("phoneBookingModal")?.classList.add("show");
     setPhoneCallDocked(true);
@@ -8664,7 +8709,7 @@
     state.phoneTaskAssignedPeriodKey=phoneTaskPeriodKey();
     state.phoneCallHeardDay=0;
     state.phoneConversationCompletedDay=0;
-    state.phoneFlowVersion="v.01-251";
+    state.phoneFlowVersion="v.01-252";
     state.phoneAutoAnswerPending=false;
     state.phoneCallCountdownEnd=Date.now()+10000;
     state.phoneCallProgress=0;
@@ -8787,7 +8832,7 @@
       if(Number(nextStep)===5){
         state.phoneCallStatus="in_call";
         state.phoneConversationCompletedDay=0;
-        state.phoneFlowVersion="v.01-251";
+        state.phoneFlowVersion="v.01-252";
       }
       saveState();
       updateMission();
@@ -8898,8 +8943,9 @@
   }
 
   function phoneRegistrationIsActive(){
-    const status=String(state.phoneCallStatus||"");
-    return Boolean(state.pendingPhoneReservation&&Number(state.phoneCallProgress||0)>=41&&["in_call","awaiting_reservation"].includes(status));
+    // v.01-252: registreringssteget följer samtalssteget och överlever återställning/import.
+    const progress=Number(state.phoneCallProgress||0);
+    return Boolean(!state.tasks.phoneBooking&&state.pendingPhoneReservation&&progress>=41&&progress<90);
   }
 
   function ensurePhoneReservationDraft(){
@@ -8953,9 +8999,8 @@
     if(Number(draft.nights)!==Number(s.nights))issues.push("antal nätter");
     if(Number(draft.partySize)!==Number(s.partySize||1))issues.push("antal gäster");
     if(String(draft.source)!=="Telefon")issues.push("källa");
-    const chosen=Number(s.selectedRoomId||0);
-    if(chosen&&Number(draft.roomId)!==chosen)issues.push("valt rum");
-    else if(!chosen&&draft.roomId&&roomTypeForId(Number(draft.roomId))!==String(s.roomType||""))issues.push("rumstyp");
+    if(!Number(draft.roomId||0))issues.push("rum");
+    else if(roomTypeForId(Number(draft.roomId))!==String(s.roomType||""))issues.push("rumstyp");
     return {ok:issues.length===0,issues,draft};
   }
 
@@ -8964,26 +9009,31 @@
     if(!btn)return;
     if(phoneRegistrationIsActive()){
       const ready=Boolean(state.phoneReservationReadbackConfirmed&&Number(state.phoneCallProgress||0)>=42);
-      btn.disabled=!ready;
-      btn.textContent=ready?"✓ Spara reservation":"Läs tillbaka till gästen först";
-      btn.style.background=ready?"#39c79f":"";
-      btn.style.opacity=ready?"1":".58";
+      btn.disabled=false;
+      btn.textContent=ready?"✓ SPARA RESERVATION":"📞 LÄS TILLBAKA TILL GÄSTEN";
+      btn.style.background=ready?"#39c79f":"#5d72ef";
+      btn.style.opacity="1";
+      btn.onclick=ready?()=>saveNewReservation(false):confirmPhoneReservationReadback;
       if(force){force.disabled=!ready;force.style.opacity=ready?"1":".5";}
     }else{
-      btn.disabled=false;btn.textContent="Spara reservation";btn.style.background="";btn.style.opacity="1";
+      btn.disabled=false;btn.textContent="Spara reservation";btn.style.background="";btn.style.opacity="1";btn.onclick=()=>saveNewReservation(false);
       if(force){force.disabled=false;force.style.opacity="1";}
     }
   }
 
   function confirmPhoneReservationReadback(){
-    if(!phoneRegistrationIsActive())return false;
+    if(!phoneRegistrationIsActive()){
+      const progress=Number(state.phoneCallProgress||0);
+      if(state.pendingPhoneReservation&&progress>=41&&!state.tasks.phoneBooking){state.phoneCallStatus="in_call";saveState();}
+      else{showTip("Fortsätt samtalet tills gästen har lämnat bokningsuppgifterna.");return false;}
+    }
     const result=phoneReservationFormValidation();
     const error=document.getElementById("newReservationError");
     if(!result.ok){
       const msg=`Kontrollera ${result.issues.join(", ")} i PMS innan du läser tillbaka bokningen.`;
       if(error)error.textContent=msg;
       showTip(msg);
-      openPhoneReservationWorkspace();
+      if(!document.getElementById("newReservationModal")?.classList.contains("show"))openPhoneReservationWorkspace();
       return false;
     }
     const d=result.draft,s=activePhoneScenario(),roomType=roomTypeForId(Number(d.roomId||0));
@@ -9637,16 +9687,21 @@
     return roomCurrentStatusText(room);
   }
 
-  // v.01-190: ett rum där gästen fortfarande är inne får inte blockera hela HSK-kön.
-  // Prioritera först DND (kan rapporteras utan att gå in), därefter ett rum där gästen är ute.
-  // Om alla väntande rum är blockerade av gäster returneras första rummet så UI kan visa VÄNTAR.
+  // v.01-252: DND respekteras tidigt och när gästen är inne; övriga HSK-rum prioriteras först.
   function currentHskRoomId(){
     const queue=Array.isArray(state.hskQueue)?state.hskQueue.map(Number).filter(Boolean):[];
     if(!queue.length)return null;
-    const dndReady=queue.find(id=>{const room=state.rooms.find(r=>Number(r.id)===id);return String(room?.doorSign||"none").toUpperCase()==="DND";});
+    // v.01-252: DND är inte ett aktivt HSK-mål före 15:00 och aldrig medan gästen är inne.
+    const actionable=queue.filter(id=>{
+      const room=state.rooms.find(r=>Number(r.id)===id);
+      const sign=String(room?.doorSign||"none").toUpperCase();
+      return sign!=="DND"||dndRoomCanBeReported(id);
+    });
+    if(!actionable.length)return null;
+    const dndReady=actionable.find(id=>{const room=state.rooms.find(r=>Number(r.id)===id);return String(room?.doorSign||"none").toUpperCase()==="DND";});
     if(dndReady)return Number(dndReady);
-    const guestOut=queue.find(id=>!isGuestPhysicallyInRoom(id));
-    return Number(guestOut||queue[0]);
+    const guestOut=actionable.find(id=>!isGuestPhysicallyInRoom(id));
+    return Number(guestOut||actionable[0]);
   }
 
   // v.01-185: en gemensam sanningskälla för vad housekeeping faktiskt gör just nu.
@@ -9939,7 +9994,7 @@
       if(partySize!==Number(s.partySize||1))mistakes++;
       if(source!=="Telefon")mistakes++;
       booking.phoneBookingMistakes=mistakes+(intentionalPhoneOverbooking?1:0);
-      // v.01-251: sparad reservation avslutar INTE telefonsamtalet.
+      // v.01-252: sparad reservation avslutar INTE telefonsamtalet.
       // Gästen ligger kvar på tråden tills eleven önskat en trevlig dag och lagt på.
       state.phoneSavedBookingId=Number(booking.id||0);
       state.phoneCallHeardDay=Number(state.day||1);
@@ -10293,7 +10348,7 @@
     if(!items.length){missionList.innerHTML='<div class="info" style="margin-top:8px"><strong>✓ Inga aktuella arbetsuppgifter.</strong><br>Fortsätt hotelldriften eller gå vidare till nästa period när du är redo.</div>';renderSupportCoach([]);return;}
     missionList.innerHTML=items.map((item,index)=>{
       const selected=selectedMissionTaskKey===item.key,priority=Boolean(item.priority);
-      const actionText=item.key==="phoneBooking"?(phoneStatus==="idle"?"STARTA RESERVATIONSSAMTAL":phoneStatus==="arming"?"VÄNTA PÅ RINGNING":phoneStatus==="ringing"?"LINA SVARAR":"ÖPPNA SAMTALET"):item.key==="clean"&&pendingDndManagerRoomId()?"TILLKALLA CHEF":selected?"VALD":"HJÄLP MIG";
+      const actionText=item.key==="phoneBooking"?(phoneStatus==="idle"?"STARTA RESERVATIONSSAMTAL":phoneStatus==="arming"?"VÄNTA PÅ RINGNING":phoneStatus==="ringing"?"LINA SVARAR":"ÖPPNA SAMTALET"):item.kind==="dnd"&&pendingDndManagerRoomId()?"TILLKALLA CHEF":selected?"VALD":"HJÄLP MIG";
       const actionLabel=item.kind==="periodRoutine"?"ÖPPNA UPPGIFT":item.kind==="handoverInfo"?"KVITTERA":item.kind==="breakfastRefill"?"FYLL PÅ":item.kind==="noshow"?"HANTERA N/S":item.kind==="checkout"?"TILL C/O":item.kind==="arrival"?"TILL C/I":actionText;
       return `<div class="mission-row ${priority?"priority":""} ${selected?"selected":""} ${item.kind==="periodRoutine"?"v231-routine":""} ${item.kind==="handoverInfo"?"v231-handover":""}"><span class="mission-number">${index+1}</span><span class="mission-copy"><span class="mission-label">${escapeHtml(item.label)}</span><span class="mission-location">📍 ${escapeHtml(item.location||"Rätt avdelning")}</span></span><button type="button" class="mission-fix ${selected&&item.key!=="phoneBooking"?"selected":""}" data-fix-task="${escapeHtml(item.key)}" data-mission-index="${index}">${actionLabel}</button></div>`;
     }).join("");
@@ -10339,7 +10394,7 @@
       }
       if(key==="clean"){
         const roomId=currentHskRoomId();
-        const dndRoom=pendingDndManagerRoomId();
+        const dndRoom=missionItem?.kind==="dnd"?pendingDndManagerRoomId():null;
         if(dndRoom){
           if(dndWorkflow){showTip(`Alex och Luise genomför redan DND-rutinen för rum ${dndWorkflow.roomId}.`);return;}
           const outside=hskDoorOutsidePoint(dndRoom);
@@ -11763,7 +11818,7 @@
   renderSavedStudentProfiles();
 
 
-  // v.01-251 · Telefonreservation: uppgifterna registreras medan gästen är kvar i samtalet, återläses, dubbelbekräftas och sparas innan avslut.
+  // v.01-252 · Telefonreservation: uppgifterna registreras medan gästen är kvar i samtalet, återläses, dubbelbekräftas och sparas innan avslut.
   // Uppgiften avslutas först genom riktig sparning i PMS; ingen separat PMS-only-uppgift.
 
   // ============================================================
@@ -12043,7 +12098,7 @@
     const rows=[];let headers=["Gäst","Rum","Status","Rumsstatus","Ankomst","Avresa"];
     let intro="Kontrollera uppgiften mot hotellets aktuella läge. Markera varje kontrollpunkt först när du faktiskt har kontrollerat den.";
     let checks=[];let question=null;let canComplete=true;let blocked="";let dataTitle="Aktuellt underlag";
-    // v.01-251: "Dagens ankomster" betyder bara gäster som fortfarande ska checka in.
+    // v.01-252: "Dagens ankomster" betyder bara gäster som fortfarande ska checka in.
     // Inhouse är redan incheckad och får därför inte räknas som en kvarvarande C/I.
     const todayArrivals=bookings.filter(b=>Number(b.start||0)===today&&["arrival","reserved","late_arrival"].includes(String(b.status||"")));
     const tomorrowArrivals=bookings.filter(b=>Number(b.start||0)===tomorrow&&!["cancelled","checked_out"].includes(String(b.status||"")));
