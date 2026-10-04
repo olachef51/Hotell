@@ -1235,7 +1235,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-247</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-250</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1909,8 +1909,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-247";
-  const MASTER_CONTENT_VERSION = "v.01-247";
+  const HOTEL_VERSION = "v.01-250";
+  const MASTER_CONTENT_VERSION = "v.01-250";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -2835,14 +2835,17 @@
     // och slutfört gästsamtalet i den här versionens telefonflöde.
     const recoverableAwaiting=raw==="awaiting_reservation"&&Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day&&Boolean(state.pendingPhoneReservation);
     if(recoverableAwaiting){
-      state.phoneConversationCompletedDay=day;
-      state.phoneFlowVersion="v.01-240";
+      // v.01-250: gästen ska vara kvar i telefonen medan reservationen registreras.
+      // Äldre awaiting_reservation återgår därför till ett aktivt samtal.
+      state.phoneCallStatus="in_call";
+      state.phoneConversationCompletedDay=0;
+      state.phoneFlowVersion="v.01-250";
       return true;
     }
     const invalidAwaiting=raw==="awaiting_reservation"&&Number(state.phoneConversationCompletedDay||0)!==day;
     const hasOldFlow=invalidAwaiting||(assigned!==day&&(raw!==""&&raw!=="idle"||Number(state.phoneCallProgress||0)>0||state.pendingPhoneReservation));
     if(!hasOldFlow)return false;
-    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneConversationCompletedDay=0;state.phoneFlowVersion="v.01-240";state.phoneAutoAnswerPending=false;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneCallAlternativeRoomType="";state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;
+    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneConversationCompletedDay=0;state.phoneFlowVersion="v.01-250";state.phoneAutoAnswerPending=false;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneCallAlternativeRoomType="";state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;
     return true;
   }
   function phoneTaskPeriodKey(day=Number(state.day||1),index=currentHotelPeriodIndex()){return `${Number(day||1)}:${Number(index||0)}`;}
@@ -2885,7 +2888,7 @@
     if(resetStalePhoneTaskForCurrentDay())saveState();
     const status=phoneCallStatus();
     const countdown=phoneCallCountdownSeconds();
-    const label=status==="idle"?"Starta reservationssamtal":status==="arming"?`Reservationssamtalet startar om ${countdown} sek`:status==="ringing"?"Receptionstelefonen ringer – Lina svarar":status==="awaiting_reservation"?"Registrera telefonreservationen i PMS":status==="in_call"?"Reservationssamtal pågår":"Telefonbokning väntar";
+    const label=status==="idle"?"Starta reservationssamtal":status==="arming"?`Reservationssamtalet startar om ${countdown} sek`:status==="ringing"?"Receptionstelefonen ringer – Lina svarar":status==="awaiting_reservation"||status==="in_call"?"Reservationssamtal pågår":"Telefonbokning väntar";
     return [{key:"phoneBooking",kind:"phone",label,location:"Receptionen"}];
   }
   function findAlreadySavedPhoneReservation(){
@@ -3522,7 +3525,7 @@
     drawCharacter(dndWorkflow.escortX,dndWorkflow.escortY,escort.shirt,"#f1bf93",0,0,true,"staff");
     drawNameLabelBelow(dndWorkflow.escortX,dndWorkflow.escortY,escort.name,escort.role,false);
   }
-  // v.01-247: DND-rutinen följer exakt: KNACKA → SÄG HOTELLCHEF →
+  // v.01-250: DND-rutinen följer exakt: KNACKA → SÄG HOTELLCHEF →
   // KNACKA → SÄG HOTELLCHEF → VÄNTA PÅ SVAR → GÅ IN OCH KONTROLLERA.
   function dndManagerKnock(){
     if(!dndWorkflow||dndWorkflow.stage!=="door")return;
@@ -8502,17 +8505,16 @@
     saveState();
   }
 
-  // v.01-169: Ett färdigt telefonsamtal ska inte ligga kvar som "pågående".
-  // När gästen har bekräftat uppgifterna återstår endast att registrera reservationen i PMS.
+  // v.01-250: När gästen har bekräftat uppgifterna ska samtalet INTE avslutas.
+  // Gästen ligger kvar på tråden medan eleven registrerar reservationen.
   function finishPhoneConversationForReservation(){
     if(state.tasks.phoneBooking)return false;
     const day=Number(state.day||1);
-    // v.01-237: Det räcker inte med ett gammalt progressvärde. Eleven måste ha svarat
-    // på den ringande telefonen idag innan samtalet kan gå vidare till PMS.
-    if(Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day){
-      state.phoneCallStatus="awaiting_reservation";
+    if(Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day&&state.pendingPhoneReservation){
+      state.phoneCallStatus="in_call";
       state.phoneCallCountdownEnd=0;
-      state.phoneConversationCompletedDay=day;
+      state.phoneConversationCompletedDay=0;
+      state.phoneFlowVersion="v.01-250";
       saveState();
       updateMission();
       return true;
@@ -8521,31 +8523,33 @@
   }
 
   function hangUpPhoneCall(){
-    const finished=Number(state.phoneCallProgress||0)>=5 || phoneCallStatus()==="awaiting_reservation";
-    if(finished&&!state.tasks.phoneBooking)finishPhoneConversationForReservation();
+    if(state.tasks.phoneBooking){
+      closePhoneCallPanel();
+      updateMission();
+      showTip("Samtalet är avslutat. Reservationen är redan sparad i PMS.");
+      return;
+    }
+    const readyToRegister=Number(state.phoneCallProgress||0)>=5&&Boolean(state.pendingPhoneReservation);
+    if(readyToRegister){
+      setPhoneCallDocked(true);
+      document.getElementById("phoneBookingModal")?.classList.add("show");
+      showTip("Gästen är kvar i telefonen. Registrera och spara reservationen innan du lägger på.");
+      return;
+    }
     closePhoneCallPanel();
     updateMission();
-    if(finished&&!state.tasks.phoneBooking)showTip("Samtalet är avslutat. Registrera nu bokningen i PMS.");
   }
 
-  // v.01-171: efter samtalet öppnas PMS utan automatisk ifyllnad.
-  // Eleven ska själv skapa reservationen och registrera samma rum som valdes under telefonsamtalet.
+  // v.01-250: registreringen görs medan gästen fortfarande är kvar i telefonen.
+  // Reservationsformuläret öppnas bredvid samtalet; ingen automatisk "lägg på" sker.
   function openPhoneReservationWorkspace(){
     const day=Number(state.day||1);
-    const realConversationDone=Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day;
-    if(realConversationDone&&Number(state.phoneConversationCompletedDay||0)!==day){
-      state.phoneConversationCompletedDay=day;
-      state.phoneCallStatus="awaiting_reservation";
-      state.phoneFlowVersion="v.01-240";
-      saveState();
-    }
-    if(!realConversationDone){
-      // v.01-237: Om en gammal sparfil säger "registrera i PMS" utan ett verkligt
-      // genomfört samtal idag, startas telefonmomentet om från början i stället.
+    const realConversationReady=Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day&&Boolean(state.pendingPhoneReservation);
+    if(!realConversationReady){
       state.phoneTaskAssignedDay=0;
       state.phoneCallHeardDay=0;
       state.phoneConversationCompletedDay=0;
-      state.phoneFlowVersion="v.01-240";
+      state.phoneFlowVersion="v.01-250";
       state.phoneAutoAnswerPending=false;
       state.phoneCallStatus="idle";
       state.phoneCallCountdownEnd=0;
@@ -8564,12 +8568,14 @@
       showTip("Telefonuppgiften börjar med ett riktigt samtal. Om 10 sekunder ringer receptionstelefonen.");
       return;
     }
-    finishPhoneConversationForReservation();
-    closePhoneCallPanel();
-    switchPmsTab("bookings");
-    renderReceptionPms();
-    document.getElementById("receptionModal").classList.add("show");
-    showTip("Skapa nu reservationen manuellt i PMS med uppgifterna från telefonsamtalet.");
+    state.phoneCallStatus="in_call";
+    state.phoneConversationCompletedDay=0;
+    state.phoneFlowVersion="v.01-250";
+    saveState();
+    document.getElementById("phoneBookingModal")?.classList.add("show");
+    setPhoneCallDocked(true);
+    openNewReservationModal();
+    showTip("Gästen är kvar i telefonen. Fyll i reservationen och spara den innan du lägger på.");
   }
 
   function phoneScenarioForDay(){
@@ -8599,8 +8605,7 @@
     // Äldre v.01-236-save kan sakna completion-flaggan trots att steg 5 faktiskt nåddes.
     if(raw==="awaiting_reservation"){
       const day=Number(state.day||1);
-      if(Number(state.phoneConversationCompletedDay||0)===day)return raw;
-      if(Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day)return raw;
+      if(Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day&&state.pendingPhoneReservation)return "in_call";
       return "idle";
     }
     if(raw)return raw;
@@ -8617,7 +8622,9 @@
     const status=phoneCallStatus();
     if(state.tasks.phoneBooking)return;
     if(status==="awaiting_reservation"){
-      openPhoneReservationWorkspace();
+      state.phoneCallStatus="in_call";
+      saveState();
+      openPhoneBookingTask(tasks.find(t=>t.id==="phoneBooking"),state.activeStaffId,"ideal");
       return;
     }
     if(status==="arming"){
@@ -8637,7 +8644,7 @@
     state.phoneTaskAssignedPeriodKey=phoneTaskPeriodKey();
     state.phoneCallHeardDay=0;
     state.phoneConversationCompletedDay=0;
-    state.phoneFlowVersion="v.01-240";
+    state.phoneFlowVersion="v.01-250";
     state.phoneAutoAnswerPending=false;
     state.phoneCallCountdownEnd=Date.now()+10000;
     state.phoneCallProgress=0;
@@ -8752,8 +8759,9 @@
       if(typeof mutate==="function")mutate();
       state.phoneCallProgress=nextStep;
       if(Number(nextStep)===5){
-        state.phoneCallStatus="awaiting_reservation";
-        state.phoneConversationCompletedDay=Number(state.day||1);
+        state.phoneCallStatus="in_call";
+        state.phoneConversationCompletedDay=0;
+        state.phoneFlowVersion="v.01-250";
       }
       saveState();
       updateMission();
@@ -9072,9 +9080,14 @@
     }else if(step===90){
       const done=document.createElement("div");done.className="phone-dialogue-bubble guest";done.textContent="Samtalet är avslutat utan reservation. Det räknas som hanterat för dagen.";choices.appendChild(done);
     }else if(step>=5){
-      finishPhoneConversationForReservation();
-      const done=document.createElement("div");done.className="phone-dialogue-bubble guest";done.textContent="Gästen har bekräftat uppgifterna. Avsluta samtalet och registrera sedan reservationen i PMS.";choices.appendChild(done);
-      const openPms=document.createElement("button");openPms.type="button";openPms.textContent="LÄGG PÅ OCH ÖPPNA PMS";openPms.onclick=()=>{finishPhoneConversationForReservation();openPhoneReservationWorkspace();};choices.appendChild(openPms);
+      if(state.tasks.phoneBooking){
+        const saved=document.createElement("div");saved.className="phone-dialogue-bubble guest";saved.innerHTML="<strong>✓ Reservationen är sparad i PMS.</strong><br>Gästen är fortfarande kvar i telefonen. Avsluta samtalet när du är klar.";choices.appendChild(saved);
+        const hangup=document.createElement("button");hangup.type="button";hangup.textContent="LÄGG PÅ – SAMTALET KLART";hangup.onclick=hangUpPhoneCall;choices.appendChild(hangup);
+      }else{
+        finishPhoneConversationForReservation();
+        const done=document.createElement("div");done.className="phone-dialogue-bubble guest";done.innerHTML="Gästen har bekräftat uppgifterna och <strong>väntar kvar i telefonen</strong> medan du registrerar reservationen.";choices.appendChild(done);
+        const openForm=document.createElement("button");openForm.type="button";openForm.textContent="ÖPPNA RESERVATIONSFORMULÄR";openForm.onclick=openPhoneReservationWorkspace;choices.appendChild(openForm);
+      }
     }else{
       const done=document.createElement("div");done.className="phone-dialogue-bubble guest";done.textContent="Fortsätt samtalet.";choices.appendChild(done);
     }
@@ -9083,8 +9096,8 @@
   function openPhoneBookingTask(task,staffId,mode){
     const status=phoneCallStatus();
     if(status==="awaiting_reservation"){
-      openPhoneReservationWorkspace();
-      return;
+      state.phoneCallStatus="in_call";
+      saveState();
     }
     if(status!=="ringing"&&status!=="in_call"){
       showTip(status==="arming"?`Telefonsamtalet kopplas fram. Vänta ${phoneCallCountdownSeconds()} sekunder.`:"Telefonen ringer inte ännu.");
@@ -9124,7 +9137,7 @@
     const paymentDone=checkoutMode?Boolean(booking.checkoutPaymentVerified):Boolean(booking.paymentVerified);
     const contactState=guestContactStatus(booking);
     const contactReady=checkoutMode?Boolean(booking.checkoutInfoVerified):Boolean(booking.contactInfoVerified)&&contactState.complete;
-    const informationToolDone=checkoutMode?informationDone:Boolean(informationDone&&contactReady);
+    const informationToolDone=Boolean(informationDone);
     document.getElementById("bookingDetailTitle").textContent=`Bokning ${booking.id}`;
     document.getElementById("bookingDetailStatus").textContent=booking.status==="no_show"?"No Show · C/I 24:00":isNoShowCandidate(booking)?"N/S · hanteras 24:00":booking.status==="late_arrival"?"Sen ankomst":booking.status==="arrival"?"Dagens ankomst":booking.status==="inhouse"?"Inneboende":"Reservation";
     const body=document.getElementById("bookingDetailBody");
@@ -9139,7 +9152,7 @@
     // Vid faktisk Check In bedöms de tre rutinerna och glömda moment ger avdrag i completeReceptionCheckin().
     const checkinRows=checkoutMode?"":`<div class="checkin-tools">
       <button type="button" class="checkin-tool ${identityDone?"done":""}" data-open-id-check>🪪 ID-kontroll<span>${identityDone?"Kontrollerad":"Öppna kontroll"}</span></button>
-      <button type="button" class="checkin-tool ${informationToolDone?"done":""}" id="startInformationConversationBtn">💬 Gästinformation<span>${!contactReady?"Fråga gästen om kontaktuppgifter":informationDone?"Kontakt + information klara":"Ge information till gästen"}</span></button>
+      <button type="button" class="checkin-tool ${informationToolDone?"done":""}" id="startInformationConversationBtn">💬 Gästinformation<span>${informationDone?"Genomförd":!contactReady?"Fråga gästen om kontaktuppgifter":"Ge information till gästen"}</span></button>
       <button type="button" class="checkin-tool ${paymentDone?"done":""}" id="startPaymentCheckBtn">💳 Betalning<span>${paymentDone?"Kontrollerad":"Öppna kontroll"}</span></button>
     </div>`;
     body.innerHTML=`${stepMarkup}${checkinRows}
@@ -9628,9 +9641,10 @@
     document.getElementById("newReservationAddress").value="";
     const partySelect=document.getElementById("newReservationPartySize");
     if(partySelect)partySelect.value=String(state.pendingPhoneReservation?.partySize||1);
-    document.getElementById("newReservationSource").value="Direkt";
+    const phoneRegistrationActive=Boolean(state.pendingPhoneReservation&&Number(state.phoneCallProgress||0)>=5&&["in_call","awaiting_reservation"].includes(String(state.phoneCallStatus||"")));
+    document.getElementById("newReservationSource").value=phoneRegistrationActive?"Telefon":"Direkt";
     const error=document.getElementById("newReservationError");
-    error.textContent=state.pendingPhoneReservation&&phoneCallStatus()==="awaiting_reservation"?"Telefonbokning pågår: registrera uppgifterna från samtalet manuellt.":"";
+    error.textContent=phoneRegistrationActive?"📞 Gästen är kvar i telefonen. Fyll i uppgifterna och spara reservationen innan du lägger på.":"";
 
     reservationAvailabilityChecked=false;
     reservationPriceRuleOverrideApproved=false;
@@ -9726,8 +9740,12 @@
     reservationForceOverrideApproved=false;
     saveState();updateMission();
     document.getElementById("newReservationModal").classList.remove("show");renderBookingCalendar();
-    if(state.tasks.phoneBooking&&Number(state.phoneTaskCompletedDay||0)===Number(state.day||1))closePhoneCallPanel();
-    if(hskCallRequired)showTip(`✓ SPARAD I PMS: ${guest}. Reservationen syns nu i bokningskalendern. Öppna bokningen och ring HSK om rum ${roomId}.${phoneMessage}`);else showTip(`✓ SPARAD I PMS: ${guest} · rum ${roomId}. Reservationen syns nu i bokningskalendern.${phoneMessage}`);
+    if(state.tasks.phoneBooking&&Number(state.phoneTaskCompletedDay||0)===Number(state.day||1)){
+      document.getElementById("phoneBookingModal")?.classList.add("show");
+      setPhoneCallDocked(true);
+      renderPhoneDialogueStep();
+    }
+    if(hskCallRequired)showTip(`✓ SPARAD I PMS: ${guest}. Gästen är kvar i telefonen. Avsluta samtalet när du är klar. Öppna sedan bokningen och ring HSK om rum ${roomId}.${phoneMessage}`);else showTip(`✓ SPARAD I PMS: ${guest} · rum ${roomId}. Gästen är kvar i telefonen – avsluta samtalet när du är klar.${phoneMessage}`);
   }
 
 
@@ -10048,7 +10066,7 @@
     if(!items.length){missionList.innerHTML='<div class="info" style="margin-top:8px"><strong>✓ Inga aktuella arbetsuppgifter.</strong><br>Fortsätt hotelldriften eller gå vidare till nästa period när du är redo.</div>';renderSupportCoach([]);return;}
     missionList.innerHTML=items.map((item,index)=>{
       const selected=selectedMissionTaskKey===item.key,priority=Boolean(item.priority);
-      const actionText=item.key==="phoneBooking"?(phoneStatus==="idle"?"STARTA RESERVATIONSSAMTAL":phoneStatus==="arming"?"VÄNTA PÅ RINGNING":phoneStatus==="ringing"?"LINA SVARAR":phoneStatus==="awaiting_reservation"?"REGISTRERA I PMS":"ÖPPNA SAMTALET"):item.key==="clean"&&pendingDndManagerRoomId()?"TILLKALLA CHEF":selected?"VALD":"HJÄLP MIG";
+      const actionText=item.key==="phoneBooking"?(phoneStatus==="idle"?"STARTA RESERVATIONSSAMTAL":phoneStatus==="arming"?"VÄNTA PÅ RINGNING":phoneStatus==="ringing"?"LINA SVARAR":"ÖPPNA SAMTALET"):item.key==="clean"&&pendingDndManagerRoomId()?"TILLKALLA CHEF":selected?"VALD":"HJÄLP MIG";
       const actionLabel=item.kind==="periodRoutine"?"ÖPPNA UPPGIFT":item.kind==="handoverInfo"?"KVITTERA":item.kind==="breakfastRefill"?"FYLL PÅ":item.kind==="noshow"?"HANTERA N/S":item.kind==="checkout"?"TILL C/O":item.kind==="arrival"?"TILL C/I":actionText;
       return `<div class="mission-row ${priority?"priority":""} ${selected?"selected":""} ${item.kind==="periodRoutine"?"v231-routine":""} ${item.kind==="handoverInfo"?"v231-handover":""}"><span class="mission-number">${index+1}</span><span class="mission-copy"><span class="mission-label">${escapeHtml(item.label)}</span><span class="mission-location">📍 ${escapeHtml(item.location||"Rätt avdelning")}</span></span><button type="button" class="mission-fix ${selected&&item.key!=="phoneBooking"?"selected":""}" data-fix-task="${escapeHtml(item.key)}" data-mission-index="${index}">${actionLabel}</button></div>`;
     }).join("");
@@ -10085,7 +10103,9 @@
           return;
         }
         if(status==="awaiting_reservation"){
-          openPhoneReservationWorkspace();
+          state.phoneCallStatus="in_call";
+          saveState();
+          openPhoneBookingTask(task,state.activeStaffId,"ideal");
           return;
         }
         return;
@@ -11516,6 +11536,9 @@
   renderSavedStudentProfiles();
 
 
+  // v.01-250 · Telefonreservation: gästen stannar kvar i samtalet medan reservationen registreras.
+  // Uppgiften avslutas först genom riktig sparning i PMS; ingen separat PMS-only-uppgift.
+
   // ============================================================
   // v.01-231 · ARBETSPASS, ÖVERLÄMNING, PROGRESSION & RANKING
   // ============================================================
@@ -11793,7 +11816,9 @@
     const rows=[];let headers=["Gäst","Rum","Status","Rumsstatus","Ankomst","Avresa"];
     let intro="Kontrollera uppgiften mot hotellets aktuella läge. Markera varje kontrollpunkt först när du faktiskt har kontrollerat den.";
     let checks=[];let question=null;let canComplete=true;let blocked="";let dataTitle="Aktuellt underlag";
-    const todayArrivals=bookings.filter(b=>Number(b.start||0)===today&&["arrival","reserved","late_arrival","inhouse"].includes(String(b.status||"")));
+    // v.01-250: "Dagens ankomster" betyder bara gäster som fortfarande ska checka in.
+    // Inhouse är redan incheckad och får därför inte räknas som en kvarvarande C/I.
+    const todayArrivals=bookings.filter(b=>Number(b.start||0)===today&&["arrival","reserved","late_arrival"].includes(String(b.status||"")));
     const tomorrowArrivals=bookings.filter(b=>Number(b.start||0)===tomorrow&&!["cancelled","checked_out"].includes(String(b.status||"")));
     const todayDepartures=bookings.filter(b=>String(b.status||"")==="inhouse"&&bookingEndIndex(b)===today);
     const tomorrowDepartures=bookings.filter(b=>String(b.status||"")==="inhouse"&&bookingEndIndex(b)===tomorrow);
