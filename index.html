@@ -1174,13 +1174,26 @@
 @media(max-width:650px){.v232-live-status{grid-template-columns:1fr}.v232-routine-table th,.v232-routine-table td{padding:7px 6px;font-size:11px}}
 
 </style>
+
+<style>
+  /* v.01-242 · verifiera PMS-kontroll och återvänd till arbetsuppgiften */
+  .v242-pms-routine-bar{margin:0 22px 10px;padding:12px 14px;border:2px solid #9db1ff;border-radius:14px;background:#eef3ff;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 2px 0 rgba(38,56,82,.08)}
+  .v242-pms-routine-bar[hidden]{display:none!important}
+  .v242-pms-routine-copy{display:flex;flex-direction:column;gap:7px;min-width:0;color:#24375d}
+  .v242-pms-routine-copy>strong{font-size:15px}
+  .v242-pms-routine-check{display:flex;align-items:center;gap:10px;font-weight:900;cursor:pointer;background:#fff;border:1px solid #c8d4f7;border-radius:10px;padding:9px 11px}
+  .v242-pms-routine-check[hidden]{display:none!important}
+  .v242-pms-routine-check input{width:22px;height:22px;accent-color:#4c68e8;flex:0 0 auto}
+  #v242PmsReturnBtn{border:0;border-radius:12px;padding:12px 16px;background:#4c68e8;color:#fff;font-weight:1000;box-shadow:0 3px 0 #2f49bd;white-space:nowrap;cursor:pointer}
+  @media(max-width:760px){.v242-pms-routine-bar{align-items:stretch;flex-direction:column}.v242-pms-routine-bar #v242PmsReturnBtn{width:100%}}
+</style>
 </head>
 <body>
 <canvas id="game"></canvas>
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-241</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-242</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1271,6 +1284,13 @@
       <button class="active" data-pms-tab="bookings">Bokningar & check-in</button>
       <button data-pms-tab="rates">Priser</button>
       <button data-pms-tab="housekeeping">Housekeepingstatus</button>
+    </div>
+    <div id="v242PmsRoutineBar" class="v242-pms-routine-bar" hidden>
+      <div class="v242-pms-routine-copy">
+        <strong id="v242PmsRoutineTitle">Arbetsuppgift</strong>
+        <label id="v242PmsRoutineCheckWrap" class="v242-pms-routine-check" hidden><input id="v242PmsRoutineCheck" type="checkbox"><span id="v242PmsRoutineCheckText">Jag har kontrollerat underlaget i PMS.</span></label>
+      </div>
+      <button id="v242PmsReturnBtn" type="button">← TILL UPPGIFTEN</button>
     </div>
     <section class="pms-panel active" id="pms-bookings"><div id="pmsBookingBoard"></div></section>
     <section class="pms-panel" id="pms-rates"><div id="pmsRatesBoard"></div></section>
@@ -1836,8 +1856,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-241";
-  const MASTER_CONTENT_VERSION = "v.01-241";
+  const HOTEL_VERSION = "v.01-242";
+  const MASTER_CONTENT_VERSION = "v.01-242";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -11064,6 +11084,11 @@
   document.getElementById("interact").onclick=performInteraction;
   document.getElementById("breakfastTaskAction").onclick=finishBreakfastBuffetTask;
   document.getElementById("routineTaskCompleteBtn").onclick=v232CompleteRoutineTask;
+  document.getElementById("v242PmsRoutineCheck")?.addEventListener("change",e=>{
+    const ctx=v242PmsRoutineContext;if(!ctx)return;
+    if(String(ctx.task?.id||"")==="departure_list")v242RoutineDraftSetCheck(ctx.index,ctx.task,0,Boolean(e.target.checked));
+  });
+  document.getElementById("v242PmsReturnBtn")?.addEventListener("click",()=>v242ReturnFromPmsRoutine());
 
   // Modals
   document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{
@@ -11072,6 +11097,7 @@
     if(modalId==="teacherModal"){logoutTeacherMode();return;}
     if(modalId==="phoneBookingModal"){hangUpPhoneCall();return;}
     if(modalId==="routineTaskModal"){v232SaveRoutineDraftFromDom();v232ActiveRoutineTask=null;}
+    if(modalId==="receptionModal"&&v242PmsRoutineContext){v242ReturnFromPmsRoutine();return;}
     if(modalId==="hskGuestConversationModal"&&hskWorkflow&&hskWorkflow.stage==="insideGuest"){
       showTip("Välj ett svar i gästkonversationen. Därefter lämnar Luise rummet och kan styras igen.");
       closingModal?.classList.add("show");
@@ -11596,6 +11622,35 @@
   // v.01-237: Ett klick på arbetslistan får aldrig i sig markera en planerad huvuduppgift som klar.
   // Knappen öppnar i stället en verifieringsruta med hotellets aktuella data.
   let v232ActiveRoutineTask=null;
+  // v.01-242: när en kontrolluppgift öppnar PMS ska eleven kunna bekräfta kontrollen
+  // i själva PMS-vyn och därefter återvända direkt till samma uppgift.
+  let v242PmsRoutineContext=null;
+  function v242RoutineDraftSetCheck(index,task,checkIndex,value){
+    const drafts=v232EnsureRoutineDrafts(),key=v232RoutineDraftKey(index,task),draft=drafts[key]||{checks:[],answer:""};
+    if(!Array.isArray(draft.checks))draft.checks=[];
+    draft.checks[Number(checkIndex)||0]=Boolean(value);
+    draft.savedAt=new Date().toISOString();drafts[key]=draft;saveState();
+  }
+  function v242HidePmsRoutineBar(){
+    const bar=document.getElementById("v242PmsRoutineBar"),close=document.querySelector('#receptionModal [data-close="receptionModal"]');
+    if(bar)bar.hidden=true;if(close)close.textContent="Stäng";
+  }
+  function v242ShowPmsRoutineBar(){
+    const bar=document.getElementById("v242PmsRoutineBar"),title=document.getElementById("v242PmsRoutineTitle"),wrap=document.getElementById("v242PmsRoutineCheckWrap"),check=document.getElementById("v242PmsRoutineCheck"),text=document.getElementById("v242PmsRoutineCheckText"),close=document.querySelector('#receptionModal [data-close="receptionModal"]');
+    const ctx=v242PmsRoutineContext;if(!bar||!ctx){v242HidePmsRoutineBar();return;}
+    bar.hidden=false;if(title)title.textContent=`Arbetsuppgift: ${ctx.task?.label||"PMS-kontroll"}`;if(close)close.textContent="← Till uppgiften";
+    const isDeparture=String(ctx.task?.id||"")==="departure_list";
+    if(wrap)wrap.hidden=!isDeparture;
+    if(isDeparture&&check){
+      if(text)text.textContent="Jag har kontrollerat dagens avreselista i PMS.";
+      const draft=v232EnsureRoutineDrafts()[v232RoutineDraftKey(ctx.index,ctx.task)]||null;check.checked=Boolean(draft?.checks?.[0]);
+    }
+  }
+  function v242ReturnFromPmsRoutine(){
+    const ctx=v242PmsRoutineContext;if(!ctx)return false;
+    v242PmsRoutineContext=null;document.getElementById("receptionModal")?.classList.remove("show");v242HidePmsRoutineBar();
+    setTimeout(()=>v232OpenRoutineTask(ctx.index,ctx.task),0);return true;
+  }
   function v232BookingStatusLabel(status){
     const map={inhouse:"Inhouse",arrival:"Ankomst",reserved:"Reservation",late_arrival:"Sen ankomst",no_show:"No Show",checked_out:"Utcheckad",cancelled:"Avbokad"};
     return map[String(status||"")]||String(status||"—");
@@ -11730,10 +11785,11 @@
   }
   function v232TaskNavigationHtml(task){const links=v232TaskNavigation(task);return `<div class="v232-work-links"><strong>Öppna rätt arbetsyta och gör kontrollen där. Dina bockar sparas när du lämnar rutan.</strong>${links.map((x,i)=>`<button type="button" class="${i?"secondary":""}" data-v232-go="${escapeHtml(x.target)}">${escapeHtml(x.label)}</button>`).join("")}</div>`;}
   function v232OpenWorkArea(target){
+    const routineContext=v232ActiveRoutineTask?{index:v232ActiveRoutineTask.index,task:v232ActiveRoutineTask.task}:null;
     v232SaveRoutineDraftFromDom();document.getElementById("routineTaskModal")?.classList.remove("show");v232ActiveRoutineTask=null;
     const go=(x,y,msg)=>{player.targetX=x;player.targetY=y;player.moving=true;focusCameraOnWorldPoint(x,y);if(msg)showTip(msg);};
-    if(target==="pms"||target==="pmsTomorrow"){switchPmsTab("bookings");renderReceptionPms();document.getElementById("receptionModal")?.classList.add("show");showTip(target==="pmsTomorrow"?"Kontrollera morgondagens ankomster: datum, antal gäster, rum, rumstyp, rumsstatus och eventuella krockar.":"Kontrollera bokningar, gäster och status i PMS.");return;}
-    if(target==="pmsHsk"){switchPmsTab("housekeeping");renderReceptionPms();document.getElementById("receptionModal")?.classList.add("show");showTip("Kontrollera housekeepingstatus för de rum som berörs.");return;}
+    if(target==="pms"||target==="pmsTomorrow"){v242PmsRoutineContext=routineContext;switchPmsTab("bookings");renderReceptionPms();document.getElementById("receptionModal")?.classList.add("show");v242ShowPmsRoutineBar();showTip(target==="pmsTomorrow"?"Kontrollera morgondagens ankomster: datum, antal gäster, rum, rumstyp, rumsstatus och eventuella krockar.":"Kontrollera bokningar, gäster och status i PMS.");return;}
+    if(target==="pmsHsk"){v242PmsRoutineContext=routineContext;switchPmsTab("housekeeping");renderReceptionPms();document.getElementById("receptionModal")?.classList.add("show");v242ShowPmsRoutineBar();showTip("Kontrollera housekeepingstatus för de rum som berörs.");return;}
     if(target==="hsk"){selectMissionTask("clean");return;}
     if(target==="breakfast"){selectMissionTask("breakfast");return;}
     if(target==="lobby"){go(625,2070,"Gå igenom lobby och FOH visuellt. Öppna sedan arbetsuppgiften igen och bocka av det du verkligen har kontrollerat.");return;}
