@@ -1176,7 +1176,7 @@
 </style>
 
 <style>
-  /* v.01-244 · verifiera PMS-kontroll och återvänd till arbetsuppgiften */
+  /* v.01-245 · verifiera PMS-kontroll och återvänd till arbetsuppgiften */
   .v242-pms-routine-bar{margin:0 22px 10px;padding:12px 14px;border:2px solid #9db1ff;border-radius:14px;background:#eef3ff;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 2px 0 rgba(38,56,82,.08)}
   .v242-pms-routine-bar[hidden]{display:none!important}
   .v242-pms-routine-copy{display:flex;flex-direction:column;gap:7px;min-width:0;color:#24375d}
@@ -1188,7 +1188,7 @@
   @media(max-width:760px){.v242-pms-routine-bar{align-items:stretch;flex-direction:column}.v242-pms-routine-bar #v242PmsReturnBtn{width:100%}}
 </style>
 <style>
-  /* v.01-244 · Kontrollera C/I genom att identifiera HSK-status */
+  /* v.01-245 · Kontrollera C/I genom att identifiera HSK-status */
   .v244-status-quiz{display:grid;gap:12px;margin:14px 0}
   .v244-status-card{border:2px solid #d9e2f3;border-radius:14px;background:#f9fbff;padding:14px}
   .v244-status-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
@@ -1204,6 +1204,30 @@
   .v244-status-feedback{min-height:20px;margin-top:8px;font-weight:900;font-size:12px;color:#5b6678}
   .v244-status-feedback.ok{color:#17623c}
   .v244-status-feedback.bad{color:#9a342c}
+
+  /* v.01-245 · visuell HSK-jämförelse + lobbyrond med Luise */
+  .v245-routine-layout{display:block}
+  .v245-routine-layout.compare{display:grid;grid-template-columns:minmax(420px,1fr) minmax(430px,1fr);gap:14px;align-items:start}
+  .v245-hsk-compare{border:2px solid #9fb1eb;border-radius:14px;background:#f7f9ff;padding:12px;max-height:68vh;overflow:auto}
+  .v245-hsk-compare[hidden]{display:none!important}
+  .v245-hsk-compare-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+  .v245-hsk-compare-head strong{font-size:16px;color:#24375d}
+  .v245-hsk-compare-head button{border:0;border-radius:9px;padding:8px 10px;background:#e8edf8;color:#31426a;font-weight:900;cursor:pointer}
+  .v245-hsk-compare-note{margin:0 0 8px;color:#52627e;font-weight:800;font-size:12px}
+  .v232-routine-box.v245-wide{width:min(1500px,98vw)}
+  @media(max-width:1050px){.v245-routine-layout.compare{grid-template-columns:1fr}.v245-hsk-compare{max-height:42vh}}
+
+  .v245-lobby-round-panel{position:fixed;right:18px;bottom:18px;z-index:24;width:min(360px,calc(100vw - 36px));background:rgba(255,255,255,.98);border:3px solid #4f67dc;border-radius:18px;padding:14px;box-shadow:0 18px 50px rgba(12,20,55,.34);color:#24375d}
+  .v245-lobby-round-panel[hidden]{display:none!important}
+  .v245-lobby-round-panel h3{margin:0 0 5px;font-size:18px}
+  .v245-round-progress{font-weight:1000;color:#52627e;margin-bottom:8px}
+  .v245-round-point{background:#eef3ff;border:1px solid #cbd8ff;border-radius:12px;padding:10px 11px;font-weight:900;line-height:1.3;margin-bottom:9px}
+  .v245-round-distance{font-size:12px;font-weight:800;color:#6a7488;margin:0 0 9px}
+  .v245-round-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .v245-round-actions button{border:0;border-radius:11px;padding:10px 12px;font-weight:1000;cursor:pointer}
+  #v245RoundConfirmBtn{background:#4f67dc;color:#fff;box-shadow:0 3px 0 #354cad;flex:1}
+  #v245RoundConfirmBtn:disabled{background:#c7d0ea;color:#fff;box-shadow:none;cursor:not-allowed}
+  #v245RoundCancelBtn{background:#edf1f8;color:#31426a}
 </style>
 </head>
 <body>
@@ -1211,7 +1235,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-244</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-245</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1804,9 +1828,20 @@
 <div class="modal" id="routineTaskModal">
   <div class="box v232-routine-box">
     <div class="box-head"><h2 id="routineTaskTitle">📋 Arbetsuppgift</h2><button class="close" data-close="routineTaskModal">Stäng</button></div>
-    <div id="routineTaskBody"></div>
+    <div class="v245-routine-layout" id="v245RoutineLayout">
+      <div id="routineTaskBody"></div>
+      <aside class="v245-hsk-compare" id="v245HskComparePanel" hidden></aside>
+    </div>
     <div class="v232-routine-actions"><button class="secondary" type="button" data-close="routineTaskModal">Avbryt</button><button class="primary" id="routineTaskCompleteBtn" type="button" disabled>✓ KLAR MED KONTROLLEN</button></div>
   </div>
+</div>
+
+<div class="v245-lobby-round-panel" id="v245LobbyRoundPanel" hidden>
+  <h3>🧹 Lobbyrond med Luise</h3>
+  <div class="v245-round-progress" id="v245RoundProgress">Punkt 1 av 4</div>
+  <div class="v245-round-point" id="v245RoundPoint">Gå till kontrollpunkten.</div>
+  <div class="v245-round-distance" id="v245RoundDistance">Flytta Luise till den markerade punkten.</div>
+  <div class="v245-round-actions"><button id="v245RoundCancelBtn" type="button">Avbryt</button><button id="v245RoundConfirmBtn" type="button" disabled>✓ KONTROLLERAT HÄR</button></div>
 </div>
 
 <div class="modal" id="lessonEndModal"><div class="box lesson-end-box"><div class="box-head"><h2>📤 Avsluta lektion</h2><button class="close" data-close="lessonEndModal">Stäng</button></div><p>Skicka dagens progression till läraren. Huvudknappen öppnar datorns <strong>vanliga e-postprogram</strong> med mottagare, ämne och progressionspaket färdigifyllt.</p><div class="lesson-summary-grid" id="lessonSummaryGrid"></div><div class="lesson-recipient" id="lessonRecipientInfo"></div><div class="privacy-note"><strong>Dataminimering:</strong> mejlet använder elevkod och innehåller inte personnummer. Det innehåller sammanställd progression, resultat och evidensnivåer – inte hela spelbackupen.</div><div class="lesson-actions"><button class="primary" id="shareProgressBtn" type="button">✉ Öppna e-postprogram och skicka</button><button class="secondary" id="copyProgressBtn" type="button">📋 Kopiera progression</button><button class="secondary" id="downloadProgressBtn" type="button" title="Spara en kopia av spelet på datorn">💾 Spara spelet</button></div><div class="progress-fallback" id="progressFallbackPanel" hidden><strong>Reserv om e-postprogrammet inte öppnas</strong><p>Progressionen finns kvar här. Kopiera mejltexten eller prova Outlook webb eller Gmail webb manuellt.</p><textarea id="progressFallbackText" readonly spellcheck="false"></textarea><div class="progress-fallback-actions"><button class="secondary" id="copyProgressTextBtn" type="button">📋 Kopiera mejltext</button><button class="secondary" id="openMailAppManualBtn" type="button">✉ Försök öppna e-postprogram igen</button><button class="secondary" id="openOutlookWebBtn" type="button">🌐 Outlook webb</button><button class="secondary" id="openGmailWebBtn" type="button">🌐 Gmail webb</button></div></div><div class="info"><strong>Så fungerar Skicka:</strong> spelet använder datorns registrerade e-postprogram via en vanlig e-postlänk. Outlook webb öppnas bara om eleven själv väljer reservknappen. Ett fel i datorns lokala lagring får inte stoppa försöket att öppna mejlet. <strong>Spara spelet</strong> skapar fortfarande en separat elevfil som reserv.</div></div></div>
@@ -1874,8 +1909,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-244";
-  const MASTER_CONTENT_VERSION = "v.01-244";
+  const HOTEL_VERSION = "v.01-245";
+  const MASTER_CONTENT_VERSION = "v.01-245";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -10065,6 +10100,7 @@
     drawDndEscort();
     // v.01-220: uppgiftsmarkeringarna ligger bakom personer och pratbubblor.
     drawTasks();
+    drawV245LobbyRound();
     const receptionGuestVisible=Boolean(frontReceptionGuestForDisplay());
     const playerBehindReceptionGuest=receptionGuestVisible&&isInReceptionAccessZone();
     if(playerBehindReceptionGuest)drawPlayer();
@@ -10120,6 +10156,10 @@
     const p=screenToWorld(e.clientX,e.clientY);
     const litterHit=ambientLitterAtPoint(p.x,p.y);
     if(litterHit){cleanAmbientLitter(litterHit);return;}
+    if(v245LobbyRound){
+      if(state.activeStaffId!=="housekeeper"){showTip("Lobbyronden genomförs med Luise. Välj Luise för att fortsätta.");return;}
+      player.targetX=Math.max(70,Math.min(1990,p.x));player.targetY=Math.max(70,Math.min(2470,p.y));player.moving=true;return;
+    }
     const clickedRoomId=roomIdAtPoint(p.x,p.y);
     if(clickedRoomId && !roomIdAtPoint(player.x,player.y) && !hskWorkflow && !dndWorkflow){
       if(state.activeStaffId==="housekeeper"){
@@ -11114,7 +11154,7 @@
     const closingModal=document.getElementById(modalId);
     if(modalId==="teacherModal"){logoutTeacherMode();return;}
     if(modalId==="phoneBookingModal"){hangUpPhoneCall();return;}
-    if(modalId==="routineTaskModal"){v232SaveRoutineDraftFromDom();v232ActiveRoutineTask=null;}
+    if(modalId==="routineTaskModal"){v232SaveRoutineDraftFromDom();v245HideHskCompare();v232ActiveRoutineTask=null;}
     if(modalId==="receptionModal"&&v242PmsRoutineContext){v242ReturnFromPmsRoutine();return;}
     if(modalId==="hskGuestConversationModal"&&hskWorkflow&&hskWorkflow.stage==="insideGuest"){
       showTip("Välj ett svar i gästkonversationen. Därefter lämnar Luise rummet och kan styras igen.");
@@ -11640,7 +11680,7 @@
   // v.01-237: Ett klick på arbetslistan får aldrig i sig markera en planerad huvuduppgift som klar.
   // Knappen öppnar i stället en verifieringsruta med hotellets aktuella data.
   let v232ActiveRoutineTask=null;
-  // v.01-244: när en kontrolluppgift öppnar PMS ska eleven kunna bekräfta kontrollen
+  // v.01-245: när en kontrolluppgift öppnar PMS ska eleven kunna bekräfta kontrollen
   // i själva PMS-vyn och därefter återvända direkt till samma uppgift.
   let v242PmsRoutineContext=null;
   function v242RoutineDraftSetCheck(index,task,checkIndex,value){
@@ -11754,9 +11794,9 @@
       }
       case "foh":
       case "morning_foh":
-        headers=["Kontroll","Aktuellt läge"];rows.push(["Skräp i publika ytor",String(publicLitter)],["Lobby/reception","Kontrolleras på kartan"],["Frukost/FOH","Kontrolleras på kartan"]);dataTitle="FOH-kontroll";
-        checks=["Kontrollera lobby och reception visuellt.","Kontrollera entré och gångstråk.","Kontrollera restaurangens publika yta."];
-        if(publicLitter>0){canComplete=false;blocked=`Det finns ${publicLitter} skräpobjekt kvar i publika ytor. Låt housekeeping plocka bort dem innan kontrollen kan avslutas.`;}
+        headers=["Rondpunkt","Aktuellt läge"];rows.push(["Receptionens gästområde","Kontrolleras på plats"],["Restaurang / FOH","Kontrolleras på plats"],["Lobby / sittgrupper","Kontrolleras på plats"],["Entré / gångstråk","Kontrolleras på plats"],["Skräp i publika ytor",String(publicLitter)]);dataTitle="Lobby- och FOH-rond";
+        checks=["Receptionens gästområde är kontrollerat.","Restaurang / FOH är kontrollerat.","Lobby och sittgrupper är kontrollerade.","Entré och gångstråk är kontrollerade."];
+        if(publicLitter>0){canComplete=false;blocked=`Det finns ${publicLitter} skräpobjekt kvar i publika ytor. Luise behöver plocka bort dem innan kontrollen kan avslutas.`;}
         break;
       case "security":
         headers=["Rondpunkt","Vad ska kontrolleras"];rows.push(["Entré","Fri passage och lugnt läge"],["Lobby/reception","Inga obehöriga eller olösta händelser"],["Restaurang/FOH","Ordning och fri passage"],["Bagage/BOH","Dörrar och arbetsyta under kontroll"]);dataTitle="Säkerhetsrond";checks=["Kontrollera entrén.","Kontrollera lobby och reception.","Kontrollera restaurang/FOH.","Kontrollera bagage/BOH-området."];break;
@@ -11815,8 +11855,8 @@
   function v232TaskNavigation(task){
     const id=String(task?.id||"");
     if(["inhouse","arrival_list","tomorrow","tomorrow_ci_co","departure_list","early_checkout_prep","night_reservations","cash"].includes(id))return [{target:id==="tomorrow"||id==="tomorrow_ci_co"?"pmsTomorrow":"pms",label:id==="tomorrow"||id==="tomorrow_ci_co"?"ÖPPNA PMS · MORGONDAGEN":"ÖPPNA PMS"}];
-    if(["prioritize_rooms","hsk_priority"].includes(id))return [{target:"pmsHsk",label:"ÖPPNA HOUSEKEEPINGSTATUS"},{target:"hsk",label:"GÅ TILL HSK"}];
-    if(["foh","morning_foh"].includes(id))return [{target:"lobby",label:"GÅ TILL LOBBY"},{target:"breakfastArea",label:"GÅ TILL RESTAURANG / FOH"}];
+    if(["prioritize_rooms","hsk_priority"].includes(id))return [{target:"pmsHskCompare",label:"GÅ TILL HSK · VISA STATUS BREDVID"}];
+    if(["foh","morning_foh"].includes(id))return [{target:"lobbyRound",label:"STARTA LOBBYROND MED LUISE"}];
     if(id==="security")return [{target:"lobby",label:"GÅ TILL LOBBY"},{target:"breakfastArea",label:"GÅ TILL RESTAURANG / FOH"},{target:"baggage",label:"GÅ TILL BAGAGE / BOH"}];
     if(id==="evening_round")return [{target:"pms",label:"1. ÖPPNA PMS / RECEPTION"},{target:"lobby",label:"2. GÅ TILL LOBBY / FOH"},{target:"hsk",label:"3. GÅ TILL HSK"},{target:"pmsTomorrow",label:"4. VISA MORGONDAGENS BOKNINGAR"}];
     if(id==="baggage")return [{target:"baggage",label:"GÅ TILL BAGAGERUMMET"}];
@@ -11825,9 +11865,82 @@
     return [{target:"mission",label:"TILL ARBETSOMRÅDET"}];
   }
   function v232TaskNavigationHtml(task){const links=v232TaskNavigation(task);return `<div class="v232-work-links"><strong>Öppna rätt arbetsyta och gör kontrollen där. Dina bockar sparas när du lämnar rutan.</strong>${links.map((x,i)=>`<button type="button" class="${i?"secondary":""}" data-v232-go="${escapeHtml(x.target)}">${escapeHtml(x.label)}</button>`).join("")}</div>`;}
+
+  function v245HideHskCompare(){
+    const panel=document.getElementById("v245HskComparePanel"),layout=document.getElementById("v245RoutineLayout"),box=document.querySelector("#routineTaskModal .v232-routine-box");
+    if(panel){panel.hidden=true;panel.innerHTML="";}if(layout)layout.classList.remove("compare");if(box)box.classList.remove("v245-wide");
+  }
+  function v245ShowHskCompare(){
+    if(!v232ActiveRoutineTask)return;
+    renderHousekeepingBoard();
+    const source=document.getElementById("pmsHousekeepingBoard"),panel=document.getElementById("v245HskComparePanel"),layout=document.getElementById("v245RoutineLayout"),box=document.querySelector("#routineTaskModal .v232-routine-box");
+    if(!source||!panel||!layout||!box)return;
+    const snap=v232RoutineSnapshot(v232ActiveRoutineTask.index,v232ActiveRoutineTask.task);
+    const rooms=(snap.statusQuiz||[]).map(q=>`Rum ${Number(q.roomId)}`).join(", ")||"de aktuella C/I-rummen";
+    panel.innerHTML=`<div class="v245-hsk-compare-head"><strong>🧹 Housekeepingstatus</strong><button type="button" id="v245CloseHskCompare">Dölj</button></div><p class="v245-hsk-compare-note">Jämför direkt med uppgiften till vänster. Titta särskilt på ${escapeHtml(rooms)}.</p>${source.innerHTML}`;
+    panel.hidden=false;layout.classList.add("compare");box.classList.add("v245-wide");
+    document.getElementById("v245CloseHskCompare")?.addEventListener("click",v245HideHskCompare);
+    showTip("HSK-status ligger nu bredvid uppgiften. Jämför visuellt och välj rätt status utan att behöva memorera den.");
+  }
+
+  const V245_LOBBY_POINTS=[
+    {name:"Receptionens gästområde",x:940,y:1375,instruction:"Kontrollera receptionens gästområde: ordning, fri passage och att inget skräp ligger kvar."},
+    {name:"Restaurang / FOH",x:390,y:1580,instruction:"Kontrollera restaurangens publika yta, bufféområdet och gångstråken."},
+    {name:"Lobby / sittgrupper",x:415,y:2040,instruction:"Kontrollera lobby, sittgrupper och publika ytor visuellt."},
+    {name:"Entré / gångstråk",x:880,y:2280,instruction:"Kontrollera entrén och huvudgångstråket så att det är rent och fritt."}
+  ];
+  let v245LobbyRound=null,v245LobbyRoundTimer=null;
+  function v245RoundDraft(){
+    if(!v245LobbyRound)return null;const drafts=v232EnsureRoutineDrafts(),key=v232RoutineDraftKey(v245LobbyRound.index,v245LobbyRound.task);
+    if(!drafts[key])drafts[key]={checks:[],answer:""};if(!Array.isArray(drafts[key].checks))drafts[key].checks=[];return drafts[key];
+  }
+  function v245CurrentRoundStep(){
+    if(!v245LobbyRound)return -1;const draft=v245RoundDraft();for(let i=0;i<V245_LOBBY_POINTS.length;i++)if(!draft.checks?.[i])return i;return V245_LOBBY_POINTS.length;
+  }
+  function v245UpdateLobbyRoundPanel(){
+    const panel=document.getElementById("v245LobbyRoundPanel"),confirm=document.getElementById("v245RoundConfirmBtn"),progress=document.getElementById("v245RoundProgress"),pointEl=document.getElementById("v245RoundPoint"),distEl=document.getElementById("v245RoundDistance");
+    if(!v245LobbyRound||!panel||!confirm)return;
+    const step=v245CurrentRoundStep();if(step>=V245_LOBBY_POINTS.length){v245FinishLobbyRound();return;}
+    const point=V245_LOBBY_POINTS[step],distance=Math.hypot(Number(player.x)-point.x,Number(player.y)-point.y),near=state.activeStaffId==="housekeeper"&&distance<=85;
+    if(progress)progress.textContent=`Punkt ${step+1} av ${V245_LOBBY_POINTS.length}`;if(pointEl)pointEl.innerHTML=`<strong>${escapeHtml(point.name)}</strong><br>${escapeHtml(point.instruction)}`;
+    if(distEl)distEl.textContent=state.activeStaffId!=="housekeeper"?"Välj Luise för att fortsätta ronden.":near?"✓ Luise är vid kontrollpunkten. Kontrollera området och bekräfta.":"Gå med Luise till den numrerade markeringen på kartan.";
+    confirm.disabled=!near;
+  }
+  function v245StartLobbyRound(index,task){
+    if(!setActiveStaff("housekeeper",false)){showTip("Luise är upptagen. Avsluta hennes pågående moment först.");return;}
+    v232SaveRoutineDraftFromDom();document.getElementById("routineTaskModal")?.classList.remove("show");v232ActiveRoutineTask=null;v245HideHskCompare();
+    v245LobbyRound={index,task};const panel=document.getElementById("v245LobbyRoundPanel");if(panel)panel.hidden=false;
+    if(v245LobbyRoundTimer)clearInterval(v245LobbyRoundTimer);v245LobbyRoundTimer=setInterval(v245UpdateLobbyRoundPanel,150);
+    const step=v245CurrentRoundStep(),point=V245_LOBBY_POINTS[Math.min(step,V245_LOBBY_POINTS.length-1)];if(point)focusCameraOnWorldPoint(point.x,point.y);
+    showTip("Lobbyrond startad. Gå med Luise till kontrollpunkt 1 och kontrollera området på plats.");v245UpdateLobbyRoundPanel();
+  }
+  function v245ConfirmLobbyPoint(){
+    if(!v245LobbyRound)return;const step=v245CurrentRoundStep();if(step<0||step>=V245_LOBBY_POINTS.length)return;const point=V245_LOBBY_POINTS[step],distance=Math.hypot(Number(player.x)-point.x,Number(player.y)-point.y);
+    if(state.activeStaffId!=="housekeeper"||distance>85){showTip("Luise måste stå vid den markerade kontrollpunkten först.");return;}
+    v242RoutineDraftSetCheck(v245LobbyRound.index,v245LobbyRound.task,step,true);showTip(`✓ ${point.name} kontrollerad.`);
+    const next=v245CurrentRoundStep();if(next>=V245_LOBBY_POINTS.length){v245FinishLobbyRound();return;}focusCameraOnWorldPoint(V245_LOBBY_POINTS[next].x,V245_LOBBY_POINTS[next].y);v245UpdateLobbyRoundPanel();
+  }
+  function v245FinishLobbyRound(){
+    if(!v245LobbyRound)return;const ctx=v245LobbyRound;v245LobbyRound=null;if(v245LobbyRoundTimer){clearInterval(v245LobbyRoundTimer);v245LobbyRoundTimer=null;}const panel=document.getElementById("v245LobbyRoundPanel");if(panel)panel.hidden=true;
+    saveState();showTip("✓ Alla fyra kontrollpunkter är genomförda. Tillbaka till arbetsuppgiften.");setTimeout(()=>v232OpenRoutineTask(ctx.index,ctx.task),0);
+  }
+  function v245CancelLobbyRound(){
+    if(!v245LobbyRound)return;const ctx=v245LobbyRound;v245LobbyRound=null;if(v245LobbyRoundTimer){clearInterval(v245LobbyRoundTimer);v245LobbyRoundTimer=null;}const panel=document.getElementById("v245LobbyRoundPanel");if(panel)panel.hidden=true;
+    saveState();setTimeout(()=>v232OpenRoutineTask(ctx.index,ctx.task),0);
+  }
+  function drawV245LobbyRound(){
+    if(!v245LobbyRound)return;const draft=v245RoundDraft(),current=v245CurrentRoundStep();ctx.save();
+    V245_LOBBY_POINTS.forEach((p,i)=>{const done=Boolean(draft?.checks?.[i]),active=i===current;ctx.beginPath();ctx.arc(p.x,p.y,active?27:21,0,Math.PI*2);ctx.fillStyle=done?"rgba(56,166,106,.88)":active?"rgba(255,167,54,.95)":"rgba(79,103,220,.72)";ctx.fill();ctx.lineWidth=4;ctx.strokeStyle="#fff";ctx.stroke();ctx.fillStyle="#fff";ctx.font="1000 17px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(done?"✓":String(i+1),p.x,p.y);});ctx.restore();ctx.textAlign="left";ctx.textBaseline="alphabetic";
+  }
+
+  document.getElementById("v245RoundConfirmBtn")?.addEventListener("click",v245ConfirmLobbyPoint);
+  document.getElementById("v245RoundCancelBtn")?.addEventListener("click",v245CancelLobbyRound);
+
   function v232OpenWorkArea(target){
     const routineContext=v232ActiveRoutineTask?{index:v232ActiveRoutineTask.index,task:v232ActiveRoutineTask.task}:null;
-    v232SaveRoutineDraftFromDom();document.getElementById("routineTaskModal")?.classList.remove("show");v232ActiveRoutineTask=null;
+    if(target==="pmsHskCompare"){v232SaveRoutineDraftFromDom();v245ShowHskCompare();return;}
+    if(target==="lobbyRound"&&routineContext){v245StartLobbyRound(routineContext.index,routineContext.task);return;}
+    v232SaveRoutineDraftFromDom();document.getElementById("routineTaskModal")?.classList.remove("show");v232ActiveRoutineTask=null;v245HideHskCompare();
     const go=(x,y,msg)=>{player.targetX=x;player.targetY=y;player.moving=true;focusCameraOnWorldPoint(x,y);if(msg)showTip(msg);};
     if(target==="pms"||target==="pmsTomorrow"){v242PmsRoutineContext=routineContext;switchPmsTab("bookings");renderReceptionPms();document.getElementById("receptionModal")?.classList.add("show");v242ShowPmsRoutineBar();showTip(target==="pmsTomorrow"?"Kontrollera morgondagens ankomster: datum, antal gäster, rum, rumstyp, rumsstatus och eventuella krockar.":"Kontrollera bokningar, gäster och status i PMS.");return;}
     if(target==="pmsHsk"){v242PmsRoutineContext=routineContext;switchPmsTab("housekeeping");renderReceptionPms();document.getElementById("receptionModal")?.classList.add("show");v242ShowPmsRoutineBar();showTip("Kontrollera housekeepingstatus för de rum som berörs.");return;}
@@ -11848,7 +11961,7 @@
     button.disabled=!(hasRequirement&&allChecked&&statusOk&&answerOk&&snapshot.canComplete);button.title=button.disabled?(snapshot.canComplete?(statusGroups.length&&!statusOk?"Välj rätt HSK-status för alla C/I-rum först.":"Genomför alla kontrollpunkter först."):snapshot.blocked||"Det finns arbete kvar som måste göras först."):"Markera kontrollen som klar.";
   }
   function v232OpenRoutineTask(index,task){
-    if(!task)return;v232ActiveRoutineTask={index,task};const modal=document.getElementById("routineTaskModal"),title=document.getElementById("routineTaskTitle"),body=document.getElementById("routineTaskBody"),button=document.getElementById("routineTaskCompleteBtn");if(!modal||!title||!body||!button)return;
+    if(!task)return;v245HideHskCompare();v232ActiveRoutineTask={index,task};const modal=document.getElementById("routineTaskModal"),title=document.getElementById("routineTaskTitle"),body=document.getElementById("routineTaskBody"),button=document.getElementById("routineTaskCompleteBtn");if(!modal||!title||!body||!button)return;
     button.onclick=v232CompleteRoutineTask;
     const snap=v232RoutineSnapshot(index,task);title.textContent=`📋 ${task.label}`;
     body.innerHTML=`<div class="v232-routine-intro">${escapeHtml(snap.intro)}</div><div class="v232-live-status"><div><span>Period</span><b>${escapeHtml(currentHotelPeriod().short)} · ${escapeHtml(currentHotelPeriod().name)}</b></div><div><span>Hotelldag</span><b>Dag ${Number(state.day||1)}</b></div><div><span>Underlag</span><b>${escapeHtml(snap.dataTitle)}</b></div></div>${v232TaskNavigationHtml(task)}${v232RoutineTable(snap)}${v244StatusQuizHtml(snap)}${snap.blocked?`<div class="v232-blocked">⚠ ${escapeHtml(snap.blocked)}</div>`:""}<div class="v232-checklist">${snap.checks.map((c,i)=>`<label class="v232-check"><input type="checkbox" data-v232-check="1" id="v232check${i}"><span>${escapeHtml(c)}</span></label>`).join("")}</div>${snap.question?`<div class="v232-question"><label for="v232RoutineAnswer">${escapeHtml(snap.question.label)}</label><input id="v232RoutineAnswer" type="number" min="0" step="1" data-expected="${Number(snap.question.answer)}" autocomplete="off"><div class="small">Skriv svaret efter att du har kontrollerat listan.</div></div>`:""}`;
@@ -11864,7 +11977,7 @@
     const statusGroups=[...(body?.querySelectorAll('[data-v244-status-group]')||[])];if(statusGroups.length&&statusGroups.some(x=>String(x.dataset.selected||"")!==String(x.dataset.correct||""))){showTip("Välj rätt HSK-status för alla kommande C/I-rum först.");return;}
     const snap=v232RoutineSnapshot(index,task);if(!snap.canComplete){showTip(snap.blocked||"Det finns arbete kvar som måste utföras först.");v232OpenRoutineTask(index,task);return;}
     const q=body?.querySelector('#v232RoutineAnswer');if(q&&Number(q.value)!==Number(q.dataset.expected)){showTip("Kontrollsvaret stämmer inte med listan. Kontrollera underlaget igen.");q.focus();return;}
-    if(v231FinalizeRoutine(task,"done","v.01-244 verifierad arbetskontroll")){state.score=Number(state.score||0)+Math.max(5,Number(task.weight||2)*5);}
+    if(v231FinalizeRoutine(task,"done","v.01-245 verifierad arbetskontroll")){state.score=Number(state.score||0)+Math.max(5,Number(task.weight||2)*5);}
     v232ClearRoutineDraft(index,task);recordAssessment("routine_control_verified",{taskId:task.id,taskLabel:task.label,period:currentHotelPeriod().short,day:Number(state.day||1),correct:true});if(["prioritize_rooms","hsk_priority"].includes(String(task.id||"")))recordAssessment("ci_room_status_control",{period:currentHotelPeriod().short,day:Number(state.day||1),correct:true});saveState();updateMission();updateHud();document.getElementById("routineTaskModal")?.classList.remove("show");v232ActiveRoutineTask=null;showTip(`Huvuduppgift klar efter kontroll: ${task.label}.`);
   }
   function completeV231RoutineTask(id){
