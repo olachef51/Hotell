@@ -730,6 +730,13 @@
   .load-game-status{display:none;max-width:470px;margin:12px auto 0;padding:10px 12px;border-radius:12px;background:#e8f6ed;border:2px solid #badfc6;color:#2d6542;font-size:12px;font-weight:850;line-height:1.4;text-align:left}
   .load-game-status.show{display:block}
   #studentGameFile{display:none}
+  .score-recovery-card{display:none;max-width:500px;margin:14px auto 2px;padding:12px 14px;border-radius:14px;background:#fff4d9;border:2px solid #edc66f;text-align:left;color:#5e4a18}
+  .score-recovery-card.show{display:block}
+  .score-recovery-card strong{display:block;font-size:14px;color:#6b4d0d;margin-bottom:4px}
+  .score-recovery-card p{font-size:11px!important;line-height:1.45!important;margin:0 0 9px!important;color:#715d2a!important}
+  .score-recovery-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .score-recovery-actions button{border:0;border-radius:11px;padding:9px 12px;font-size:11px;font-weight:1000}
+  .score-recovery-restore{background:#536ddd;color:#fff}.score-recovery-dismiss{background:#eee7d5;color:#695a36}
   @media(max-width:800px){
     #hud{height:70px;padding:0 8px;grid-template-columns:auto 1fr auto}
     .score{min-width:0;font-size:14px;padding:10px 12px}
@@ -1236,7 +1243,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-253</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-257</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1881,12 +1888,17 @@
       <div class="saved-students-head"><span>Hotell sparade på den här datorn</span><span class="saved-students-count" id="savedStudentsCount">0</span></div>
       <div class="saved-students-list" id="savedStudentsList"></div>
     </div>
+    <div class="score-recovery-card" id="scoreRecoveryCard">
+      <strong>⚠ Tidigare spelresultat kan återställas</strong>
+      <p id="scoreRecoveryText"></p>
+      <div class="score-recovery-actions"><button class="score-recovery-restore" id="scoreRecoveryRestoreBtn" type="button">↩ ÅTERSTÄLL</button><button class="score-recovery-dismiss" id="scoreRecoveryDismissBtn" type="button">Inte nu</button></div>
+    </div>
     <button class="play-btn" id="startBtn">STARTA / FORTSÄTT HOTELLET</button>
     <div class="start-profile-row"><button class="profile-switch-btn" id="switchStudentBtn" type="button">Byt elevkod</button><span id="activeStudentLabel"></span></div>
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression, hotellpoäng och hotellutveckling flyttas in i den här spelversionen. Om en äldre fil bara innehåller progression kan hotellpoängen ändå återställas. Nya masteruppdateringar i v.01-254 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression, hotellpoäng och hotellutveckling flyttas in i den här spelversionen. Om en äldre fil bara innehåller progression kan hotellpoängen ändå återställas. Nya masteruppdateringar i v.01-257 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1911,11 +1923,20 @@
   // v.01-254: äldre lokala hotell får återanvändas när elevkod införts/ändrats.
   const LEGACY_PROFILE_CLAIM_KEY = "index_hotell_legacy_profile_claim_v1";
   const LEGACY_PROFILE_DECLINE_PREFIX = "index_hotell_legacy_profile_declined_v1_";
+  const SCORE_RECOVERY_VAULT_PREFIX = "index_hotell_score_recovery_v1_";
+  const SCORE_RECOVERY_NOTICE_PREFIX = "index_hotell_score_recovery_notice_v1_";
+  const SCORE_RECOVERY_INTENTIONAL_RESET_PREFIX = "index_hotell_score_recovery_intentional_reset_v1_";
+  const SCORE_RECOVERY_SKIP_SESSION_PREFIX = "index_hotell_score_recovery_skip_session_v1_";
+  // v.01-255: reservvärden från den senast verifierade OLABB-sessionen före nollställningen.
+  // De används aldrig automatiskt; de visas bara som en bekräftad nödräddning om profilen är helt tom.
+  const LOCAL_EMERGENCY_RECOVERY_PRESETS = {
+    OLABB:{day:1,score:1453,money:715,happiness:82,hotelPeriodIndex:4,label:"senast verifierade läge 5 okt 2026 · 12–15"}
+  };
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-254";
-  const MASTER_CONTENT_VERSION = "v.01-254";
+  const HOTEL_VERSION = "v.01-257";
+  const MASTER_CONTENT_VERSION = "v.01-257";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -3153,6 +3174,9 @@
     return;
   }
 
+  // v.01-256: reparera äldre saves där ett redan städat rum ligger kvar i HSK-kön.
+  // Här körs bara köstädningen; full HSK-status räknas senare när gästfigurerna är initierade.
+  pruneStaleHskQueue({persist:true});
   if(Array.isArray(state.hskQueue)&&state.hskQueue.length)state.tasks.clean=false;
   let last = performance.now();
   let worldScale = 1;
@@ -3326,9 +3350,11 @@
     const id=Number(roomId);
     const room=state.rooms.find(item=>Number(item.id)===id);
     if(!room||!isRoomBuilt(id))return false;
+    pruneStaleHskQueue();
     const sign=String(room.doorSign||"none").toUpperCase();
     const queued=Array.isArray(state.hskQueue)&&state.hskQueue.some(value=>Number(value)===id);
-    return queued||["dirty","occupied_dirty","occupied"].includes(String(room.status||""))||sign==="DND"||sign==="PMUR";
+    const dirty=["dirty","occupied_dirty","occupied"].includes(String(room.status||""));
+    return queued||dirty||sign==="PMUR"||(sign==="DND"&&dirty);
   }
   function roomHasInhouseBooking(roomId){
     const id=Number(roomId);
@@ -3340,7 +3366,7 @@
     // v.01-229: Luise får aldrig falla över till den generiska rumsdörren när
     // rummet är ett HSK-mål ELLER har en incheckad gäst. Det senare behövs för
     // att eleven ska kunna genomföra korrekt dörrrutin och först därefter möta gästen.
-    return roomNeedsHousekeepingDoorRoutine(id)||Number(currentHskRoomId()||0)===id||roomHasInhouseBooking(id);
+    return roomNeedsHousekeepingDoorRoutine(id)||Number(currentHskRoomId()||0)===id||Boolean(hskWorkflow&&Number(hskWorkflow.roomId)===id);
   }
   function ensureHousekeepingDoorWorkflow(roomId){
     const id=Number(roomId);
@@ -3496,7 +3522,52 @@
     if(isGuestPhysicallyInRoom(id))return false;
     return true;
   }
+  // v.01-256: självreparation av housekeepingkön. Ett rum som redan är städat
+  // får aldrig ligga kvar som aktiv HSK-uppgift och skicka Luise tillbaka till rummet.
+  function roomStillNeedsHousekeeping(roomId){
+    const id=Number(roomId),room=state.rooms.find(r=>Number(r.id)===id);
+    if(!room||!isRoomBuilt(id))return false;
+    const status=String(room.status||"");
+    const sign=String(room.doorSign||"none").toUpperCase();
+    const dirty=["dirty","occupied_dirty","occupied"].includes(status);
+    // PMUR är en aktiv städbegäran. DND behålls bara som HSK-arbete om rummet faktiskt är smutsigt.
+    return dirty||sign==="PMUR"||(sign==="DND"&&dirty);
+  }
+  function pruneStaleHskQueue({persist=false}={}){
+    if(!Array.isArray(state.hskQueue))state.hskQueue=[];
+    const before=state.hskQueue.map(Number).filter(Boolean);
+    const seen=new Set();
+    const cleaned=before.filter(id=>{
+      if(seen.has(id))return false;
+      seen.add(id);
+      return roomStillNeedsHousekeeping(id);
+    });
+    const changed=cleaned.length!==before.length||cleaned.some((id,index)=>id!==before[index]);
+    if(changed){
+      state.hskQueue=cleaned;
+      if(persist){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));}catch(_e){}}
+    }
+    return changed;
+  }
+  function repairFinishedHousekeepingWorkflow(){
+    pruneStaleHskQueue();
+    if(!hskWorkflow)return false;
+    const roomId=Number(hskWorkflow.roomId||0);
+    if(roomStillNeedsHousekeeping(roomId))return false;
+    // Om rummet redan hunnit bli rent men ett gammalt arbetsflöde ligger kvar, släpp Luise direkt.
+    const outside=hskDoorOutsidePoint(roomId);
+    if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
+    if(outside&&state.activeStaffId==="housekeeper"){
+      player.x=Number(outside.x);player.y=Number(outside.y);player.targetX=player.x;player.targetY=player.y;
+    }
+    player.moving=false;
+    hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();
+    roomEntryState=null;selectedMissionTaskKey=null;
+    Object.keys(keys).forEach(key=>keys[key]=false);
+    return true;
+  }
   function hskDailyWorkComplete(){
+    pruneStaleHskQueue();
     const litterCount=Array.isArray(state.ambientLitter)?state.ambientLitter.length:0;
     return (!Array.isArray(state.hskQueue)||state.hskQueue.length===0)&&pendingDndManagerRoomIds().length===0&&litterCount===0;
   }
@@ -3671,11 +3742,17 @@
     // korrekt dörrrutin. Om gästen faktiskt är kvar stoppas inträdet först efter
     // knackning + HOUSEKEEPING-rutinen, i hskEnterRoom(). Det gör att eleven tränar
     // själva yrkesrutinen i stället för att spelet avslöjar rumsstatus i förväg.
-    const doorOnly=!needed&&sign!=="DND"&&sign!=="PMUR"&&roomHasInhouseBooking(roomId);
-    if(!needed&&sign!=="DND"&&sign!=="PMUR"&&!doorOnly){
-      state.score=Math.max(0,Number(state.score||0)-20);
-      recordAssessment("housekeeping_wrong_room",{roomId,reason:"already_clean"});
-      saveState();showTip(`Rum ${roomId} är redan rent. Välj ett rum som behöver HSK: −20 poäng.`);return;
+    const queued=Array.isArray(state.hskQueue)&&state.hskQueue.some(id=>Number(id)===roomId);
+    const doorOnly=false;
+    if(!needed&&sign!=="DND"&&sign!=="PMUR"){
+      // v.01-256: en gammal köpost på ett redan städat rum tas bort tyst.
+      // Eleven ska aldrig tvingas göra samma städning två gånger eller få avdrag för spelets gamla status.
+      if(queued)removeRoomFromHskQueue(roomId);
+      if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
+      selectedMissionTaskKey=null;
+      saveState();updateMission();renderStaffBar();updateInteraction();
+      showTip(`Rum ${roomId} är redan städat. HSK-uppgiften är borttagen och Luise kan fortsätta med nästa arbete.`);
+      return;
     }
     if(hskWorkflow){showTip(`Luise har redan ett aktivt HSK-moment i rum ${hskWorkflow.roomId}.`);return;}
     const omar=getStaff("housekeeper"),outside=hskDoorOutsidePoint(roomId);
@@ -4022,10 +4099,14 @@
     removeRoomFromHskQueue(roomId);
     recordAssessment("housekeeping_completed",{roomId,trashCollected:3,knocks:2,announcements:2,announced:true,roomStatus:room.status});
     const outside=hskDoorOutsidePoint(roomId);if(outside){player.x=outside.x;player.y=outside.y;player.targetX=player.x;player.targetY=player.y;}
+    if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
     hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();
-    selectedMissionTaskKey=null;
-    saveState();updateMission();renderReceptionPms();renderStaffBar();focusCameraOnWorldPoint(player.x,player.y);
-    showTip(`Rum ${roomId} är klart. Luise plockade alla tre skräp efter korrekt dörrrutin. +100 poäng.`);
+    roomEntryState=null;selectedMissionTaskKey=null;publicLitterWorkflow=null;player.moving=false;
+    Object.keys(keys).forEach(key=>keys[key]=false);
+    pruneStaleHskQueue();
+    state.tasks.clean=hskDailyWorkComplete();
+    saveState();updateMission();renderReceptionPms();renderStaffBar();updateInteraction();focusCameraOnWorldPoint(player.x,player.y);
+    showTip(`Rum ${roomId} är klart och borttaget från HSK-listan. Luise är fri för nästa uppgift. +100 poäng.`);
   }
   function hskPickTrash(index){
     if(!hskWorkflow||hskWorkflow.stage!=="inside")return;
@@ -4768,6 +4849,146 @@
     return migrated;
   }
 
+  // v.01-256: HSK självläker städade rum ur kön och släpper Luise efter slutförd städning.
+  // v.01-255: separat återställningsvalv. En versionsuppdatering får aldrig kunna ersätta
+  // en spelad profil med ett tomt Dag 1 / 0-poängsläge. Valvet används bara vid tydlig reset.
+  function v255RecoveryVaultKey(code){return SCORE_RECOVERY_VAULT_PREFIX+(normalizeStudentCode(code)||"LOCAL");}
+  function v257IntentionalResetKey(code){return SCORE_RECOVERY_INTENTIONAL_RESET_PREFIX+(normalizeStudentCode(code)||"LOCAL");}
+  function v257SkipRecoveryKey(code){return SCORE_RECOVERY_SKIP_SESSION_PREFIX+(normalizeStudentCode(code)||"LOCAL");}
+  function v257WasIntentionallyReset(code){try{return localStorage.getItem(v257IntentionalResetKey(code))==="1";}catch(_e){return false;}}
+  function v257MarkIntentionalReset(code){try{localStorage.setItem(v257IntentionalResetKey(code),"1");localStorage.removeItem(v255RecoveryVaultKey(code));}catch(_e){}}
+  function v257ClearIntentionalReset(code){try{localStorage.removeItem(v257IntentionalResetKey(code));}catch(_e){}}
+  function v257ScoreboardEvidence(code){
+    code=normalizeStudentCode(code);if(!code)return null;
+    let best=null;
+    [TEACHER_SCOREBOARD_KEY,TEACHER_SCOREBOARD_BACKUP_KEY].forEach(key=>{
+      try{
+        const board=JSON.parse(localStorage.getItem(key)||"null"),student=board?.students?.[code],history=Array.isArray(student?.history)?student.history:[];
+        history.forEach(s=>{
+          const score=Math.max(0,Number(s?.score||0),Number(s?.legacyScoreBase||0));if(score<=0)return;
+          const candidate={score,day:Math.max(1,Number(s?.day||1)),money:Number(s?.money),happiness:Number(s?.guestAverage),exportedAt:String(s?.exportedAt||""),source:key===TEACHER_SCOREBOARD_KEY?"lärarens progressionsregister":"lärarens föregående progressionsbackup"};
+          const time=Date.parse(candidate.exportedAt)||0,oldTime=Date.parse(best?.exportedAt||"")||0;
+          if(!best||time>oldTime||(time===oldTime&&candidate.day>best.day)||(time===oldTime&&candidate.day===best.day&&candidate.score>best.score))best=candidate;
+        });
+      }catch(_e){}
+    });
+    return best;
+  }
+  function v257SeedRecoveryVaultsFromStoredProfiles(){
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const key=localStorage.key(i)||"";
+        if(!(key===LEGACY_SAVE_KEY||key.startsWith("index_hotell_student_")||key.startsWith(AUTO_BACKUP_PREFIX)))continue;
+        const parsed=v254StoredHotelStateFromRaw(localStorage.getItem(key));if(!parsed?.state||!v254MeaningfulHotelSave(parsed.state))continue;
+        let code=normalizeStudentCode(parsed.studentCode||parsed.state.studentCode||"");
+        if(!code){const m=key.match(/^index_hotell_student_v\d+_(.+)$/i);if(m)code=normalizeStudentCode(m[1]||"");}
+        if(!code||v257WasIntentionallyReset(code))continue;
+        const copy=clone(parsed.state);copy.studentCode=code;
+        const vaultKey=v255RecoveryVaultKey(code),old=v255ReadRecoveryVault(code);
+        if(!old||v255RecoveryStrength(copy)>v255RecoveryStrength(old.state))localStorage.setItem(vaultKey,JSON.stringify({schema:"hotel-manager-score-recovery-v1",savedAt:new Date().toISOString(),reason:"startup-profile-scan",studentCode:code,state:copy}));
+      }
+    }catch(_e){}
+  }
+  function v255LooksLikeFreshReset(st){
+    if(!st||typeof st!=="object")return true;
+    const events=Array.isArray(st.assessmentLog)?st.assessmentLog.filter(x=>String(x?.type||"")!=="session_started").length:0;
+    const sessions=Array.isArray(st.sessionHistory)?st.sessionHistory.length:0;
+    const completed=Array.isArray(st.completed)?st.completed.length:0;
+    const score=Number(st.score||0),money=Number(st.money??defaultState.money??6500),day=Number(st.day||1);
+    return day<=1&&score===0&&money===Number(defaultState.money||6500)&&events===0&&sessions===0&&completed===0;
+  }
+  function v255RecoveryStrength(st){
+    if(!st||typeof st!=="object")return 0;
+    const score=Math.max(0,Number(st.score||0)),day=Math.max(1,Number(st.day||1));
+    const events=Array.isArray(st.assessmentLog)?st.assessmentLog.length:0,sessions=Array.isArray(st.sessionHistory)?st.sessionHistory.length:0;
+    const money=Math.max(0,Number(st.money||0)),period=Math.max(0,Number(st.hotelPeriodIndex||0));
+    return day*1e10+score*1e6+events*10000+sessions*5000+period*1000+money;
+  }
+  function v255ReadRecoveryVault(code){
+    try{const x=JSON.parse(localStorage.getItem(v255RecoveryVaultKey(code))||"null");return x&&x.state&&typeof x.state==="object"?x:null;}catch(_e){return null;}
+  }
+  function v255RememberRecoverySnapshot(st,reason="save"){
+    try{
+      const code=normalizeStudentCode(currentStudentCode||st?.studentCode||"");if(!code||!st||v255LooksLikeFreshReset(st))return false;
+      // Så fort eleven spelar vidare efter en avsiktlig reset får den nya spelomgången bygga ett nytt skydd.
+      if(v257WasIntentionallyReset(code))v257ClearIntentionalReset(code);
+      const key=v255RecoveryVaultKey(code),old=v255ReadRecoveryVault(code),nextStrength=v255RecoveryStrength(st),oldStrength=v255RecoveryStrength(old?.state);
+      // Bevara den starkaste hela spelprofilen. En legitim poängminskning kan fortfarande sparas i huvudprofilen,
+      // men valvet finns kvar som skydd mot total nollställning.
+      if(!old||nextStrength>=oldStrength){localStorage.setItem(key,JSON.stringify({schema:"hotel-manager-score-recovery-v1",savedAt:new Date().toISOString(),reason,studentCode:code,state:clone(st)}));}
+      return true;
+    }catch(_e){return false;}
+  }
+  function v255MaxScoreEvidence(st){
+    let best=Math.max(0,Number(st?.score||0));
+    (Array.isArray(st?.sessionHistory)?st.sessionHistory:[]).forEach(x=>{best=Math.max(best,Number(x?.score||0));});
+    (Array.isArray(st?.assessmentLog)?st.assessmentLog:[]).forEach(x=>{[x?.score,x?.scoreAfter,x?.scoreAfterReset,x?.scoreBeforeReset].forEach(v=>{if(Number.isFinite(Number(v)))best=Math.max(best,Number(v));});});
+    return Math.max(0,best);
+  }
+  function v255RepairFromVaultIfReset(code,rawState){
+    code=normalizeStudentCode(code);if(!code||!v255LooksLikeFreshReset(rawState))return null;
+    const vault=v255ReadRecoveryVault(code);if(vault?.state&&!v255LooksLikeFreshReset(vault.state))return mergeStudentProgressWithCurrentMaster(vault.state,code);
+    return null;
+  }
+  function v255EmergencyPreset(code){return LOCAL_EMERGENCY_RECOVERY_PRESETS[normalizeStudentCode(code)]||null;}
+  function v255ShowRecoveryCard(){
+    const card=document.getElementById("scoreRecoveryCard"),text=document.getElementById("scoreRecoveryText"),restore=document.getElementById("scoreRecoveryRestoreBtn");if(!card||!text||!restore)return;
+    card.classList.remove("show");card.dataset.mode="";
+    const code=normalizeStudentCode(currentStudentCode||document.getElementById("studentCodeInput")?.value||"");if(!code||v257WasIntentionallyReset(code))return;
+    const raw=v254StoredHotelStateFromRaw(localStorage.getItem(studentSaveKey(code)))?.state||null;
+    if(!v255LooksLikeFreshReset(raw))return;
+    const full=v254FindLegacyProfile(code,{allowGeneric:false});
+    if(full?.state&&!v255LooksLikeFreshReset(full.state)){
+      text.textContent=`${code} visas som 0 poäng, men en äldre hel spelprofil med ${Number(full.state.score||0)} hotellpoäng finns kvar på datorn.`;
+      card.dataset.mode="legacy";card.classList.add("show");return;
+    }
+    const vault=v255ReadRecoveryVault(code);
+    if(vault?.state&&!v255LooksLikeFreshReset(vault.state)){
+      text.textContent=`${code} visas som 0 poäng, men återställningsvalvet innehåller Dag ${Number(vault.state.day||1)} · ${Number(vault.state.score||0)} hotellpoäng.`;
+      card.dataset.mode="vault";card.classList.add("show");return;
+    }
+    const board=v257ScoreboardEvidence(code);
+    if(board&&Number(board.score||0)>0){
+      text.textContent=`${code} visas som 0 poäng, men ${board.source} innehåller Dag ${Number(board.day||1)} · ${Number(board.score||0)} hotellpoäng. Dessa poäng kan föras tillbaka till spelprofilen.`;
+      card.dataset.mode="scoreboard";card.classList.add("show");return;
+    }
+    const preset=v255EmergencyPreset(code);
+    if(preset){
+      text.textContent=`${code} har blivit helt nollställd. Det senast verifierade läget var Dag ${preset.day} · ${preset.score} hotellpoäng · ${preset.money} kr · ${preset.happiness}% gästnöjdhet · ${HOTEL_PERIODS[preset.hotelPeriodIndex]?.short||"12–15"}. Återställ dessa kända värden?`;
+      card.dataset.mode="preset";card.classList.add("show");
+    }
+  }
+  function v255RestoreFromRecoveryCard(){
+    const card=document.getElementById("scoreRecoveryCard"),mode=card?.dataset.mode||"";
+    const code=normalizeStudentCode(currentStudentCode||document.getElementById("studentCodeInput")?.value||"");if(!code||!mode)return;
+    let restored=null,source="";
+    if(mode==="legacy"){const found=v254FindLegacyProfile(code,{allowGeneric:false});if(found?.state){restored=mergeStudentProgressWithCurrentMaster(found.state,code);source="äldre hel spelprofil";}}
+    if(mode==="vault"){const vault=v255ReadRecoveryVault(code);if(vault?.state){restored=mergeStudentProgressWithCurrentMaster(vault.state,code);source="återställningsvalv";}}
+    if(mode==="scoreboard"){
+      const b=v257ScoreboardEvidence(code);if(b){
+        const existing=v254StoredHotelStateFromRaw(localStorage.getItem(studentSaveKey(code)))?.state||clone(defaultState);
+        restored=mergeStudentProgressWithCurrentMaster(existing,code);restored.day=Math.max(Number(restored.day||1),Number(b.day||1));restored.score=Math.max(Number(restored.score||0),Number(b.score||0));
+        if(Number.isFinite(b.money)&&b.money>0)restored.money=Number(b.money);if(Number.isFinite(b.happiness)&&b.happiness>0)restored.happiness=Math.max(Number(restored.happiness||0),Math.min(100,Number(b.happiness)));
+        restored.manualEmergencyRecovery={at:new Date().toISOString(),label:b.source,partial:true};source=b.source;
+      }
+    }
+    if(mode==="preset"){
+      const p=v255EmergencyPreset(code);if(p){
+        const existing=v254StoredHotelStateFromRaw(localStorage.getItem(studentSaveKey(code)))?.state||clone(defaultState);
+        restored=mergeStudentProgressWithCurrentMaster(existing,code);
+        restored.day=Math.max(Number(restored.day||1),Number(p.day||1));restored.score=Math.max(Number(restored.score||0),Number(p.score||0));
+        restored.money=Number(p.money);restored.happiness=Number(p.happiness);restored.hotelPeriodIndex=Number(p.hotelPeriodIndex);
+        restored.manualEmergencyRecovery={at:new Date().toISOString(),label:p.label,partial:true};source=p.label;
+      }
+    }
+    if(!restored)return;
+    v257ClearIntentionalReset(code);try{sessionStorage.removeItem(v257SkipRecoveryKey(code));}catch(_e){}
+    localStorage.setItem(studentSaveKey(code),JSON.stringify(restored));v255RememberRecoverySnapshot(restored,"manual-recovery");
+    localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");
+    localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion:source,toVersion:HOTEL_VERSION,day:Number(restored.day||1),score:Number(restored.score||0),legacyRecovered:true}));
+    location.reload();
+  }
+
   // v.01-254: skydda elevens gamla hotellpoäng och hotellprogression vid versionsbyte.
   // Samma elevkod återställs automatiskt. En äldre okodad profilsparning används bara efter elevens/lärarens bekräftelse.
   function v254StoredHotelStateFromRaw(raw){
@@ -4873,19 +5094,29 @@
   }
   function loadState(){
     try{
+      // v.01-257: bygg först återställningsvalv från alla äldre lokala elevprofiler innan någonting kan skrivas över.
+      v257SeedRecoveryVaultsFromStoredProfiles();
       // Även om en tom/ny elevprofil redan hunnit skapas får en starkare äldre sparning med samma elevkod vinna.
       if(currentStudentCode){
         const recovered=v254RecoverLegacyProfile(currentStudentCode,{allowGenericPrompt:false});
-        if(recovered.recovered)return recovered.state;
+        if(recovered.recovered){v255RememberRecoverySnapshot(recovered.state,"legacy-auto-recovery");return recovered.state;}
       }
       const raw=localStorage.getItem(SAVE_KEY);
-      if(!raw)return loadAutoBackupState()||clone(defaultState);
+      if(!raw){
+        const fromVault=currentStudentCode?v255RepairFromVaultIfReset(currentStudentCode,null):null;
+        if(fromVault)return fromVault;
+        return loadAutoBackupState()||clone(defaultState);
+      }
       const parsed=JSON.parse(raw);
+      const vaultRepair=currentStudentCode?v255RepairFromVaultIfReset(currentStudentCode,parsed):null;
+      if(vaultRepair){localStorage.setItem(SAVE_KEY,JSON.stringify(vaultRepair));return vaultRepair;}
       const migrated=mergeStudentProgressWithCurrentMaster(parsed,currentStudentCode||parsed.studentCode||"");
+      const evidence=v255MaxScoreEvidence(parsed);if(evidence>Number(migrated.score||0)&&Number(migrated.score||0)===0)migrated.score=evidence;
       // Om HTML-masterversionen har uppdaterats sparas den migrerade elevprofilen direkt.
       if(String(parsed.masterContentVersion||"")!==MASTER_CONTENT_VERSION){
         try{localStorage.setItem(SAVE_KEY,JSON.stringify(migrated));}catch(e){}
       }
+      v255RememberRecoverySnapshot(migrated,"load");
       return migrated;
     }catch(e){return loadAutoBackupState()||clone(defaultState);}
   }
@@ -4920,6 +5151,7 @@
     state.studentCode=currentStudentCode||state.studentCode||"";
     let saved=true;
     try{
+      v255RememberRecoverySnapshot(state,"saveState");
       localStorage.setItem(SAVE_KEY,JSON.stringify(state));
     }catch(err){
       saved=false;
@@ -4934,6 +5166,7 @@
       const code=normalizeStudentCode(currentStudentCode||state.studentCode||"");
       state.studentCode=code||state.studentCode||"";
       // Sista ordinarie save och en separat rullande lokal backup. Inga filer laddas ner.
+      v255RememberRecoverySnapshot(state,"autosave-"+String(reason||"autosave"));
       localStorage.setItem(SAVE_KEY,JSON.stringify(state));
       localStorage.setItem(studentAutoBackupKey(code),JSON.stringify({
         schema:"hotel-manager-local-autobackup-v1",
@@ -7036,6 +7269,8 @@
   }
 
   function update(dt){
+    // v.01-256: om rummet blivit rent av ett avslutat arbetsmoment får ett gammalt HSK-flöde inte leva vidare.
+    if(repairFinishedHousekeepingWorkflow()){saveState();updateMission();renderStaffBar();updateInteraction();}
     // Gästerna rör sig självständigt även när vald personal arbetar.
     updateGuests(dt);
     updateGuestWaitingSatisfaction();
@@ -8119,6 +8354,7 @@
   function removeRoomFromHskQueue(roomId){
     if(!Array.isArray(state.hskQueue))state.hskQueue=[];
     state.hskQueue=state.hskQueue.filter(id=>Number(id)!==Number(roomId));
+    pruneStaleHskQueue();
     state.tasks.clean=hskDailyWorkComplete();
   }
 
@@ -9861,6 +10097,7 @@
 
   // v.01-253: DND respekteras tidigt och när gästen är inne; övriga HSK-rum prioriteras först.
   function currentHskRoomId(){
+    pruneStaleHskQueue();
     const queue=Array.isArray(state.hskQueue)?state.hskQueue.map(Number).filter(Boolean):[];
     if(!queue.length)return null;
     // v.01-253: DND är inte ett aktivt HSK-mål före 15:00 och aldrig medan gästen är inne.
@@ -11611,11 +11848,15 @@
         let saved={};
         try{saved=JSON.parse(localStorage.getItem(key)||"{}");}catch(e){}
         const code=normalizeStudentCode(saved?.studentCode||keyCode)||keyCode;
+        const vault=v255ReadRecoveryVault(code);
+        const useVault=v255LooksLikeFreshReset(saved)&&vault?.state&&!v255LooksLikeFreshReset(vault.state);
+        const visible=useVault?vault.state:saved;
         profiles.push({
           code,
-          day:Math.max(1,Number(saved?.day||1)),
-          score:Number(saved?.score||0),
-          money:Number(saved?.money||0)
+          day:Math.max(1,Number(visible?.day||1)),
+          score:Number(visible?.score||0),
+          money:Number(visible?.money||0),
+          recoverable:Boolean(useVault)
         });
       }
     }catch(e){console.warn("Kunde inte läsa lokala elevprofiler",e);}
@@ -11635,7 +11876,7 @@
     }
     list.innerHTML=profiles.map(profile=>{
       const active=profile.code===currentStudentCode;
-      return `<div class="saved-student-row ${active?"active":""}"><div class="saved-student-main"><div class="saved-student-code">${escapeHtml(profile.code)}${active?'<span class="saved-student-active">AKTIV</span>':""}</div><div class="saved-student-meta">Dag ${profile.day} · ${profile.score} hotellpoäng · ${profile.money} kr</div></div><button class="saved-student-open" type="button" data-open-student="${escapeHtml(profile.code)}">Öppna</button></div>`;
+      return `<div class="saved-student-row ${active?"active":""}"><div class="saved-student-main"><div class="saved-student-code">${escapeHtml(profile.code)}${active?'<span class="saved-student-active">AKTIV</span>':""}${profile.recoverable?'<span class="saved-student-active" style="background:#d79b20">ÅTERSTÄLLNINGSBAR</span>':""}</div><div class="saved-student-meta">Dag ${profile.day} · ${profile.score} hotellpoäng · ${profile.money} kr</div></div><button class="saved-student-open" type="button" data-open-student="${escapeHtml(profile.code)}">Öppna</button></div>`;
     }).join("");
   }
 
@@ -11650,6 +11891,16 @@
   function startOrContinueStudent(){
     const input=document.getElementById("studentCodeInput"),code=normalizeStudentCode(input?.value||"");
     if(!code){input?.focus();return;}
+    // v.01-257: en känd återställning får aldrig hoppas över av automatisk start eller knappen Fortsätt.
+    v255ShowRecoveryCard();
+    const recoveryCard=document.getElementById("scoreRecoveryCard"),skipKey=v257SkipRecoveryKey(code);
+    let skip=false;try{skip=sessionStorage.getItem(skipKey)==="1";}catch(_e){}
+    if(recoveryCard?.classList.contains("show")&&recoveryCard.dataset.mode&&!skip){
+      try{localStorage.removeItem(AUTO_START_KEY);}catch(_e){}
+      recoveryCard.scrollIntoView?.({block:"center",behavior:"smooth"});
+      showTip("Tidigare hotellpoäng hittades. Återställ dem först, eller välj Inte nu om du medvetet vill fortsätta från 0.");
+      return;
+    }
     // v.01-254: innan en tom elevprofil skapas letar spelet efter samma elevs äldre lokala hotell.
     // Om den gamla sparningen saknar elevkod får användaren själv bekräfta att den ska tas över.
     const recovery=v254RecoverLegacyProfile(code,{allowGenericPrompt:true});
@@ -11974,6 +12225,8 @@
   // v.01-170: reset måste byta den AKTIVA state-variabeln innan reload. Behålls i v.01-179.
   // Annars kunde beforeunload-autosaven skriva tillbaka det gamla spelet ovanpå resetten.
   function resetGameProgress(preserveTeacherContent=true){
+    const resetCode=normalizeStudentCode(currentStudentCode||state.studentCode||"");
+    if(resetCode)v257MarkIntentionalReset(resetCode);
     const preservedScenarios=preserveTeacherContent?clone(state.scenarios):clone(defaultState.scenarios);
     const preservedPhrases=preserveTeacherContent?clone(state.checkinPhrases):clone(defaultState.checkinPhrases);
     const fresh=clone(defaultState);fresh.difficultyLevel=teacherDifficultyPreference();
@@ -12024,6 +12277,7 @@
     const first=confirm("VARNING: Detta raderar både elevens spelprogression OCH lärarens egna scenarier/fraser från denna webbläsare. Fortsätta?");
     if(!first)return;
     if(confirm("SISTA VARNINGEN: Radera verkligen allt lokalt lärarinnehåll och hela den aktiva spelomgången?")){
+      const resetCode=normalizeStudentCode(currentStudentCode||state.studentCode||"");if(resetCode)v257MarkIntentionalReset(resetCode);
       state=clone(defaultState);state.difficultyLevel=teacherDifficultyPreference();
       state.studentCode=currentStudentCode||"";
       try{localStorage.removeItem(AUTO_BACKUP_KEY);}catch(e){}
@@ -12036,13 +12290,23 @@
   const activeStudentLabel=document.getElementById("activeStudentLabel");
   if(studentCodeInput){
     studentCodeInput.value=currentStudentCode||"";
-    studentCodeInput.addEventListener("input",()=>{const normalized=normalizeStudentCode(studentCodeInput.value);if(studentCodeInput.value!==normalized)studentCodeInput.value=normalized;});
+    studentCodeInput.addEventListener("input",()=>{const normalized=normalizeStudentCode(studentCodeInput.value);if(studentCodeInput.value!==normalized)studentCodeInput.value=normalized;setTimeout(v255ShowRecoveryCard,0);});
     studentCodeInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();startOrContinueStudent();}});
   }
   if(activeStudentLabel)activeStudentLabel.textContent=currentStudentCode?`Aktiv elev: ${currentStudentCode}`:"Ingen elev vald";
   renderSavedStudentProfiles();
+  v255ShowRecoveryCard();
+  document.getElementById("scoreRecoveryRestoreBtn")?.addEventListener("click",v255RestoreFromRecoveryCard);
+  document.getElementById("scoreRecoveryDismissBtn")?.addEventListener("click",()=>{
+    const code=normalizeStudentCode(currentStudentCode||document.getElementById("studentCodeInput")?.value||"");
+    try{if(code)sessionStorage.setItem(v257SkipRecoveryKey(code),"1");}catch(_e){}
+    document.getElementById("scoreRecoveryCard")?.classList.remove("show");
+    showTip("Återställningen hoppades över för den här fliken. Klicka Starta/Fortsätt om du medvetet vill fortsätta från nuvarande poäng.");
+  });
 
 
+  // v.01-257 · Poängskydd dubbelkontrollerat: återställning kan inte hoppas över av auto-start, alla lokala elevprofiler skannas till valv, lärarhistorik kan rädda hotellpoäng och avsiktlig reset respekteras.
+  // v.01-255 · Poängskydd: separat återställningsvalv + tydlig räddning av en helt nollställd profil.
   // v.01-253 · Telefonreservation: sammanhängande flöde utan återvändsgränd efter återläsning.
   // PMS ligger kvar öppet: fyll i → läs tillbaka → gästen bekräftar → samma knapp blir SPARA → avsked → lägg på.
   // Stängs reservationsfönstret av misstag sparas utkastet och samtalet kan fortsätta utan att startas om.
@@ -12915,7 +13179,7 @@
   refreshDailyTaskCompletion();
   updateHud();
   updateMission();
-  if(currentStudentCode&&localStorage.getItem(AUTO_START_KEY)==="1"){localStorage.removeItem(AUTO_START_KEY);setTimeout(startOrContinueStudent,0);}
+  if(currentStudentCode&&localStorage.getItem(AUTO_START_KEY)==="1"){localStorage.removeItem(AUTO_START_KEY);setTimeout(()=>{v255ShowRecoveryCard();startOrContinueStudent();},0);}
   requestAnimationFrame(loop);
 })();
 </script>
