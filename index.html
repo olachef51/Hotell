@@ -450,7 +450,6 @@
   .phone-call-card{background:#f5f7ff;border:2px solid #d8e0f7;border-radius:16px;padding:15px 17px;margin-bottom:14px;color:#33435b;line-height:1.5}.phone-call-card b{display:block;color:#202f54;margin-bottom:5px}
   .phone-booking-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.phone-booking-grid label{font-size:11px;color:#65737c;font-weight:900}.phone-booking-grid input,.phone-booking-grid select{width:100%;box-sizing:border-box;margin-top:5px}.phone-booking-grid .wide{grid-column:1/-1}
   .phone-booking-error{min-height:20px;margin-top:8px;color:#b53d35;font-size:12px;font-weight:900}.phone-score-note{font-size:11px;color:#68757e;margin-top:8px}
-  .phone-reservation-workflow{margin:0 0 12px;padding:11px 13px;border:2px solid #cfd9ff;border-radius:13px;background:#f4f6ff;color:#33456f;font-size:12px;font-weight:850;line-height:1.45}.phone-reservation-workflow.ready{background:#e3f6ea;border-color:#a8d9b9;color:#286846}.phone-reservation-workflow strong{display:block;margin-bottom:3px;font-size:13px}
   .phone-dialogue-log{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}.phone-dialogue-bubble{max-width:88%;padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.45;font-weight:750}.phone-dialogue-bubble.staff{align-self:flex-end;background:#e8efff;border:2px solid #cbd8ff}.phone-dialogue-bubble.guest{align-self:flex-start;background:#f2f5f7;border:2px solid #dce4e8}.phone-dialogue-choices{display:grid;gap:8px}.phone-dialogue-choices button{border:2px solid #d7def0;background:#fff;border-radius:14px;padding:12px 14px;text-align:left;font-weight:900;color:#263657}.phone-dialogue-choices button:hover{border-color:#6278ef;background:#f4f6ff}
   .phone-internal-room{border:2px dashed #9aa8c8;background:#f7f9ff;border-radius:14px;padding:11px 12px;margin:4px 0 10px;color:#334567;font-size:12px;font-weight:850;line-height:1.4}.phone-internal-room strong{display:block;color:#24385e;margin-bottom:3px}.phone-internal-room small{display:block;color:#697694;margin-top:3px}.phone-internal-room-grid{display:grid;gap:7px;margin-top:8px}.phone-internal-room-grid button{background:#eef3ff;border-color:#c6d2f0}.phone-internal-room.selected{border-style:solid;border-color:#7f93cf;background:#eef3ff}
   /* v.01-173: gästens ursprungliga datum ligger kvar synliga medan eleven kontrollerar PMS. */
@@ -730,13 +729,6 @@
   .load-game-status{display:none;max-width:470px;margin:12px auto 0;padding:10px 12px;border-radius:12px;background:#e8f6ed;border:2px solid #badfc6;color:#2d6542;font-size:12px;font-weight:850;line-height:1.4;text-align:left}
   .load-game-status.show{display:block}
   #studentGameFile{display:none}
-  .score-recovery-card{display:none;max-width:500px;margin:14px auto 2px;padding:12px 14px;border-radius:14px;background:#fff4d9;border:2px solid #edc66f;text-align:left;color:#5e4a18}
-  .score-recovery-card.show{display:block}
-  .score-recovery-card strong{display:block;font-size:14px;color:#6b4d0d;margin-bottom:4px}
-  .score-recovery-card p{font-size:11px!important;line-height:1.45!important;margin:0 0 9px!important;color:#715d2a!important}
-  .score-recovery-actions{display:flex;gap:8px;flex-wrap:wrap}
-  .score-recovery-actions button{border:0;border-radius:11px;padding:9px 12px;font-size:11px;font-weight:1000}
-  .score-recovery-restore{background:#536ddd;color:#fff}.score-recovery-dismiss{background:#eee7d5;color:#695a36}
   @media(max-width:800px){
     #hud{height:70px;padding:0 8px;grid-template-columns:auto 1fr auto}
     .score{min-width:0;font-size:14px;padding:10px 12px}
@@ -1243,7 +1235,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-257</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-253</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1452,7 +1444,6 @@
   <div class="box new-reservation-box">
     <div class="new-reservation-head"><h2>＋ Ny reservation</h2><button class="close" data-close="newReservationModal">Stäng</button></div>
     <div class="new-reservation-body">
-      <div class="phone-reservation-workflow" id="phoneReservationWorkflowNote" style="display:none"></div>
       <div class="new-reservation-grid">
         <label class="wide">Gästens namn<input id="newReservationGuest" type="text"></label>
         <label>Telefon<input id="newReservationPhone" type="text"></label>
@@ -1461,7 +1452,7 @@
         <label>Rum<select id="newReservationRoom"></select></label>
         <label>Check-in<select id="newReservationStart"></select></label>
         <label>Antal nätter<select id="newReservationNights"></select></label>
-        <label>Antal gäster<select id="newReservationPartySize"><option value="1">1 person</option><option value="2">2 personer</option><option value="3">3 personer</option><option value="4">4 personer</option></select></label>
+        <label>Antal gäster<select id="newReservationPartySize"><option value="">Välj antal gäster</option><option value="1">1 person</option><option value="2">2 personer</option><option value="3">3 personer</option><option value="4">4 personer</option></select></label>
         <label>Källa<select id="newReservationSource"><option>Direkt</option><option>Booking.com</option><option>Expedia</option><option>Telefon</option><option>E-post</option></select></label>
       </div>
       <div class="reservation-room-actions"><button class="availability-button" id="openReservationAvailabilityBtn">🛏 Se rumsskärm</button><button type="button" class="reservation-override-button" id="forceReservationOverrideBtn">⚠ OVERRIDE / SPARA</button></div>
@@ -1888,17 +1879,12 @@
       <div class="saved-students-head"><span>Hotell sparade på den här datorn</span><span class="saved-students-count" id="savedStudentsCount">0</span></div>
       <div class="saved-students-list" id="savedStudentsList"></div>
     </div>
-    <div class="score-recovery-card" id="scoreRecoveryCard">
-      <strong>⚠ Tidigare spelresultat kan återställas</strong>
-      <p id="scoreRecoveryText"></p>
-      <div class="score-recovery-actions"><button class="score-recovery-restore" id="scoreRecoveryRestoreBtn" type="button">↩ ÅTERSTÄLL</button><button class="score-recovery-dismiss" id="scoreRecoveryDismissBtn" type="button">Inte nu</button></div>
-    </div>
     <button class="play-btn" id="startBtn">STARTA / FORTSÄTT HOTELLET</button>
     <div class="start-profile-row"><button class="profile-switch-btn" id="switchStudentBtn" type="button">Byt elevkod</button><span id="activeStudentLabel"></span></div>
     <div class="start-divider"><span>eller</span></div>
     <input id="studentGameFile" type="file" accept=".json,application/json">
     <button class="load-game-btn" id="loadStudentGameBtn" type="button">📂 LADDA MITT HOTELL</button>
-    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression, hotellpoäng och hotellutveckling flyttas in i den här spelversionen. Om en äldre fil bara innehåller progression kan hotellpoängen ändå återställas. Nya masteruppdateringar i v.01-257 behålls.</p>
+    <p class="load-game-help">Välj din senaste <strong>hotel_manager_ELEVKOD_dag_X.json</strong>. Din progression flyttas in i den här spelversionen. Nya scenarier och masteruppdateringar i v.01-230 behålls.</p>
     <div class="load-game-status" id="loadGameStatus"></div>
     <div class="controls">Välj personal längst ned · klicka dit personalen ska gå · WASD och piltangenter fungerar också</div>
   </div>
@@ -1920,23 +1906,11 @@
   const DEFAULT_TEACHER_EMAIL = "ola.ekdahl@malmo.se"; // v.01-213: fast mottagare för elevens lektionsutskick
   const LOAD_NOTICE_KEY = "index_hotell_load_notice_v1";
   const AUTO_BACKUP_PREFIX = "index_hotell_autobackup_v1_";
-  // v.01-254: äldre lokala hotell får återanvändas när elevkod införts/ändrats.
-  const LEGACY_PROFILE_CLAIM_KEY = "index_hotell_legacy_profile_claim_v1";
-  const LEGACY_PROFILE_DECLINE_PREFIX = "index_hotell_legacy_profile_declined_v1_";
-  const SCORE_RECOVERY_VAULT_PREFIX = "index_hotell_score_recovery_v1_";
-  const SCORE_RECOVERY_NOTICE_PREFIX = "index_hotell_score_recovery_notice_v1_";
-  const SCORE_RECOVERY_INTENTIONAL_RESET_PREFIX = "index_hotell_score_recovery_intentional_reset_v1_";
-  const SCORE_RECOVERY_SKIP_SESSION_PREFIX = "index_hotell_score_recovery_skip_session_v1_";
-  // v.01-255: reservvärden från den senast verifierade OLABB-sessionen före nollställningen.
-  // De används aldrig automatiskt; de visas bara som en bekräftad nödräddning om profilen är helt tom.
-  const LOCAL_EMERGENCY_RECOVERY_PRESETS = {
-    OLABB:{day:1,score:1453,money:715,happiness:82,hotelPeriodIndex:4,label:"senast verifierade läge 5 okt 2026 · 12–15"}
-  };
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-257";
-  const MASTER_CONTENT_VERSION = "v.01-257";
+  const HOTEL_VERSION = "v.01-253";
+  const MASTER_CONTENT_VERSION = "v.01-253";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -2865,17 +2839,17 @@
     // och slutfört gästsamtalet i den här versionens telefonflöde.
     const recoverableAwaiting=raw==="awaiting_reservation"&&Number(state.phoneCallProgress||0)>=5&&Number(state.phoneCallHeardDay||0)===day&&Boolean(state.pendingPhoneReservation);
     if(recoverableAwaiting){
-      // v.01-253: gästen ska vara kvar i telefonen medan reservationen registreras.
+      // v.01-252: gästen ska vara kvar i telefonen medan reservationen registreras.
       // Äldre awaiting_reservation återgår därför till ett aktivt samtal.
       state.phoneCallStatus="in_call";
       state.phoneConversationCompletedDay=0;
-      state.phoneFlowVersion="v.01-253";
+      state.phoneFlowVersion="v.01-252";
       return true;
     }
     const invalidAwaiting=raw==="awaiting_reservation"&&Number(state.phoneConversationCompletedDay||0)!==day;
     const hasOldFlow=invalidAwaiting||(assigned!==day&&(raw!==""&&raw!=="idle"||Number(state.phoneCallProgress||0)>0||state.pendingPhoneReservation));
     if(!hasOldFlow)return false;
-    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneConversationCompletedDay=0;state.phoneFlowVersion="v.01-253";state.phoneAutoAnswerPending=false;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneCallAlternativeRoomType="";state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;state.phoneReservationDraft=null;state.phoneReservationReadbackConfirmed=false;state.phoneSavedBookingId=0;
+    state.phoneTaskAssignedDay=0;state.phoneCallHeardDay=0;state.phoneConversationCompletedDay=0;state.phoneFlowVersion="v.01-252";state.phoneAutoAnswerPending=false;state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneCallProgress=0;state.phoneCallBranch="";state.phoneCallAlternativeStart=null;state.phoneCallAlternativeRoomType="";state.phoneAvailabilityCheckOpen=false;state.phoneAvailabilityChecked=false;state.phoneAlternativeCheckOpen=false;state.phoneAlternativeChecked=false;state.pendingPhoneReservation=null;state.phoneReservationDraft=null;state.phoneReservationReadbackConfirmed=false;state.phoneSavedBookingId=0;
     return true;
   }
   function phoneTaskPeriodKey(day=Number(state.day||1),index=currentHotelPeriodIndex()){return `${Number(day||1)}:${Number(index||0)}`;}
@@ -2952,26 +2926,6 @@
     recordAssessment("phone_reservation_existing_recovered",{guest:booking.guest,bookingId:booking.id,roomId:booking.roomId,start:booking.start,nights:booking.nights,day:Number(state.day||1),correct:true});
     return true;
   }
-
-  function repairPhoneReservationFlowV253(){
-    if(!state||state.tasks.phoneBooking)return false;
-    const day=Number(state.day||1),progress=Number(state.phoneCallProgress||0);
-    let changed=false;
-    if(state.pendingPhoneReservation&&[41,42].includes(progress)){
-      if(Number(state.phoneTaskAssignedDay||0)===day&&Number(state.phoneCallHeardDay||0)!==day){state.phoneCallHeardDay=day;changed=true;}
-      if(String(state.phoneCallStatus||"")!=="in_call"){state.phoneCallStatus="in_call";changed=true;}
-      state.phoneConversationCompletedDay=0;
-      state.phoneFlowVersion="v.01-253";
-    }
-    // Äldre sparning kan ha hunnit skapa PMS-bokningen men tappat saved-id innan avskedet.
-    if(state.pendingPhoneReservation&&progress>=43&&progress<=44&&!Number(state.phoneSavedBookingId||0)){
-      const booking=findAlreadySavedPhoneReservation();
-      if(booking){state.phoneSavedBookingId=Number(booking.id||0);state.phoneCallStatus="in_call";state.phoneConversationCompletedDay=0;changed=true;}
-    }
-    if(changed){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));}catch(e){}}
-    return changed;
-  }
-  repairPhoneReservationFlowV253();
 
   function problemMissionItems(){
     if(Number(state.problemTaskAssignedDay||0)!==Number(state.day||1)||state.tasks.problem)return [];
@@ -3174,9 +3128,6 @@
     return;
   }
 
-  // v.01-256: reparera äldre saves där ett redan städat rum ligger kvar i HSK-kön.
-  // Här körs bara köstädningen; full HSK-status räknas senare när gästfigurerna är initierade.
-  pruneStaleHskQueue({persist:true});
   if(Array.isArray(state.hskQueue)&&state.hskQueue.length)state.tasks.clean=false;
   let last = performance.now();
   let worldScale = 1;
@@ -3350,11 +3301,9 @@
     const id=Number(roomId);
     const room=state.rooms.find(item=>Number(item.id)===id);
     if(!room||!isRoomBuilt(id))return false;
-    pruneStaleHskQueue();
     const sign=String(room.doorSign||"none").toUpperCase();
     const queued=Array.isArray(state.hskQueue)&&state.hskQueue.some(value=>Number(value)===id);
-    const dirty=["dirty","occupied_dirty","occupied"].includes(String(room.status||""));
-    return queued||dirty||sign==="PMUR"||(sign==="DND"&&dirty);
+    return queued||["dirty","occupied_dirty","occupied"].includes(String(room.status||""))||sign==="DND"||sign==="PMUR";
   }
   function roomHasInhouseBooking(roomId){
     const id=Number(roomId);
@@ -3366,7 +3315,7 @@
     // v.01-229: Luise får aldrig falla över till den generiska rumsdörren när
     // rummet är ett HSK-mål ELLER har en incheckad gäst. Det senare behövs för
     // att eleven ska kunna genomföra korrekt dörrrutin och först därefter möta gästen.
-    return roomNeedsHousekeepingDoorRoutine(id)||Number(currentHskRoomId()||0)===id||Boolean(hskWorkflow&&Number(hskWorkflow.roomId)===id);
+    return roomNeedsHousekeepingDoorRoutine(id)||Number(currentHskRoomId()||0)===id||roomHasInhouseBooking(id);
   }
   function ensureHousekeepingDoorWorkflow(roomId){
     const id=Number(roomId);
@@ -3485,7 +3434,7 @@
   }
   function ensureDndManagerChecks(){
     if(!state.dndManagerChecks||typeof state.dndManagerChecks!=="object")state.dndManagerChecks={};
-    // v.01-253: DND ska inte eskaleras till chef tidigt på dagen och aldrig medan
+    // v.01-252: DND ska inte eskaleras till chef tidigt på dagen och aldrig medan
     // gästen faktiskt befinner sig på rummet. Äldre felaktiga väntande rapporter
     // återgår till HSK-kön för senare uppföljning.
     const periodIndex=currentHotelPeriodIndex();
@@ -3522,52 +3471,7 @@
     if(isGuestPhysicallyInRoom(id))return false;
     return true;
   }
-  // v.01-256: självreparation av housekeepingkön. Ett rum som redan är städat
-  // får aldrig ligga kvar som aktiv HSK-uppgift och skicka Luise tillbaka till rummet.
-  function roomStillNeedsHousekeeping(roomId){
-    const id=Number(roomId),room=state.rooms.find(r=>Number(r.id)===id);
-    if(!room||!isRoomBuilt(id))return false;
-    const status=String(room.status||"");
-    const sign=String(room.doorSign||"none").toUpperCase();
-    const dirty=["dirty","occupied_dirty","occupied"].includes(status);
-    // PMUR är en aktiv städbegäran. DND behålls bara som HSK-arbete om rummet faktiskt är smutsigt.
-    return dirty||sign==="PMUR"||(sign==="DND"&&dirty);
-  }
-  function pruneStaleHskQueue({persist=false}={}){
-    if(!Array.isArray(state.hskQueue))state.hskQueue=[];
-    const before=state.hskQueue.map(Number).filter(Boolean);
-    const seen=new Set();
-    const cleaned=before.filter(id=>{
-      if(seen.has(id))return false;
-      seen.add(id);
-      return roomStillNeedsHousekeeping(id);
-    });
-    const changed=cleaned.length!==before.length||cleaned.some((id,index)=>id!==before[index]);
-    if(changed){
-      state.hskQueue=cleaned;
-      if(persist){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));}catch(_e){}}
-    }
-    return changed;
-  }
-  function repairFinishedHousekeepingWorkflow(){
-    pruneStaleHskQueue();
-    if(!hskWorkflow)return false;
-    const roomId=Number(hskWorkflow.roomId||0);
-    if(roomStillNeedsHousekeeping(roomId))return false;
-    // Om rummet redan hunnit bli rent men ett gammalt arbetsflöde ligger kvar, släpp Luise direkt.
-    const outside=hskDoorOutsidePoint(roomId);
-    if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
-    if(outside&&state.activeStaffId==="housekeeper"){
-      player.x=Number(outside.x);player.y=Number(outside.y);player.targetX=player.x;player.targetY=player.y;
-    }
-    player.moving=false;
-    hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();
-    roomEntryState=null;selectedMissionTaskKey=null;
-    Object.keys(keys).forEach(key=>keys[key]=false);
-    return true;
-  }
   function hskDailyWorkComplete(){
-    pruneStaleHskQueue();
     const litterCount=Array.isArray(state.ambientLitter)?state.ambientLitter.length:0;
     return (!Array.isArray(state.hskQueue)||state.hskQueue.length===0)&&pendingDndManagerRoomIds().length===0&&litterCount===0;
   }
@@ -3657,7 +3561,7 @@
     drawCharacter(dndWorkflow.escortX,dndWorkflow.escortY,escort.shirt,"#f1bf93",0,0,true,"staff");
     drawNameLabelBelow(dndWorkflow.escortX,dndWorkflow.escortY,escort.name,escort.role,false);
   }
-  // v.01-253: DND-rutinen följer exakt: KNACKA → SÄG HOTELLCHEF →
+  // v.01-252: DND-rutinen följer exakt: KNACKA → SÄG HOTELLCHEF →
   // KNACKA → SÄG HOTELLCHEF → VÄNTA PÅ SVAR → GÅ IN OCH KONTROLLERA.
   function dndManagerKnock(){
     if(!dndWorkflow||dndWorkflow.stage!=="door")return;
@@ -3742,17 +3646,11 @@
     // korrekt dörrrutin. Om gästen faktiskt är kvar stoppas inträdet först efter
     // knackning + HOUSEKEEPING-rutinen, i hskEnterRoom(). Det gör att eleven tränar
     // själva yrkesrutinen i stället för att spelet avslöjar rumsstatus i förväg.
-    const queued=Array.isArray(state.hskQueue)&&state.hskQueue.some(id=>Number(id)===roomId);
-    const doorOnly=false;
-    if(!needed&&sign!=="DND"&&sign!=="PMUR"){
-      // v.01-256: en gammal köpost på ett redan städat rum tas bort tyst.
-      // Eleven ska aldrig tvingas göra samma städning två gånger eller få avdrag för spelets gamla status.
-      if(queued)removeRoomFromHskQueue(roomId);
-      if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
-      selectedMissionTaskKey=null;
-      saveState();updateMission();renderStaffBar();updateInteraction();
-      showTip(`Rum ${roomId} är redan städat. HSK-uppgiften är borttagen och Luise kan fortsätta med nästa arbete.`);
-      return;
+    const doorOnly=!needed&&sign!=="DND"&&sign!=="PMUR"&&roomHasInhouseBooking(roomId);
+    if(!needed&&sign!=="DND"&&sign!=="PMUR"&&!doorOnly){
+      state.score=Math.max(0,Number(state.score||0)-20);
+      recordAssessment("housekeeping_wrong_room",{roomId,reason:"already_clean"});
+      saveState();showTip(`Rum ${roomId} är redan rent. Välj ett rum som behöver HSK: −20 poäng.`);return;
     }
     if(hskWorkflow){showTip(`Luise har redan ett aktivt HSK-moment i rum ${hskWorkflow.roomId}.`);return;}
     const omar=getStaff("housekeeper"),outside=hskDoorOutsidePoint(roomId);
@@ -4099,14 +3997,10 @@
     removeRoomFromHskQueue(roomId);
     recordAssessment("housekeeping_completed",{roomId,trashCollected:3,knocks:2,announcements:2,announced:true,roomStatus:room.status});
     const outside=hskDoorOutsidePoint(roomId);if(outside){player.x=outside.x;player.y=outside.y;player.targetX=player.x;player.targetY=player.y;}
-    if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
     hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();
-    roomEntryState=null;selectedMissionTaskKey=null;publicLitterWorkflow=null;player.moving=false;
-    Object.keys(keys).forEach(key=>keys[key]=false);
-    pruneStaleHskQueue();
-    state.tasks.clean=hskDailyWorkComplete();
-    saveState();updateMission();renderReceptionPms();renderStaffBar();updateInteraction();focusCameraOnWorldPoint(player.x,player.y);
-    showTip(`Rum ${roomId} är klart och borttaget från HSK-listan. Luise är fri för nästa uppgift. +100 poäng.`);
+    selectedMissionTaskKey=null;
+    saveState();updateMission();renderReceptionPms();renderStaffBar();focusCameraOnWorldPoint(player.x,player.y);
+    showTip(`Rum ${roomId} är klart. Luise plockade alla tre skräp efter korrekt dörrrutin. +100 poäng.`);
   }
   function hskPickTrash(index){
     if(!hskWorkflow||hskWorkflow.stage!=="inside")return;
@@ -4848,238 +4742,6 @@
     migrated.phoneFlowVersion="v.01-240";
     return migrated;
   }
-
-  // v.01-256: HSK självläker städade rum ur kön och släpper Luise efter slutförd städning.
-  // v.01-255: separat återställningsvalv. En versionsuppdatering får aldrig kunna ersätta
-  // en spelad profil med ett tomt Dag 1 / 0-poängsläge. Valvet används bara vid tydlig reset.
-  function v255RecoveryVaultKey(code){return SCORE_RECOVERY_VAULT_PREFIX+(normalizeStudentCode(code)||"LOCAL");}
-  function v257IntentionalResetKey(code){return SCORE_RECOVERY_INTENTIONAL_RESET_PREFIX+(normalizeStudentCode(code)||"LOCAL");}
-  function v257SkipRecoveryKey(code){return SCORE_RECOVERY_SKIP_SESSION_PREFIX+(normalizeStudentCode(code)||"LOCAL");}
-  function v257WasIntentionallyReset(code){try{return localStorage.getItem(v257IntentionalResetKey(code))==="1";}catch(_e){return false;}}
-  function v257MarkIntentionalReset(code){try{localStorage.setItem(v257IntentionalResetKey(code),"1");localStorage.removeItem(v255RecoveryVaultKey(code));}catch(_e){}}
-  function v257ClearIntentionalReset(code){try{localStorage.removeItem(v257IntentionalResetKey(code));}catch(_e){}}
-  function v257ScoreboardEvidence(code){
-    code=normalizeStudentCode(code);if(!code)return null;
-    let best=null;
-    [TEACHER_SCOREBOARD_KEY,TEACHER_SCOREBOARD_BACKUP_KEY].forEach(key=>{
-      try{
-        const board=JSON.parse(localStorage.getItem(key)||"null"),student=board?.students?.[code],history=Array.isArray(student?.history)?student.history:[];
-        history.forEach(s=>{
-          const score=Math.max(0,Number(s?.score||0),Number(s?.legacyScoreBase||0));if(score<=0)return;
-          const candidate={score,day:Math.max(1,Number(s?.day||1)),money:Number(s?.money),happiness:Number(s?.guestAverage),exportedAt:String(s?.exportedAt||""),source:key===TEACHER_SCOREBOARD_KEY?"lärarens progressionsregister":"lärarens föregående progressionsbackup"};
-          const time=Date.parse(candidate.exportedAt)||0,oldTime=Date.parse(best?.exportedAt||"")||0;
-          if(!best||time>oldTime||(time===oldTime&&candidate.day>best.day)||(time===oldTime&&candidate.day===best.day&&candidate.score>best.score))best=candidate;
-        });
-      }catch(_e){}
-    });
-    return best;
-  }
-  function v257SeedRecoveryVaultsFromStoredProfiles(){
-    try{
-      for(let i=0;i<localStorage.length;i++){
-        const key=localStorage.key(i)||"";
-        if(!(key===LEGACY_SAVE_KEY||key.startsWith("index_hotell_student_")||key.startsWith(AUTO_BACKUP_PREFIX)))continue;
-        const parsed=v254StoredHotelStateFromRaw(localStorage.getItem(key));if(!parsed?.state||!v254MeaningfulHotelSave(parsed.state))continue;
-        let code=normalizeStudentCode(parsed.studentCode||parsed.state.studentCode||"");
-        if(!code){const m=key.match(/^index_hotell_student_v\d+_(.+)$/i);if(m)code=normalizeStudentCode(m[1]||"");}
-        if(!code||v257WasIntentionallyReset(code))continue;
-        const copy=clone(parsed.state);copy.studentCode=code;
-        const vaultKey=v255RecoveryVaultKey(code),old=v255ReadRecoveryVault(code);
-        if(!old||v255RecoveryStrength(copy)>v255RecoveryStrength(old.state))localStorage.setItem(vaultKey,JSON.stringify({schema:"hotel-manager-score-recovery-v1",savedAt:new Date().toISOString(),reason:"startup-profile-scan",studentCode:code,state:copy}));
-      }
-    }catch(_e){}
-  }
-  function v255LooksLikeFreshReset(st){
-    if(!st||typeof st!=="object")return true;
-    const events=Array.isArray(st.assessmentLog)?st.assessmentLog.filter(x=>String(x?.type||"")!=="session_started").length:0;
-    const sessions=Array.isArray(st.sessionHistory)?st.sessionHistory.length:0;
-    const completed=Array.isArray(st.completed)?st.completed.length:0;
-    const score=Number(st.score||0),money=Number(st.money??defaultState.money??6500),day=Number(st.day||1);
-    return day<=1&&score===0&&money===Number(defaultState.money||6500)&&events===0&&sessions===0&&completed===0;
-  }
-  function v255RecoveryStrength(st){
-    if(!st||typeof st!=="object")return 0;
-    const score=Math.max(0,Number(st.score||0)),day=Math.max(1,Number(st.day||1));
-    const events=Array.isArray(st.assessmentLog)?st.assessmentLog.length:0,sessions=Array.isArray(st.sessionHistory)?st.sessionHistory.length:0;
-    const money=Math.max(0,Number(st.money||0)),period=Math.max(0,Number(st.hotelPeriodIndex||0));
-    return day*1e10+score*1e6+events*10000+sessions*5000+period*1000+money;
-  }
-  function v255ReadRecoveryVault(code){
-    try{const x=JSON.parse(localStorage.getItem(v255RecoveryVaultKey(code))||"null");return x&&x.state&&typeof x.state==="object"?x:null;}catch(_e){return null;}
-  }
-  function v255RememberRecoverySnapshot(st,reason="save"){
-    try{
-      const code=normalizeStudentCode(currentStudentCode||st?.studentCode||"");if(!code||!st||v255LooksLikeFreshReset(st))return false;
-      // Så fort eleven spelar vidare efter en avsiktlig reset får den nya spelomgången bygga ett nytt skydd.
-      if(v257WasIntentionallyReset(code))v257ClearIntentionalReset(code);
-      const key=v255RecoveryVaultKey(code),old=v255ReadRecoveryVault(code),nextStrength=v255RecoveryStrength(st),oldStrength=v255RecoveryStrength(old?.state);
-      // Bevara den starkaste hela spelprofilen. En legitim poängminskning kan fortfarande sparas i huvudprofilen,
-      // men valvet finns kvar som skydd mot total nollställning.
-      if(!old||nextStrength>=oldStrength){localStorage.setItem(key,JSON.stringify({schema:"hotel-manager-score-recovery-v1",savedAt:new Date().toISOString(),reason,studentCode:code,state:clone(st)}));}
-      return true;
-    }catch(_e){return false;}
-  }
-  function v255MaxScoreEvidence(st){
-    let best=Math.max(0,Number(st?.score||0));
-    (Array.isArray(st?.sessionHistory)?st.sessionHistory:[]).forEach(x=>{best=Math.max(best,Number(x?.score||0));});
-    (Array.isArray(st?.assessmentLog)?st.assessmentLog:[]).forEach(x=>{[x?.score,x?.scoreAfter,x?.scoreAfterReset,x?.scoreBeforeReset].forEach(v=>{if(Number.isFinite(Number(v)))best=Math.max(best,Number(v));});});
-    return Math.max(0,best);
-  }
-  function v255RepairFromVaultIfReset(code,rawState){
-    code=normalizeStudentCode(code);if(!code||!v255LooksLikeFreshReset(rawState))return null;
-    const vault=v255ReadRecoveryVault(code);if(vault?.state&&!v255LooksLikeFreshReset(vault.state))return mergeStudentProgressWithCurrentMaster(vault.state,code);
-    return null;
-  }
-  function v255EmergencyPreset(code){return LOCAL_EMERGENCY_RECOVERY_PRESETS[normalizeStudentCode(code)]||null;}
-  function v255ShowRecoveryCard(){
-    const card=document.getElementById("scoreRecoveryCard"),text=document.getElementById("scoreRecoveryText"),restore=document.getElementById("scoreRecoveryRestoreBtn");if(!card||!text||!restore)return;
-    card.classList.remove("show");card.dataset.mode="";
-    const code=normalizeStudentCode(currentStudentCode||document.getElementById("studentCodeInput")?.value||"");if(!code||v257WasIntentionallyReset(code))return;
-    const raw=v254StoredHotelStateFromRaw(localStorage.getItem(studentSaveKey(code)))?.state||null;
-    if(!v255LooksLikeFreshReset(raw))return;
-    const full=v254FindLegacyProfile(code,{allowGeneric:false});
-    if(full?.state&&!v255LooksLikeFreshReset(full.state)){
-      text.textContent=`${code} visas som 0 poäng, men en äldre hel spelprofil med ${Number(full.state.score||0)} hotellpoäng finns kvar på datorn.`;
-      card.dataset.mode="legacy";card.classList.add("show");return;
-    }
-    const vault=v255ReadRecoveryVault(code);
-    if(vault?.state&&!v255LooksLikeFreshReset(vault.state)){
-      text.textContent=`${code} visas som 0 poäng, men återställningsvalvet innehåller Dag ${Number(vault.state.day||1)} · ${Number(vault.state.score||0)} hotellpoäng.`;
-      card.dataset.mode="vault";card.classList.add("show");return;
-    }
-    const board=v257ScoreboardEvidence(code);
-    if(board&&Number(board.score||0)>0){
-      text.textContent=`${code} visas som 0 poäng, men ${board.source} innehåller Dag ${Number(board.day||1)} · ${Number(board.score||0)} hotellpoäng. Dessa poäng kan föras tillbaka till spelprofilen.`;
-      card.dataset.mode="scoreboard";card.classList.add("show");return;
-    }
-    const preset=v255EmergencyPreset(code);
-    if(preset){
-      text.textContent=`${code} har blivit helt nollställd. Det senast verifierade läget var Dag ${preset.day} · ${preset.score} hotellpoäng · ${preset.money} kr · ${preset.happiness}% gästnöjdhet · ${HOTEL_PERIODS[preset.hotelPeriodIndex]?.short||"12–15"}. Återställ dessa kända värden?`;
-      card.dataset.mode="preset";card.classList.add("show");
-    }
-  }
-  function v255RestoreFromRecoveryCard(){
-    const card=document.getElementById("scoreRecoveryCard"),mode=card?.dataset.mode||"";
-    const code=normalizeStudentCode(currentStudentCode||document.getElementById("studentCodeInput")?.value||"");if(!code||!mode)return;
-    let restored=null,source="";
-    if(mode==="legacy"){const found=v254FindLegacyProfile(code,{allowGeneric:false});if(found?.state){restored=mergeStudentProgressWithCurrentMaster(found.state,code);source="äldre hel spelprofil";}}
-    if(mode==="vault"){const vault=v255ReadRecoveryVault(code);if(vault?.state){restored=mergeStudentProgressWithCurrentMaster(vault.state,code);source="återställningsvalv";}}
-    if(mode==="scoreboard"){
-      const b=v257ScoreboardEvidence(code);if(b){
-        const existing=v254StoredHotelStateFromRaw(localStorage.getItem(studentSaveKey(code)))?.state||clone(defaultState);
-        restored=mergeStudentProgressWithCurrentMaster(existing,code);restored.day=Math.max(Number(restored.day||1),Number(b.day||1));restored.score=Math.max(Number(restored.score||0),Number(b.score||0));
-        if(Number.isFinite(b.money)&&b.money>0)restored.money=Number(b.money);if(Number.isFinite(b.happiness)&&b.happiness>0)restored.happiness=Math.max(Number(restored.happiness||0),Math.min(100,Number(b.happiness)));
-        restored.manualEmergencyRecovery={at:new Date().toISOString(),label:b.source,partial:true};source=b.source;
-      }
-    }
-    if(mode==="preset"){
-      const p=v255EmergencyPreset(code);if(p){
-        const existing=v254StoredHotelStateFromRaw(localStorage.getItem(studentSaveKey(code)))?.state||clone(defaultState);
-        restored=mergeStudentProgressWithCurrentMaster(existing,code);
-        restored.day=Math.max(Number(restored.day||1),Number(p.day||1));restored.score=Math.max(Number(restored.score||0),Number(p.score||0));
-        restored.money=Number(p.money);restored.happiness=Number(p.happiness);restored.hotelPeriodIndex=Number(p.hotelPeriodIndex);
-        restored.manualEmergencyRecovery={at:new Date().toISOString(),label:p.label,partial:true};source=p.label;
-      }
-    }
-    if(!restored)return;
-    v257ClearIntentionalReset(code);try{sessionStorage.removeItem(v257SkipRecoveryKey(code));}catch(_e){}
-    localStorage.setItem(studentSaveKey(code),JSON.stringify(restored));v255RememberRecoverySnapshot(restored,"manual-recovery");
-    localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");
-    localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion:source,toVersion:HOTEL_VERSION,day:Number(restored.day||1),score:Number(restored.score||0),legacyRecovered:true}));
-    location.reload();
-  }
-
-  // v.01-254: skydda elevens gamla hotellpoäng och hotellprogression vid versionsbyte.
-  // Samma elevkod återställs automatiskt. En äldre okodad profilsparning används bara efter elevens/lärarens bekräftelse.
-  function v254StoredHotelStateFromRaw(raw){
-    try{
-      const parsed=JSON.parse(String(raw||""));
-      if(!parsed||typeof parsed!=="object")return null;
-      if(parsed.state&&typeof parsed.state==="object")return {state:parsed.state,studentCode:normalizeStudentCode(parsed.studentCode||parsed.state.studentCode||"")};
-      if(parsed.backup?.state&&typeof parsed.backup.state==="object")return {state:parsed.backup.state,studentCode:normalizeStudentCode(parsed.student?.code||parsed.backup.state.studentCode||"")};
-      if("score" in parsed||"day" in parsed||Array.isArray(parsed.bookings))return {state:parsed,studentCode:normalizeStudentCode(parsed.studentCode||"")};
-    }catch(_e){}
-    return null;
-  }
-  function v254HotelSaveStrength(st){
-    if(!st||typeof st!=="object")return 0;
-    const day=Math.max(1,Number(st.day||1)),score=Math.max(0,Number(st.score||0)),money=Math.max(0,Number(st.money||0));
-    const events=Array.isArray(st.assessmentLog)?st.assessmentLog.length:0;
-    const sessions=Array.isArray(st.sessionHistory)?st.sessionHistory.length:0;
-    const bookings=Array.isArray(st.bookings)?st.bookings.length:0;
-    const completed=Array.isArray(st.completed)?st.completed.length:0;
-    const dev=st.hotelDevelopment&&typeof st.hotelDevelopment==="object"?JSON.stringify(st.hotelDevelopment).length:0;
-    return day*1e9+score*1e5+money*10+events*500+sessions*250+bookings*100+completed*100+dev;
-  }
-  function v254MeaningfulHotelSave(st){
-    if(!st||typeof st!=="object")return false;
-    return Number(st.score||0)>0||Number(st.day||1)>1||Number(st.money||0)!==Number(defaultState.money||6500)||
-      (Array.isArray(st.assessmentLog)&&st.assessmentLog.length>0)||(Array.isArray(st.sessionHistory)&&st.sessionHistory.length>0)||
-      (Array.isArray(st.completed)&&st.completed.length>0);
-  }
-  function v254LegacyClaim(){
-    try{const x=JSON.parse(localStorage.getItem(LEGACY_PROFILE_CLAIM_KEY)||"{}");return x&&typeof x==="object"?x:{};}catch(_e){return {};}
-  }
-  function v254FindLegacyProfile(code,{allowGeneric=false}={}){
-    code=normalizeStudentCode(code);if(!code)return null;
-    const targetKey=studentSaveKey(code);
-    const targetStored=v254StoredHotelStateFromRaw(localStorage.getItem(targetKey));
-    const targetStrength=v254HotelSaveStrength(targetStored?.state);
-    const claim=v254LegacyClaim();
-    const candidates=[];
-    try{
-      for(let i=0;i<localStorage.length;i++){
-        const key=localStorage.key(i)||"";
-        if(!key||key===targetKey)continue;
-        const relevant=key===LEGACY_SAVE_KEY||key.startsWith("index_hotell_student_")||key.startsWith(AUTO_BACKUP_PREFIX);
-        if(!relevant)continue;
-        const parsed=v254StoredHotelStateFromRaw(localStorage.getItem(key));if(!parsed?.state||!v254MeaningfulHotelSave(parsed.state))continue;
-        let candidateCode=normalizeStudentCode(parsed.studentCode||parsed.state.studentCode||"");
-        if(!candidateCode){
-          const m=key.match(/^index_hotell_student_v\d+_(.+)$/i);
-          if(m)candidateCode=normalizeStudentCode(m[1]||"");
-        }
-        const sameCode=Boolean(candidateCode&&candidateCode===code);
-        const generic=Boolean(allowGeneric&&key===LEGACY_SAVE_KEY&&!candidateCode&&(!claim.code||normalizeStudentCode(claim.code)===code));
-        if(!sameCode&&!generic)continue;
-        const strength=v254HotelSaveStrength(parsed.state);
-        if(strength<=targetStrength)continue;
-        candidates.push({key,state:parsed.state,candidateCode,strength,generic,sameCode});
-      }
-    }catch(_e){}
-    candidates.sort((a,b)=>b.strength-a.strength);
-    return candidates[0]||null;
-  }
-  function v254RecoverLegacyProfile(code,{allowGenericPrompt=false}={}){
-    code=normalizeStudentCode(code);if(!code)return {recovered:false};
-    const same=v254FindLegacyProfile(code,{allowGeneric:false});
-    if(same){
-      const restored=mergeStudentProgressWithCurrentMaster(same.state,code);
-      restored.score=Math.max(Number(restored.score||0),Number(same.state.score||0));
-      restored.legacyProfileRecoveredFrom=same.key;
-      restored.legacyProfileRecoveredAt=new Date().toISOString();
-      localStorage.setItem(studentSaveKey(code),JSON.stringify(restored));
-      localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion:String(same.state.masterContentVersion||same.state.hotelVersion||"äldre lokal version"),toVersion:HOTEL_VERSION,day:Number(restored.day||1),score:Number(restored.score||0),legacyRecovered:true}));
-      return {recovered:true,state:restored,source:same.key};
-    }
-    if(!allowGenericPrompt)return {recovered:false};
-    const generic=v254FindLegacyProfile(code,{allowGeneric:true});if(!generic)return {recovered:false};
-    const declineKey=LEGACY_PROFILE_DECLINE_PREFIX+code;
-    if(localStorage.getItem(declineKey)==="1")return {recovered:false};
-    const oldScore=Number(generic.state.score||0),oldDay=Math.max(1,Number(generic.state.day||1)),oldMoney=Number(generic.state.money||0);
-    const ok=confirm(`Tidigare hotell hittat på den här datorn.\n\nDag ${oldDay} · ${oldScore} hotellpoäng · ${oldMoney} kr.\n\nFlytta det äldre hotellet till elevkod ${code}?\n\nVälj OK för att behålla tidigare hotell och poäng. Välj Avbryt för att starta utan den gamla profilen.`);
-    if(!ok){localStorage.setItem(declineKey,"1");return {recovered:false,declined:true};}
-    const restored=mergeStudentProgressWithCurrentMaster(generic.state,code);
-    restored.score=Math.max(Number(restored.score||0),oldScore);
-    restored.legacyProfileRecoveredFrom=generic.key;
-    restored.legacyProfileRecoveredAt=new Date().toISOString();
-    localStorage.setItem(studentSaveKey(code),JSON.stringify(restored));
-    localStorage.setItem(LEGACY_PROFILE_CLAIM_KEY,JSON.stringify({code,sourceKey:generic.key,claimedAt:new Date().toISOString()}));
-    localStorage.removeItem(declineKey);
-    localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion:String(generic.state.masterContentVersion||generic.state.hotelVersion||"äldre lokal version"),toVersion:HOTEL_VERSION,day:Number(restored.day||1),score:Number(restored.score||0),legacyRecovered:true}));
-    return {recovered:true,state:restored,source:generic.key};
-  }
-
   function loadAutoBackupState(){
     try{
       const raw=localStorage.getItem(AUTO_BACKUP_KEY);
@@ -5094,29 +4756,14 @@
   }
   function loadState(){
     try{
-      // v.01-257: bygg först återställningsvalv från alla äldre lokala elevprofiler innan någonting kan skrivas över.
-      v257SeedRecoveryVaultsFromStoredProfiles();
-      // Även om en tom/ny elevprofil redan hunnit skapas får en starkare äldre sparning med samma elevkod vinna.
-      if(currentStudentCode){
-        const recovered=v254RecoverLegacyProfile(currentStudentCode,{allowGenericPrompt:false});
-        if(recovered.recovered){v255RememberRecoverySnapshot(recovered.state,"legacy-auto-recovery");return recovered.state;}
-      }
       const raw=localStorage.getItem(SAVE_KEY);
-      if(!raw){
-        const fromVault=currentStudentCode?v255RepairFromVaultIfReset(currentStudentCode,null):null;
-        if(fromVault)return fromVault;
-        return loadAutoBackupState()||clone(defaultState);
-      }
+      if(!raw)return loadAutoBackupState()||clone(defaultState);
       const parsed=JSON.parse(raw);
-      const vaultRepair=currentStudentCode?v255RepairFromVaultIfReset(currentStudentCode,parsed):null;
-      if(vaultRepair){localStorage.setItem(SAVE_KEY,JSON.stringify(vaultRepair));return vaultRepair;}
       const migrated=mergeStudentProgressWithCurrentMaster(parsed,currentStudentCode||parsed.studentCode||"");
-      const evidence=v255MaxScoreEvidence(parsed);if(evidence>Number(migrated.score||0)&&Number(migrated.score||0)===0)migrated.score=evidence;
       // Om HTML-masterversionen har uppdaterats sparas den migrerade elevprofilen direkt.
       if(String(parsed.masterContentVersion||"")!==MASTER_CONTENT_VERSION){
         try{localStorage.setItem(SAVE_KEY,JSON.stringify(migrated));}catch(e){}
       }
-      v255RememberRecoverySnapshot(migrated,"load");
       return migrated;
     }catch(e){return loadAutoBackupState()||clone(defaultState);}
   }
@@ -5151,7 +4798,6 @@
     state.studentCode=currentStudentCode||state.studentCode||"";
     let saved=true;
     try{
-      v255RememberRecoverySnapshot(state,"saveState");
       localStorage.setItem(SAVE_KEY,JSON.stringify(state));
     }catch(err){
       saved=false;
@@ -5166,7 +4812,6 @@
       const code=normalizeStudentCode(currentStudentCode||state.studentCode||"");
       state.studentCode=code||state.studentCode||"";
       // Sista ordinarie save och en separat rullande lokal backup. Inga filer laddas ner.
-      v255RememberRecoverySnapshot(state,"autosave-"+String(reason||"autosave"));
       localStorage.setItem(SAVE_KEY,JSON.stringify(state));
       localStorage.setItem(studentAutoBackupKey(code),JSON.stringify({
         schema:"hotel-manager-local-autobackup-v1",
@@ -6954,7 +6599,7 @@
             if(guest.returningFromOuting&&booking){finishStayoverReturnCheck(guest,booking);guest.returningFromOuting=false;guest.dailyPhase="resting";}
             guest.nextActionAt=now+16000+index*1200;
           }else if(guest.state==="inLobby"){
-            // v.01-253: riktiga hotellgäster sitter inte kvar i lobbyn hela hotellperioder.
+            // v.01-252: riktiga hotellgäster sitter inte kvar i lobbyn hela hotellperioder.
             // De kopplar av cirka 30 sekunder och fortsätter sedan sin hotellrunda.
             guest.nextActionAt=guest.ambient?now+9000+index*700:now+30000+index*1200;
           }else if(guest.state==="inRestaurant"){
@@ -7269,8 +6914,6 @@
   }
 
   function update(dt){
-    // v.01-256: om rummet blivit rent av ett avslutat arbetsmoment får ett gammalt HSK-flöde inte leva vidare.
-    if(repairFinishedHousekeepingWorkflow()){saveState();updateMission();renderStaffBar();updateInteraction();}
     // Gästerna rör sig självständigt även när vald personal arbetar.
     updateGuests(dt);
     updateGuestWaitingSatisfaction();
@@ -8354,7 +7997,6 @@
   function removeRoomFromHskQueue(roomId){
     if(!Array.isArray(state.hskQueue))state.hskQueue=[];
     state.hskQueue=state.hskQueue.filter(id=>Number(id)!==Number(roomId));
-    pruneStaleHskQueue();
     state.tasks.clean=hskDailyWorkComplete();
   }
 
@@ -8792,6 +8434,8 @@
 
   function cleanText(value){return String(value||"").trim().replace(/\s+/g," ");}
   function normalizeCompare(value){return cleanText(value).toLowerCase().replace(/[.,-]/g,"");}
+  // v.01-253: telefonnummer jämförs på siffrorna, inte på hur eleven skriver mellanslag/bindestreck.
+  function normalizePhoneCompare(value){return String(value||"").replace(/\D/g,"");}
 
   function expectedContactForBooking(booking){
     if(!booking.expectedContact){
@@ -8922,7 +8566,7 @@
     saveState();
   }
 
-  // v.01-253: När gästen har bekräftat uppgifterna ska samtalet INTE avslutas.
+  // v.01-252: När gästen har bekräftat uppgifterna ska samtalet INTE avslutas.
   // Gästen ligger kvar på tråden medan eleven registrerar reservationen.
   function finishPhoneConversationForReservation(){
     if(state.tasks.phoneBooking)return false;
@@ -8931,7 +8575,7 @@
       state.phoneCallStatus="in_call";
       state.phoneCallCountdownEnd=0;
       state.phoneConversationCompletedDay=0;
-      state.phoneFlowVersion="v.01-253";
+      state.phoneFlowVersion="v.01-252";
       saveState();
       updateMission();
       return true;
@@ -8963,46 +8607,42 @@
     updateMission();
   }
 
-  // v.01-253: registreringen görs medan gästen fortfarande är kvar i telefonen.
+  // v.01-252: registreringen görs medan gästen fortfarande är kvar i telefonen.
   // Reservationsformuläret öppnas bredvid samtalet; ingen automatisk "lägg på" sker.
   function openPhoneReservationWorkspace(){
-    const day=Number(state.day||1),progress=Number(state.phoneCallProgress||0);
-
-    // Om reservationen redan är sparad ska eleven tillbaka till samtalet, inte kunna skapa en dubblett.
-    if(Number(state.phoneSavedBookingId||0)>0||progress>=43){
-      state.phoneCallStatus="in_call";
+    const day=Number(state.day||1);
+    const realConversationReady=Number(state.phoneCallProgress||0)>=4&&Number(state.phoneCallHeardDay||0)===day&&Boolean(state.pendingPhoneReservation);
+    if(!realConversationReady){
+      state.phoneTaskAssignedDay=0;
+      state.phoneCallHeardDay=0;
+      state.phoneConversationCompletedDay=0;
+      state.phoneFlowVersion="v.01-252";
+      state.phoneAutoAnswerPending=false;
+      state.phoneCallStatus="idle";
+      state.phoneCallCountdownEnd=0;
+      state.phoneCallProgress=0;
+      state.phoneCallBranch="";
+      state.phoneCallAlternativeStart=null;
+      state.phoneAvailabilityCheckOpen=false;
+      state.phoneAvailabilityChecked=false;
+      state.phoneAlternativeCheckOpen=false;
+      state.phoneAlternativeChecked=false;
+      state.pendingPhoneReservation=null;
+      closePhoneCallPanel();
       saveState();
-      document.getElementById("newReservationModal")?.classList.remove("show");
-      document.getElementById("reservationAvailabilityModal")?.classList.remove("show");
-      document.getElementById("phoneBookingModal")?.classList.add("show");
-      setPhoneCallDocked(true);
-      renderPhoneDialogueStep();
-      showTip("Reservationen är redan sparad. Avsluta samtalet med gästen innan du lägger på.");
+      updateMission();
+      startIncomingPhoneCall();
+      showTip("Telefonuppgiften börjar med ett riktigt samtal. Om 10 sekunder ringer receptionstelefonen.");
       return;
     }
-
-    const sameDayCall=Number(state.phoneCallHeardDay||0)===day;
-    const registrationReady=Boolean(state.pendingPhoneReservation&&(progress===41||progress===42));
-    if(!registrationReady){
-      // v.01-253: återställ aldrig hela telefonsamtalet från den här knappen.
-      // Det gamla beteendet kunde kasta eleven tillbaka till början och upplevas som att reservationen låst sig.
-      document.getElementById("phoneBookingModal")?.classList.add("show");
-      setPhoneCallDocked(true);
-      renderPhoneDialogueStep();
-      showTip("Fortsätt telefonsamtalet tills gästen har lämnat bokningsuppgifterna. Därefter öppnas reservationsformuläret.");
-      return;
-    }
-
-    // En pågående uppgift från dagens period får återhämta sig efter t.ex. stängd modal/import.
-    if(!sameDayCall&&Number(state.phoneTaskAssignedDay||0)===day)state.phoneCallHeardDay=day;
     state.phoneCallStatus="in_call";
     state.phoneConversationCompletedDay=0;
-    state.phoneFlowVersion="v.01-253";
+    state.phoneFlowVersion="v.01-252";
     saveState();
     document.getElementById("phoneBookingModal")?.classList.add("show");
     setPhoneCallDocked(true);
     openNewReservationModal();
-    showTip(state.phoneReservationReadbackConfirmed?"Gästen har bekräftat. Spara reservationen i PMS.":"Gästen är kvar i telefonen. Fyll i reservationen och läs tillbaka innan du sparar.");
+    showTip("Gästen är kvar i telefonen. Fyll i reservationen och spara den innan du lägger på.");
   }
 
   function phoneScenarioForDay(){
@@ -9071,7 +8711,7 @@
     state.phoneTaskAssignedPeriodKey=phoneTaskPeriodKey();
     state.phoneCallHeardDay=0;
     state.phoneConversationCompletedDay=0;
-    state.phoneFlowVersion="v.01-253";
+    state.phoneFlowVersion="v.01-252";
     state.phoneAutoAnswerPending=false;
     state.phoneCallCountdownEnd=Date.now()+10000;
     state.phoneCallProgress=0;
@@ -9194,7 +8834,7 @@
       if(Number(nextStep)===5){
         state.phoneCallStatus="in_call";
         state.phoneConversationCompletedDay=0;
-        state.phoneFlowVersion="v.01-253";
+        state.phoneFlowVersion="v.01-252";
       }
       saveState();
       updateMission();
@@ -9283,7 +8923,8 @@
     const current=activePhoneScenario();
     const arrival=phoneDayLabel(Number(current.start));
     const departure=phoneDayLabel(Number(current.start)+Number(current.nights||1));
-    root.innerHTML=`<div class="phone-request-summary-title">📞 Gästens aktuella förfrågan</div><div class="phone-request-summary-grid"><div class="phone-request-summary-item"><span>Ankomst</span><b>${escapeHtml(arrival)}</b></div><div class="phone-request-summary-item"><span>Avresa</span><b>${escapeHtml(departure)}</b></div><div class="phone-request-summary-item"><span>Antal nätter</span><b>${Number(current.nights||1)}</b></div></div>`;
+    const knownDetails=step>=3?`<div class="phone-request-summary-item"><span>Antal gäster</span><b>${Math.max(1,Number(current.partySize||1))}</b></div><div class="phone-request-summary-item"><span>Rumstyp</span><b>${escapeHtml(String(current.roomType||"—"))}</b></div>`:"";
+    root.innerHTML=`<div class="phone-request-summary-title">📞 Gästens aktuella förfrågan</div><div class="phone-request-summary-grid"><div class="phone-request-summary-item"><span>Ankomst</span><b>${escapeHtml(arrival)}</b></div><div class="phone-request-summary-item"><span>Avresa</span><b>${escapeHtml(departure)}</b></div><div class="phone-request-summary-item"><span>Antal nätter</span><b>${Number(current.nights||1)}</b></div>${knownDetails}</div>`;
     root.classList.add("show");
   }
 
@@ -9305,29 +8946,9 @@
   }
 
   function phoneRegistrationIsActive(){
-    // v.01-253: telefonens reservationsformulär är aktivt ENDAST medan reservationen fylls i/återläses.
-    // Efter sparning (steg 43–44) får en ny PMS-reservation inte kopplas till samma telefonsamtal.
+    // v.01-252: registreringssteget följer samtalssteget och överlever återställning/import.
     const progress=Number(state.phoneCallProgress||0);
-    return Boolean(!state.tasks.phoneBooking&&!Number(state.phoneSavedBookingId||0)&&state.pendingPhoneReservation&&(progress===41||progress===42));
-  }
-
-  function updatePhoneReservationWorkflowNote(){
-    const note=document.getElementById("phoneReservationWorkflowNote");
-    const closeBtn=document.querySelector('[data-close="newReservationModal"]');
-    if(!note)return;
-    if(!phoneRegistrationIsActive()){
-      note.style.display="none";
-      note.classList.remove("ready");
-      if(closeBtn)closeBtn.textContent="Stäng";
-      return;
-    }
-    const ready=Boolean(state.phoneReservationReadbackConfirmed&&Number(state.phoneCallProgress||0)===42);
-    note.style.display="block";
-    note.classList.toggle("ready",ready);
-    note.innerHTML=ready
-      ? '<strong>✓ Gästen har bekräftat återläsningen.</strong>Klicka nu på <b>✓ SPARA RESERVATION I PMS</b>. Gästen är fortfarande kvar på tråden.'
-      : '<strong>📞 Gästen är kvar på tråden.</strong>Fyll i alla uppgifter i PMS. Klicka sedan på <b>📞 LÄS TILLBAKA BOKNINGEN</b>. Efter gästens ja ändras samma knapp till Spara.';
-    if(closeBtn)closeBtn.textContent=ready?"Till samtalet":"Till samtalet";
+    return Boolean(!state.tasks.phoneBooking&&state.pendingPhoneReservation&&progress>=41&&progress<90);
   }
 
   function ensurePhoneReservationDraft(){
@@ -9341,7 +8962,7 @@
       roomId:Number(s.selectedRoomId||0),
       start:Number(s.start||getTodayIndex()),
       nights:Math.max(1,Number(s.nights||1)),
-      partySize:Math.max(1,Number(s.partySize||1)),
+      partySize:0,
       source:"Telefon"
     };
     return state.phoneReservationDraft;
@@ -9358,7 +8979,7 @@
     if(get("newReservationRoom"))draft.roomId=Number(get("newReservationRoom").value||0);
     if(get("newReservationStart"))draft.start=Number(get("newReservationStart").value||0);
     if(get("newReservationNights"))draft.nights=Number(get("newReservationNights").value||1);
-    if(get("newReservationPartySize"))draft.partySize=Number(get("newReservationPartySize").value||1);
+    if(get("newReservationPartySize"))draft.partySize=Number(get("newReservationPartySize").value||0);
     if(get("newReservationSource"))draft.source=String(get("newReservationSource").value||"Telefon");
     if(markReadbackStale&&state.phoneReservationReadbackConfirmed){
       state.phoneReservationReadbackConfirmed=false;
@@ -9374,12 +8995,13 @@
     const draft=capturePhoneReservationDraft(false)||ensurePhoneReservationDraft(),s=activePhoneScenario(),issues=[];
     if(!draft)return {ok:false,issues:["Öppna reservationsformuläret först."],draft:null};
     if(normalizeCompare(draft.guest)!==normalizeCompare(s.name))issues.push("gästens namn");
-    if(normalizeCompare(draft.phone)!==normalizeCompare(s.phone))issues.push("telefonnummer");
+    if(normalizePhoneCompare(draft.phone)!==normalizePhoneCompare(s.phone))issues.push("telefonnummer");
     if(normalizeCompare(draft.city)!==normalizeCompare(s.city))issues.push("stad");
     if(normalizeCompare(draft.address)!==normalizeCompare(s.address))issues.push("adress");
     if(Number(draft.start)!==Number(s.start))issues.push("ankomstdatum");
     if(Number(draft.nights)!==Number(s.nights))issues.push("antal nätter");
-    if(Number(draft.partySize)!==Number(s.partySize||1))issues.push("antal gäster");
+    if(Number(draft.partySize||0)<1)issues.push("antal gäster (välj antal)");
+    else if(Number(draft.partySize)!==Number(s.partySize||1))issues.push("antal gäster");
     if(String(draft.source)!=="Telefon")issues.push("källa");
     if(!Number(draft.roomId||0))issues.push("rum");
     else if(roomTypeForId(Number(draft.roomId))!==String(s.roomType||""))issues.push("rumstyp");
@@ -9390,9 +9012,9 @@
     const btn=document.getElementById("saveNewReservationBtn"),force=document.getElementById("forceReservationOverrideBtn");
     if(!btn)return;
     if(phoneRegistrationIsActive()){
-      const ready=Boolean(state.phoneReservationReadbackConfirmed&&Number(state.phoneCallProgress||0)===42);
+      const ready=Boolean(state.phoneReservationReadbackConfirmed&&Number(state.phoneCallProgress||0)>=42);
       btn.disabled=false;
-      btn.textContent=ready?"✓ SPARA RESERVATION I PMS":"📞 LÄS TILLBAKA BOKNINGEN";
+      btn.textContent=ready?"✓ SPARA RESERVATION":"📞 LÄS TILLBAKA TILL GÄSTEN";
       btn.style.background=ready?"#39c79f":"#5d72ef";
       btn.style.opacity="1";
       btn.onclick=ready?()=>saveNewReservation(false):confirmPhoneReservationReadback;
@@ -9401,21 +9023,13 @@
       btn.disabled=false;btn.textContent="Spara reservation";btn.style.background="";btn.style.opacity="1";btn.onclick=()=>saveNewReservation(false);
       if(force){force.disabled=false;force.style.opacity="1";}
     }
-    updatePhoneReservationWorkflowNote();
   }
 
   function confirmPhoneReservationReadback(){
     if(!phoneRegistrationIsActive()){
-      showTip("Fortsätt samtalet tills gästen har lämnat bokningsuppgifterna och reservationsformuläret är öppet.");
-      return false;
-    }
-    // Återläsningen ska göras från PMS medan formuläret ligger kvar öppet.
-    // Då hamnar eleven inte i ett mellanläge där hen måste lämna reservationen och öppna den igen.
-    const reservationModal=document.getElementById("newReservationModal");
-    if(!reservationModal?.classList.contains("show")){
-      openPhoneReservationWorkspace();
-      showTip("PMS är öppet igen. Fyll i uppgifterna och använd knappen längst ner för att läsa tillbaka bokningen.");
-      return false;
+      const progress=Number(state.phoneCallProgress||0);
+      if(state.pendingPhoneReservation&&progress>=41&&!state.tasks.phoneBooking){state.phoneCallStatus="in_call";saveState();}
+      else{showTip("Fortsätt samtalet tills gästen har lämnat bokningsuppgifterna.");return false;}
     }
     const result=phoneReservationFormValidation();
     const error=document.getElementById("newReservationError");
@@ -9423,6 +9037,7 @@
       const msg=`Kontrollera ${result.issues.join(", ")} i PMS innan du läser tillbaka bokningen.`;
       if(error)error.textContent=msg;
       showTip(msg);
+      if(!document.getElementById("newReservationModal")?.classList.contains("show"))openPhoneReservationWorkspace();
       return false;
     }
     const d=result.draft,s=activePhoneScenario(),roomType=roomTypeForId(Number(d.roomId||0));
@@ -9430,19 +9045,11 @@
     const choices=document.getElementById("phoneDialogueChoices");if(choices)choices.innerHTML="";
     setPhoneBubble("staff",summary);
     state.phoneReservationReadbackConfirmed=true;
-    if(error)error.textContent="Väntar på gästens bekräftelse …";
     saveState();
-    refreshPhoneReservationSaveButton();
     if(phoneDialogueTimer){clearTimeout(phoneDialogueTimer);phoneDialogueTimer=null;}
     phoneDialogueTimer=setTimeout(()=>{
-      // Gästen svarar ja. PMS stannar öppet och samma knapp blir nu SPARA.
       state.phoneCallProgress=42;
-      state.phoneCallStatus="in_call";
-      saveState();updateMission();renderPhoneDialogueStep();
-      reservationModal.classList.add("show");
-      if(error)error.textContent="✓ Gästen har bekräftat. Spara reservationen i PMS innan du avslutar samtalet.";
-      refreshPhoneReservationSaveButton();
-      showTip("✓ Gästen bekräftade uppgifterna. Klicka nu på SPARA RESERVATION I PMS.");
+      saveState();updateMission();renderPhoneDialogueStep();refreshPhoneReservationSaveButton();
     },850);
     return true;
   }
@@ -9466,8 +9073,6 @@
     state.phoneReservationReadbackConfirmed=false;
     state.phoneSavedBookingId=0;
     saveState();updateMission();updateHud();
-    document.getElementById("newReservationModal")?.classList.remove("show");
-    document.getElementById("reservationAvailabilityModal")?.classList.remove("show");
     closePhoneCallPanel();
     showTip("Telefonbokningen är klar. Reservationen är sparad i PMS och samtalet avslutades professionellt.");
     return true;
@@ -9683,25 +9288,16 @@
       ],"register_while_calling");
     }else if(step===41){
       const info=document.createElement("div");info.className="phone-dialogue-bubble guest";
-      const pmsOpen=Boolean(document.getElementById("newReservationModal")?.classList.contains("show"));
-      info.innerHTML=pmsOpen
-        ? "<strong>Gästen är kvar på tråden.</strong><br>PMS är öppet. Fyll i alla uppgifter och använd knappen <strong>LÄS TILLBAKA BOKNINGEN</strong> längst ner i reservationsformuläret."
-        : "<strong>Gästen är kvar på tråden.</strong><br>Öppna PMS, fyll i uppgifterna och läs tillbaka hela bokningen innan du sparar.";
+      info.innerHTML="<strong>Gästen är kvar på tråden.</strong><br>Fyll i uppgifterna i PMS. När allt är inskrivet ska du läsa tillbaka hela bokningen till gästen.";
       choices.appendChild(info);
-      if(!pmsOpen){
-        const open=document.createElement("button");open.type="button";open.textContent="ÖPPNA PMS / RESERVATIONSFORMULÄR";
-        open.onclick=openPhoneReservationWorkspace;choices.appendChild(open);
-      }
+      const open=document.createElement("button");open.type="button";open.textContent=document.getElementById("newReservationModal")?.classList.contains("show")?"PMS ÄR ÖPPET – FYLL I UPPGIFTERNA":"ÖPPNA PMS / RESERVATIONSFORMULÄR";
+      open.onclick=openPhoneReservationWorkspace;choices.appendChild(open);
+      const readback=document.createElement("button");readback.type="button";readback.textContent="LÄS TILLBAKA OCH DUBBELKONTROLLERA";readback.onclick=confirmPhoneReservationReadback;choices.appendChild(readback);
     }else if(step===42){
       const ok=document.createElement("div");ok.className="phone-dialogue-bubble guest";
-      const pmsOpen=Boolean(document.getElementById("newReservationModal")?.classList.contains("show"));
-      ok.innerHTML=pmsOpen
-        ? "<strong>✓ Gästen har dubbelbekräftat uppgifterna.</strong><br>PMS ligger kvar öppet. Klicka nu på <strong>SPARA RESERVATION I PMS</strong>."
-        : "<strong>✓ Gästen har dubbelbekräftat uppgifterna.</strong><br>Reservationen är ännu inte sparad. Öppna PMS och spara medan gästen fortfarande är kvar på tråden.";
+      ok.innerHTML="<strong>✓ Gästen har dubbelbekräftat uppgifterna.</strong><br>Klicka nu på <strong>Spara reservation</strong> i PMS medan gästen fortfarande är kvar på tråden.";
       choices.appendChild(ok);
-      if(!pmsOpen){
-        const open=document.createElement("button");open.type="button";open.textContent="ÖPPNA PMS OCH SPARA";open.onclick=openPhoneReservationWorkspace;choices.appendChild(open);
-      }
+      const open=document.createElement("button");open.type="button";open.textContent="ÅTERGÅ TILL PMS OCH SPARA";open.onclick=openPhoneReservationWorkspace;choices.appendChild(open);
       refreshPhoneReservationSaveButton();
     }else if(step===43){
       const saved=document.createElement("div");saved.className="phone-dialogue-bubble guest";
@@ -10091,16 +9687,15 @@
 
   function reservationRoomChoiceStatus(room,start,nights){
     const conflict=findReservationConflict(room.id,start,nights);
-    if(conflict)return `Bokad · ${conflict.guest}`;
-    return roomCurrentStatusText(room);
+    if(conflict)return `Bokad vald period · ${conflict.guest}`;
+    return `Ledigt vald period · status idag: ${roomCurrentStatusText(room)}`;
   }
 
-  // v.01-253: DND respekteras tidigt och när gästen är inne; övriga HSK-rum prioriteras först.
+  // v.01-252: DND respekteras tidigt och när gästen är inne; övriga HSK-rum prioriteras först.
   function currentHskRoomId(){
-    pruneStaleHskQueue();
     const queue=Array.isArray(state.hskQueue)?state.hskQueue.map(Number).filter(Boolean):[];
     if(!queue.length)return null;
-    // v.01-253: DND är inte ett aktivt HSK-mål före 15:00 och aldrig medan gästen är inne.
+    // v.01-252: DND är inte ett aktivt HSK-mål före 15:00 och aldrig medan gästen är inne.
     const actionable=queue.filter(id=>{
       const room=state.rooms.find(r=>Number(r.id)===id);
       const sign=String(room?.doorSign||"none").toUpperCase();
@@ -10237,7 +9832,7 @@
     const body=document.getElementById("reservationAvailabilityBody");if(!body)return;
     const checkoutIndex=start+nights;
     const allowOverbooking=phoneOverbookingModeActive();
-    body.innerHTML=`<div class="availability-period"><strong>${escapeHtml(hotelCalendarDayLabel(start))} → ${escapeHtml(hotelCalendarDayLabel(checkoutIndex))}</strong><span>${nights} natt${nights===1?"":"er"}</span></div><div class="availability-grid">${builtRooms().map(room=>{const conflict=findReservationConflict(room.id,start,nights);const selected=room.id===selectedRoomId;return `<button class="availability-room ${conflict?"busy":"free"} ${selected?"selected":""}" data-availability-room="${room.id}" ${conflict&&!allowOverbooking?"disabled":""}><b>Rum ${room.id}</b><small>${escapeHtml(roomTypeForId(room.id))}</small><span class="status">${conflict?`BOKAD · ${escapeHtml(conflict.guest)}${allowOverbooking?" · KAN ÖVERBOKAS":""}`:escapeHtml(roomCurrentStatusText(room))}</span></button>`;}).join("")}</div>`;
+    body.innerHTML=`<div class="availability-period"><strong>${escapeHtml(hotelCalendarDayLabel(start))} → ${escapeHtml(hotelCalendarDayLabel(checkoutIndex))}</strong><span>${nights} natt${nights===1?"":"er"}</span></div><div class="availability-grid">${builtRooms().map(room=>{const conflict=findReservationConflict(room.id,start,nights);const selected=room.id===selectedRoomId;return `<button class="availability-room ${conflict?"busy":"free"} ${selected?"selected":""}" data-availability-room="${room.id}" ${conflict&&!allowOverbooking?"disabled":""}><b>Rum ${room.id}</b><small>${escapeHtml(roomTypeForId(room.id))}</small><span class="status">${conflict?`BOKAD VALD PERIOD · ${escapeHtml(conflict.guest)}${allowOverbooking?" · KAN ÖVERBOKAS":""}`:`LEDIG VALD PERIOD · status idag: ${escapeHtml(roomCurrentStatusText(room))}`}</span></button>`;}).join("")}</div>`;
     body.querySelectorAll("[data-availability-room]").forEach(button=>button.onclick=()=>{
       if(button.disabled)return;
       document.getElementById("newReservationRoom").value=button.dataset.availabilityRoom;
@@ -10286,7 +9881,11 @@
       startSelect.value=String(Number(draft?.start??s.start));
       nightsSelect.value=String(Math.max(1,Number(draft?.nights ?? s.nights ?? 1)));
       const partySelect=document.getElementById("newReservationPartySize");
-      if(partySelect)partySelect.value=String(Math.max(1,Number(draft?.partySize ?? s.partySize ?? 1)));
+      // v.01-253: antal gäster ska aktivt registreras av eleven från telefonsamtalet.
+      if(partySelect){
+        const savedPartySize=Number(draft?.partySize||0);
+        partySelect.value=savedPartySize>=1?String(savedPartySize):"";
+      }
       document.getElementById("newReservationSource").value="Telefon";
       // Bygg rumslistan efter att period/nätter satts och återställ sedan det interna rumsvalet.
       updateNewReservationRoomOptions();
@@ -10333,9 +9932,8 @@
       reservationPriceRuleOverrideApproved=true;
       saveNewReservation(true);
     };
-    document.getElementById("newReservationModal").classList.add("show");
     refreshPhoneReservationSaveButton();
-    updatePhoneReservationWorkflowNote();
+    document.getElementById("newReservationModal").classList.add("show");
   }
 
   function saveNewReservation(forceOverride=false){
@@ -10393,7 +9991,7 @@
     if(state.pendingPhoneReservation&&Number(state.phoneCallProgress||0)>=41){
       const s=state.pendingPhoneReservation;let mistakes=0;
       if(normalizeCompare(guest)!==normalizeCompare(s.name))mistakes++;
-      if(normalizeCompare(phone)!==normalizeCompare(s.phone))mistakes++;
+      if(normalizePhoneCompare(phone)!==normalizePhoneCompare(s.phone))mistakes++;
       if(normalizeCompare(city)!==normalizeCompare(s.city))mistakes++;
       if(normalizeCompare(address)!==normalizeCompare(s.address))mistakes++;
       if(Number(s.selectedRoomId||0)){
@@ -10404,7 +10002,7 @@
       if(partySize!==Number(s.partySize||1))mistakes++;
       if(source!=="Telefon")mistakes++;
       booking.phoneBookingMistakes=mistakes+(intentionalPhoneOverbooking?1:0);
-      // v.01-253: sparad reservation avslutar INTE telefonsamtalet.
+      // v.01-252: sparad reservation avslutar INTE telefonsamtalet.
       // Gästen ligger kvar på tråden tills eleven önskat en trevlig dag och lagt på.
       state.phoneSavedBookingId=Number(booking.id||0);
       state.phoneCallHeardDay=Number(state.day||1);
@@ -10427,10 +10025,7 @@
     reservationPriceRuleOverrideApproved=false;
     reservationForceOverrideApproved=false;
     saveState();updateMission();
-    document.getElementById("newReservationModal").classList.remove("show");
-    document.getElementById("reservationAvailabilityModal")?.classList.remove("show");
-    updatePhoneReservationWorkflowNote();
-    renderBookingCalendar();
+    document.getElementById("newReservationModal").classList.remove("show");renderBookingCalendar();
     if(Number(state.phoneSavedBookingId||0)){
       document.getElementById("phoneBookingModal")?.classList.add("show");
       setPhoneCallDocked(true);
@@ -11367,9 +10962,7 @@
     const student=board.students[code];student.code=code;if(typeof student.name!=="string")student.name="";if(typeof student.classCode!=="string")student.classCode="";if(typeof student.studentNo!=="string")student.studentNo="";ensureAutomaticStudentNumbers(board);
     const history=Array.isArray(student.history)?student.history:[];
     if(history.some(x=>String(x.reportId||"")===snapshot.reportId)){return {saved:false,duplicate:true,code,snapshot};}
-    history.push(snapshot);history.sort((a,b)=>{const ta=Date.parse(a.exportedAt||"")||0,tb=Date.parse(b.exportedAt||"")||0;return ta===tb?Number(a.day||0)-Number(b.day||0):ta-tb;});student.history=history.slice(-120);
-    if(typeof v254ApplyLegacyPointCarryToStudent==="function")v254ApplyLegacyPointCarryToStudent(student);
-    scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();return {saved:true,duplicate:false,code,snapshot};
+    history.push(snapshot);history.sort((a,b)=>{const ta=Date.parse(a.exportedAt||"")||0,tb=Date.parse(b.exportedAt||"")||0;return ta===tb?Number(a.day||0)-Number(b.day||0):ta-tb;});student.history=history.slice(-120);scoreboardSave(board);renderTeacherScoreboard();renderTeacherHighscores();return {saved:true,duplicate:false,code,snapshot};
   }
   function studentCodeParts(code){const value=normalizeStudentCode(code||"");const idx=value.lastIndexOf("-");return idx>0?{classCode:value.slice(0,idx),studentNo:value.slice(idx+1)}:{classCode:"",studentNo:""};}
   function studentDisplayParts(student){const parsed=studentCodeParts(student?.code||"");return {classCode:String(student?.classCode||parsed.classCode||"").trim().toUpperCase(),studentNo:String(student?.studentNo||"").trim()};}
@@ -11787,49 +11380,21 @@
     const reader=new FileReader();
     reader.onload=()=>{
       try{
-        const rawPayload=JSON.parse(reader.result);
-        const pkg=normalizeStudentResultPackage(rawPayload);
-        const backup=pkg?.backup?.state;
-        const code=normalizeStudentCode(pkg?.student?.code||backup?.studentCode||"");
-        if(!code)throw new Error("Elevkod saknas");
+        const extracted=extractPortableStudentSave(JSON.parse(reader.result));
+        const {pkg,backup}=extracted;const code=extracted.code;
+        const migrated=mergeStudentProgressWithCurrentMaster(backup,code);
         const fromVersion=String(pkg.hotelVersion||"äldre version");
-        if(backup&&typeof backup==="object"){
-          const migrated=mergeStudentProgressWithCurrentMaster(backup,code);
-          const existingRaw=localStorage.getItem(studentSaveKey(code));
-          const existingStored=v254StoredHotelStateFromRaw(existingRaw);
-          // En äldre fil får aldrig nolla en nyare poängställning.
-          if(existingStored?.state)migrated.score=Math.max(Number(migrated.score||0),Number(existingStored.state.score||0));
-          const message=`${code} · Dag ${Number(migrated.day||1)} · ${Number(migrated.score||0)} hotellpoäng. Sparad med ${fromVersion}. Ladda progressionen i ${HOTEL_VERSION}? Nya master-scenarier och masterinställningar från ${HOTEL_VERSION} används.`;
-          setLoadGameStatus(message);
-          if(!confirm(message))return;
-          localStorage.setItem(studentSaveKey(code),JSON.stringify(migrated));
-          localStorage.setItem(CURRENT_STUDENT_KEY,code);
-          localStorage.setItem(AUTO_START_KEY,"1");
-          localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion,toVersion:HOTEL_VERSION,day:Number(migrated.day||1),score:Number(migrated.score||0),legacyRecovered:true}));
-          location.reload();
-          return;
-        }
-        // Äldre progressionsmejl/-filer kan sakna full spelbackup. Då återställs i alla fall de verifierade hotellpoängen.
-        const oldScore=Math.max(0,Number(pkg?.summary?.score||0));
-        if(!Number.isFinite(oldScore)||oldScore<=0)throw new Error("Ingen spelbackup eller hotellpoäng i filen");
-        const existingStored=v254StoredHotelStateFromRaw(localStorage.getItem(studentSaveKey(code)));
-        const base=existingStored?.state?mergeStudentProgressWithCurrentMaster(existingStored.state,code):mergeStudentProgressWithCurrentMaster(clone(defaultState),code);
-        const before=Math.max(0,Number(base.score||0));
-        const recovered=Math.max(before,oldScore);
-        const message=`Filen innehåller ingen full hotellbackup, men ${oldScore} äldre hotellpoäng för ${code}.\n\nNuvarande profil har ${before} poäng. Återställ poängställningen till ${recovered} poäng?`;
-        setLoadGameStatus(`${code} · äldre hotellpoäng hittade: ${oldScore} p. Full hotellprogression saknas i filen, men poängen kan återställas.`);
+        const message=`${code} · Dag ${Number(migrated.day||1)} · ${Number(migrated.score||0)} hotellpoäng. Sparad med ${fromVersion}. Ladda progressionen i ${HOTEL_VERSION}? Nya master-scenarier och masterinställningar från ${HOTEL_VERSION} används.`;
+        setLoadGameStatus(message);
         if(!confirm(message))return;
-        base.score=recovered;
-        base.legacyPointsRecoveredFrom=fromVersion;
-        base.legacyPointsRecoveredAt=new Date().toISOString();
-        localStorage.setItem(studentSaveKey(code),JSON.stringify(base));
+        localStorage.setItem(studentSaveKey(code),JSON.stringify(migrated));
         localStorage.setItem(CURRENT_STUDENT_KEY,code);
         localStorage.setItem(AUTO_START_KEY,"1");
-        localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion,toVersion:HOTEL_VERSION,day:Number(base.day||1),score:recovered,legacyRecovered:true}));
+        localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion,toVersion:HOTEL_VERSION,day:Number(migrated.day||1)}));
         location.reload();
       }catch(err){
         console.warn("Elevfilen kunde inte laddas",err);
-        setLoadGameStatus("Filen kunde inte läsas som ett Hotel Manager-spel eller som en äldre progressionsfil med hotellpoäng.","bad");
+        setLoadGameStatus("Filen kunde inte läsas som ett Hotel Manager-spel. Välj elevens senaste hotel_manager_ELEVKOD_dag_X.json.","bad");
         showTip("Filen har inte rätt Hotel Manager-format.");
       }
     };
@@ -11848,15 +11413,11 @@
         let saved={};
         try{saved=JSON.parse(localStorage.getItem(key)||"{}");}catch(e){}
         const code=normalizeStudentCode(saved?.studentCode||keyCode)||keyCode;
-        const vault=v255ReadRecoveryVault(code);
-        const useVault=v255LooksLikeFreshReset(saved)&&vault?.state&&!v255LooksLikeFreshReset(vault.state);
-        const visible=useVault?vault.state:saved;
         profiles.push({
           code,
-          day:Math.max(1,Number(visible?.day||1)),
-          score:Number(visible?.score||0),
-          money:Number(visible?.money||0),
-          recoverable:Boolean(useVault)
+          day:Math.max(1,Number(saved?.day||1)),
+          score:Number(saved?.score||0),
+          money:Number(saved?.money||0)
         });
       }
     }catch(e){console.warn("Kunde inte läsa lokala elevprofiler",e);}
@@ -11876,7 +11437,7 @@
     }
     list.innerHTML=profiles.map(profile=>{
       const active=profile.code===currentStudentCode;
-      return `<div class="saved-student-row ${active?"active":""}"><div class="saved-student-main"><div class="saved-student-code">${escapeHtml(profile.code)}${active?'<span class="saved-student-active">AKTIV</span>':""}${profile.recoverable?'<span class="saved-student-active" style="background:#d79b20">ÅTERSTÄLLNINGSBAR</span>':""}</div><div class="saved-student-meta">Dag ${profile.day} · ${profile.score} hotellpoäng · ${profile.money} kr</div></div><button class="saved-student-open" type="button" data-open-student="${escapeHtml(profile.code)}">Öppna</button></div>`;
+      return `<div class="saved-student-row ${active?"active":""}"><div class="saved-student-main"><div class="saved-student-code">${escapeHtml(profile.code)}${active?'<span class="saved-student-active">AKTIV</span>':""}</div><div class="saved-student-meta">Dag ${profile.day} · ${profile.score} hotellpoäng · ${profile.money} kr</div></div><button class="saved-student-open" type="button" data-open-student="${escapeHtml(profile.code)}">Öppna</button></div>`;
     }).join("");
   }
 
@@ -11891,29 +11452,10 @@
   function startOrContinueStudent(){
     const input=document.getElementById("studentCodeInput"),code=normalizeStudentCode(input?.value||"");
     if(!code){input?.focus();return;}
-    // v.01-257: en känd återställning får aldrig hoppas över av automatisk start eller knappen Fortsätt.
-    v255ShowRecoveryCard();
-    const recoveryCard=document.getElementById("scoreRecoveryCard"),skipKey=v257SkipRecoveryKey(code);
-    let skip=false;try{skip=sessionStorage.getItem(skipKey)==="1";}catch(_e){}
-    if(recoveryCard?.classList.contains("show")&&recoveryCard.dataset.mode&&!skip){
-      try{localStorage.removeItem(AUTO_START_KEY);}catch(_e){}
-      recoveryCard.scrollIntoView?.({block:"center",behavior:"smooth"});
-      showTip("Tidigare hotellpoäng hittades. Återställ dem först, eller välj Inte nu om du medvetet vill fortsätta från 0.");
-      return;
-    }
-    // v.01-254: innan en tom elevprofil skapas letar spelet efter samma elevs äldre lokala hotell.
-    // Om den gamla sparningen saknar elevkod får användaren själv bekräfta att den ska tas över.
-    const recovery=v254RecoverLegacyProfile(code,{allowGenericPrompt:true});
-    if(recovery.recovered){
-      localStorage.setItem(CURRENT_STUDENT_KEY,code);
-      localStorage.setItem(AUTO_START_KEY,"1");
-      location.reload();
-      return;
-    }
     if(code!==currentStudentCode){
       localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");location.reload();return;
     }
-    started=true;document.getElementById("startScreen").style.display="none";startGuestFlow();focusCameraOnWorldPoint(880,960);recordAssessment("session_started",{studentCode:code});saveState();const loadNotice=localStorage.getItem(LOAD_NOTICE_KEY);if(loadNotice){localStorage.removeItem(LOAD_NOTICE_KEY);try{const info=JSON.parse(loadNotice);showTip(info.legacyRecovered?`✓ Äldre hotell återställt: Dag ${Number(info.day||state.day||1)} · ${Number((info.score??state.score)||0)} hotellpoäng.`:`✓ ${info.code||code} laddad från ${info.fromVersion||"äldre version"} till ${info.toVersion||HOTEL_VERSION}. Fortsätter på Dag ${Number(info.day||state.day||1)}.`);}catch(e){showTip("✓ Elevens sparade hotell är laddat i den nya spelversionen.");}}else{showTip("Elevprofilen sparas automatiskt lokalt. Avsluta lektionen för att skicka progressionsunderlaget till läraren.");}
+    started=true;document.getElementById("startScreen").style.display="none";startGuestFlow();focusCameraOnWorldPoint(880,960);recordAssessment("session_started",{studentCode:code});saveState();const loadNotice=localStorage.getItem(LOAD_NOTICE_KEY);if(loadNotice){localStorage.removeItem(LOAD_NOTICE_KEY);try{const info=JSON.parse(loadNotice);showTip(`✓ ${info.code||code} laddad från ${info.fromVersion||"äldre version"} till ${info.toVersion||HOTEL_VERSION}. Fortsätter på Dag ${Number(info.day||state.day||1)}.`);}catch(e){showTip("✓ Elevens sparade hotell är laddat i den nya spelversionen.");}}else{showTip("Elevprofilen sparas automatiskt lokalt. Avsluta lektionen för att skicka progressionsunderlaget till läraren.");}
   }
 
   canvas.addEventListener("contextmenu",e=>e.preventDefault());
@@ -11989,16 +11531,6 @@
     const closingModal=document.getElementById(modalId);
     if(modalId==="teacherModal"){logoutTeacherMode();return;}
     if(modalId==="phoneBookingModal"){hangUpPhoneCall();return;}
-    if(modalId==="newReservationModal"&&phoneRegistrationIsActive()){
-      capturePhoneReservationDraft(false);
-      closingModal?.classList.remove("show");
-      document.getElementById("reservationAvailabilityModal")?.classList.remove("show");
-      document.getElementById("phoneBookingModal")?.classList.add("show");
-      setPhoneCallDocked(true);
-      renderPhoneDialogueStep();
-      showTip(state.phoneReservationReadbackConfirmed?"Reservationen är inte sparad ännu. Öppna PMS igen och spara innan du avslutar samtalet.":"Uppgifterna är sparade som utkast. Gästen är kvar på tråden – öppna PMS igen för att fortsätta bokningen.");
-      return;
-    }
     if(modalId==="routineTaskModal"){v232SaveRoutineDraftFromDom();v245HideHskCompare();v232ActiveRoutineTask=null;}
     if(modalId==="receptionModal"&&v242PmsRoutineContext){v242ReturnFromPmsRoutine();return;}
     if(modalId==="hskGuestConversationModal"&&hskWorkflow&&hskWorkflow.stage==="insideGuest"){
@@ -12225,8 +11757,6 @@
   // v.01-170: reset måste byta den AKTIVA state-variabeln innan reload. Behålls i v.01-179.
   // Annars kunde beforeunload-autosaven skriva tillbaka det gamla spelet ovanpå resetten.
   function resetGameProgress(preserveTeacherContent=true){
-    const resetCode=normalizeStudentCode(currentStudentCode||state.studentCode||"");
-    if(resetCode)v257MarkIntentionalReset(resetCode);
     const preservedScenarios=preserveTeacherContent?clone(state.scenarios):clone(defaultState.scenarios);
     const preservedPhrases=preserveTeacherContent?clone(state.checkinPhrases):clone(defaultState.checkinPhrases);
     const fresh=clone(defaultState);fresh.difficultyLevel=teacherDifficultyPreference();
@@ -12277,7 +11807,6 @@
     const first=confirm("VARNING: Detta raderar både elevens spelprogression OCH lärarens egna scenarier/fraser från denna webbläsare. Fortsätta?");
     if(!first)return;
     if(confirm("SISTA VARNINGEN: Radera verkligen allt lokalt lärarinnehåll och hela den aktiva spelomgången?")){
-      const resetCode=normalizeStudentCode(currentStudentCode||state.studentCode||"");if(resetCode)v257MarkIntentionalReset(resetCode);
       state=clone(defaultState);state.difficultyLevel=teacherDifficultyPreference();
       state.studentCode=currentStudentCode||"";
       try{localStorage.removeItem(AUTO_BACKUP_KEY);}catch(e){}
@@ -12290,26 +11819,16 @@
   const activeStudentLabel=document.getElementById("activeStudentLabel");
   if(studentCodeInput){
     studentCodeInput.value=currentStudentCode||"";
-    studentCodeInput.addEventListener("input",()=>{const normalized=normalizeStudentCode(studentCodeInput.value);if(studentCodeInput.value!==normalized)studentCodeInput.value=normalized;setTimeout(v255ShowRecoveryCard,0);});
+    studentCodeInput.addEventListener("input",()=>{const normalized=normalizeStudentCode(studentCodeInput.value);if(studentCodeInput.value!==normalized)studentCodeInput.value=normalized;});
     studentCodeInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();startOrContinueStudent();}});
   }
   if(activeStudentLabel)activeStudentLabel.textContent=currentStudentCode?`Aktiv elev: ${currentStudentCode}`:"Ingen elev vald";
   renderSavedStudentProfiles();
-  v255ShowRecoveryCard();
-  document.getElementById("scoreRecoveryRestoreBtn")?.addEventListener("click",v255RestoreFromRecoveryCard);
-  document.getElementById("scoreRecoveryDismissBtn")?.addEventListener("click",()=>{
-    const code=normalizeStudentCode(currentStudentCode||document.getElementById("studentCodeInput")?.value||"");
-    try{if(code)sessionStorage.setItem(v257SkipRecoveryKey(code),"1");}catch(_e){}
-    document.getElementById("scoreRecoveryCard")?.classList.remove("show");
-    showTip("Återställningen hoppades över för den här fliken. Klicka Starta/Fortsätt om du medvetet vill fortsätta från nuvarande poäng.");
-  });
 
 
-  // v.01-257 · Poängskydd dubbelkontrollerat: återställning kan inte hoppas över av auto-start, alla lokala elevprofiler skannas till valv, lärarhistorik kan rädda hotellpoäng och avsiktlig reset respekteras.
-  // v.01-255 · Poängskydd: separat återställningsvalv + tydlig räddning av en helt nollställd profil.
-  // v.01-253 · Telefonreservation: sammanhängande flöde utan återvändsgränd efter återläsning.
-  // PMS ligger kvar öppet: fyll i → läs tillbaka → gästen bekräftar → samma knapp blir SPARA → avsked → lägg på.
-  // Stängs reservationsfönstret av misstag sparas utkastet och samtalet kan fortsätta utan att startas om.
+  // v.01-253 · Telefonreservation: robust telefonnummerjämförelse, aktivt val av antal gäster och tydligare periodtillgänglighet.
+  // v.01-252 · Telefonreservation: uppgifterna registreras medan gästen är kvar i samtalet, återläses, dubbelbekräftas och sparas innan avslut.
+  // Uppgiften avslutas först genom riktig sparning i PMS; ingen separat PMS-only-uppgift.
 
   // ============================================================
   // v.01-231 · ARBETSPASS, ÖVERLÄMNING, PROGRESSION & RANKING
@@ -12588,7 +12107,7 @@
     const rows=[];let headers=["Gäst","Rum","Status","Rumsstatus","Ankomst","Avresa"];
     let intro="Kontrollera uppgiften mot hotellets aktuella läge. Markera varje kontrollpunkt först när du faktiskt har kontrollerat den.";
     let checks=[];let question=null;let canComplete=true;let blocked="";let dataTitle="Aktuellt underlag";
-    // v.01-253: "Dagens ankomster" betyder bara gäster som fortfarande ska checka in.
+    // v.01-252: "Dagens ankomster" betyder bara gäster som fortfarande ska checka in.
     // Inhouse är redan incheckad och får därför inte räknas som en kvarvarande C/I.
     const todayArrivals=bookings.filter(b=>Number(b.start||0)===today&&["arrival","reserved","late_arrival"].includes(String(b.status||"")));
     const tomorrowArrivals=bookings.filter(b=>Number(b.start||0)===tomorrow&&!["cancelled","checked_out"].includes(String(b.status||"")));
@@ -13017,7 +12536,7 @@
 
   renderHighscoreExplanation=function(code){let detail=document.getElementById("individualHighscoreDetail");if(!detail){detail=document.createElement("div");detail.id="individualHighscoreDetail";document.getElementById("highscoreView")?.appendChild(detail);}const student=scoreboardLoad().students?.[code],latest=student?.history?.at(-1);if(!detail||!latest)return;const r=latest.ranking||{};detail.innerHTML=`<div class="highscore-explain"><h5>🔎 Så räknas ${escapeHtml(student.name||student.code)}</h5><div class="v231-ranking-grid"><div class="v231-rank-card"><span>Yrkeskunnande 40%</span><b>${Number(r.vocational||0).toFixed(1)}%</b></div><div class="v231-rank-card"><span>Gästnöjdhet 35%</span><b>${Number(r.guestSatisfaction||0).toFixed(1)}%</b></div><div class="v231-rank-card"><span>Uppgifter 15%</span><b>${Number(r.tasks||0).toFixed(1)}%</b></div><div class="v231-rank-card"><span>Ekonomi 5%</span><b>${Number(r.economy||0).toFixed(1)}%</b></div><div class="v231-rank-card"><span>Hotellpoäng 5%</span><b>${Number(r.hotelPoints||0).toFixed(1)}%</b></div></div><div class="highscore-formula">Ranking = ${(Number(r.vocational||0)*.40).toFixed(2)} + ${(Number(r.guestSatisfaction||0)*.35).toFixed(2)} + ${(Number(r.tasks||0)*.15).toFixed(2)} + ${(Number(r.economy||0)*.05).toFixed(2)} + ${(Number(r.hotelPoints||0)*.05).toFixed(2)} = <strong>${Number(r.total||0).toFixed(1)}%</strong>.</div><div class="info">Vanliga hotellpoäng är normaliserade efter mängden genomfört arbete och kan därför bara bidra med 5% av rankingen.</div></div>`;};
 
-  renderTeacherHighscores=function(){const root=document.getElementById("highscoreView");if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);if(!students.length){root.innerHTML='<div class="info">Ingen progression sparad ännu.</div>';return;}const rows=students.map(s=>({s,l:s.history.at(-1),p:studentDisplayParts(s)})).sort((a,b)=>Number(b.l?.ranking?.total||0)-Number(a.l?.ranking?.total||0)||a.s.code.localeCompare(b.s.code,"sv"));const table=(title,list)=>`<div class="highscore-card"><h4>${title}</h4><table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Yrk.</th><th>Gäst</th><th>Uppg.</th><th>Eko</th><th>Hotellp.</th><th>Ranking</th><th></th></tr></thead><tbody>${list.slice(0,10).map((x,i)=>{const r=x.l.ranking||{};return `<tr><td class="rank-medal">${rankMedal(i)}</td><td>${escapeHtml(x.p.classCode||"—")}</td><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(r.vocational||0).toFixed(0)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(0)}%</td><td>${Number(r.tasks||0).toFixed(0)}%</td><td>${Number(r.economy||0).toFixed(0)}%</td><td>${Number(r.hotelPoints||0).toFixed(0)}%<br><small>${Number(x.l.score||0)} p</small></td><td><b>${Number(r.total||0).toFixed(1)}%</b></td><td><button type="button" class="highscore-action why" data-highscore-explain="${escapeHtml(x.s.code)}">Varför?</button></td></tr>`;}).join("")}</tbody></table></div>`;const standard=rows.filter(x=>!x.l.supportActive),supported=rows.filter(x=>x.l.supportActive);root.innerHTML=`<div class="highscore-grid">${table("🏆 Division 1 · yrkeskunnande & gästupplevelse",standard)}${table("🧩 Stöddivision",supported)}<div id="individualHighscoreDetail"></div></div>`;root.querySelectorAll("[data-highscore-explain]").forEach(btn=>btn.addEventListener("click",()=>renderHighscoreExplanation(btn.dataset.highscoreExplain)));};
+  renderTeacherHighscores=function(){const root=document.getElementById("highscoreView");if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(s=>Array.isArray(s.history)&&s.history.length);if(!students.length){root.innerHTML='<div class="info">Ingen progression sparad ännu.</div>';return;}const rows=students.map(s=>({s,l:s.history.at(-1),p:studentDisplayParts(s)})).sort((a,b)=>Number(b.l?.ranking?.total||0)-Number(a.l?.ranking?.total||0)||a.s.code.localeCompare(b.s.code,"sv"));const table=(title,list)=>`<div class="highscore-card"><h4>${title}</h4><table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Yrk.</th><th>Gäst</th><th>Uppg.</th><th>Eko</th><th>Hotellp.</th><th>Ranking</th><th></th></tr></thead><tbody>${list.slice(0,10).map((x,i)=>{const r=x.l.ranking||{};return `<tr><td class="rank-medal">${rankMedal(i)}</td><td>${escapeHtml(x.p.classCode||"—")}</td><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(r.vocational||0).toFixed(0)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(0)}%</td><td>${Number(r.tasks||0).toFixed(0)}%</td><td>${Number(r.economy||0).toFixed(0)}%</td><td>${Number(r.hotelPoints||0).toFixed(0)}%</td><td><b>${Number(r.total||0).toFixed(1)}%</b></td><td><button type="button" class="highscore-action why" data-highscore-explain="${escapeHtml(x.s.code)}">Varför?</button></td></tr>`;}).join("")}</tbody></table></div>`;const standard=rows.filter(x=>!x.l.supportActive),supported=rows.filter(x=>x.l.supportActive);root.innerHTML=`<div class="highscore-grid">${table("🏆 Division 1 · yrkeskunnande & gästupplevelse",standard)}${table("🧩 Stöddivision",supported)}<div id="individualHighscoreDetail"></div></div>`;root.querySelectorAll("[data-highscore-explain]").forEach(btn=>btn.addEventListener("click",()=>renderHighscoreExplanation(btn.dataset.highscoreExplain)));};
 
 
   // ---------- v.01-231b · historikkompatibilitet ----------
@@ -13056,42 +12575,6 @@
   function v231bSnapshotModelLabel(snapshot){return v231bIsLegacySnapshot(snapshot)?"Äldre modell":"v.01-231";}
   function v231bStudentHasHistory(student){return v231bHistoryArray(student).length>0;}
   function v231bLatestSnapshot(student){const h=v231bHistoryArray(student);return h.length?h[h.length-1]:null;}
-
-  // v.01-254: äldre hotellpoäng ska inte försvinna när en elev får sin första rapport i den nya rankingmodellen.
-  // De äldre poängen används som lägsta bevarade poängställning. Vi räknar inte om gammal yrkesdata
-  // till den nya 40/35/15/5/5-modellen, men själva hotellpoängen får följa med.
-  function v254RecalculateRankingHotelPoints(snapshot){
-    const r=snapshot?.ranking;if(!r||Number(r.modelVersion)!==231)return false;
-    const profile=snapshot.skillDetail||{skills:{}},work=snapshot.workStats||{total:0};
-    const next=v231HotelPointsPercent(Number(snapshot.score||0),profile,work);
-    const changed=Math.abs(Number(r.hotelPoints||0)-next)>.0001;
-    r.hotelPoints=next;
-    r.total=Math.round((Number(r.vocational||0)*.40+Number(r.guestSatisfaction||0)*.35+Number(r.tasks||0)*.15+Number(r.economy||0)*.05+Number(next||0)*.05)*10)/10;
-    snapshot.totalResult=r.total;
-    return changed;
-  }
-  function v254ApplyLegacyPointCarryToStudent(student){
-    const history=v231bHistoryArray(student);if(!history.length)return false;
-    const old=history.filter(v231bIsLegacySnapshot);
-    const oldMax=old.reduce((m,s)=>Math.max(m,Math.max(0,Number(s?.score||0))),0);
-    if(oldMax<=0)return false;
-    let changed=false;
-    if(Number(student.legacyScoreBase||0)<oldMax){student.legacyScoreBase=oldMax;changed=true;}
-    history.filter(s=>!v231bIsLegacySnapshot(s)).forEach(snap=>{
-      if(snap.rawScoreBeforeLegacyCarry===undefined){snap.rawScoreBeforeLegacyCarry=Math.max(0,Number(snap.score||0));changed=true;}
-      const raw=Math.max(0,Number(snap.rawScoreBeforeLegacyCarry||0));
-      const carried=Math.max(raw,oldMax);
-      if(Number(snap.score||0)!==carried){snap.score=carried;changed=true;}
-      snap.legacyScoreBase=oldMax;
-      if(v254RecalculateRankingHotelPoints(snap))changed=true;
-    });
-    return changed;
-  }
-  function v254NormalizeLegacyPointsBoard(board){
-    let changed=false;
-    Object.values(board?.students||{}).forEach(student=>{if(v254ApplyLegacyPointCarryToStudent(student))changed=true;});
-    return changed;
-  }
   function v231bLegacyDomainsHtml(snapshot){
     const rows=PROGRESSION_AREAS.map(area=>{const x=snapshot?.domains?.[area.key]||{};const pct=Math.max(0,Math.min(100,Number(x.level||0)*25));return `<tr><td><strong>${escapeHtml(area.label)}</strong></td><td>${Number(x.evidence||0)>0||Number(x.level||0)>0?`${pct.toFixed(0)}%`:'—'}</td><td>${Number(x.evidence||0)}</td><td>${Number(x.positive||0)}</td><td>${Number(x.needsWork||0)}</td></tr>`;}).join("");
     return `<div class="info"><strong>Historik före v.01-231.</strong> Den här rapporten bevaras med den äldre bedömningsmodellen. Nya mått för arbetspass, överlämning och 40/35/15/5/5-ranking räknas inte bakåt, eftersom de inte registrerades då.</div><div style="overflow:auto"><table class="history-table"><thead><tr><th>Område</th><th>Progression</th><th>Evidens</th><th>Positiva</th><th>Utveckla</th></tr></thead><tbody>${rows}</tbody></table></div>`;
@@ -13145,7 +12628,7 @@
       const legacy=v231bIsLegacySnapshot(l);
       if(legacy)return `<tr data-score-student="${escapeHtml(s.code)}">${identityCells(s)}<td>${Number(l.day||1)}</td><td><span class="student-identity-chip">Äldre modell · ${v231bLegacyQuality(l).toFixed(1)}%</span></td><td>${v231bLegacyVocational(l).toFixed(1)}%</td><td>${Number(l.guestAverage||0).toFixed(1)}%</td><td>—</td><td>${Number.isFinite(Number(l.economyScore))?`${Number(l.economyScore).toFixed(1)}%`:'—'}</td><td>${Number(l.score||0)} p</td><td>${v231bHistoryArray(s).length}</td><td><button type="button" class="student-delete-btn" data-delete-student="${escapeHtml(s.code)}">🗑 Ta bort</button></td></tr>`;
       const r=l.ranking||{};
-      return `<tr data-score-student="${escapeHtml(s.code)}">${identityCells(s)}<td>${Number(l.day||1)}</td><td><span class="score-total-pill">${Number(r.total||0).toFixed(1)}%</span></td><td>${Number(r.vocational||0).toFixed(1)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(1)}%</td><td>${Number(r.tasks||0).toFixed(1)}%</td><td>${Number(r.economy||0).toFixed(1)}%</td><td>${Number(r.hotelPoints||0).toFixed(1)}%<br><small>${Number(l.score||0)} p${Number(l.legacyScoreBase||0)>0?` · inkl. äldre ${Number(l.legacyScoreBase||0)} p`:''}</small></td><td>${v231bHistoryArray(s).length}</td><td><button type="button" class="student-delete-btn" data-delete-student="${escapeHtml(s.code)}">🗑 Ta bort</button></td></tr>`;
+      return `<tr data-score-student="${escapeHtml(s.code)}">${identityCells(s)}<td>${Number(l.day||1)}</td><td><span class="score-total-pill">${Number(r.total||0).toFixed(1)}%</span></td><td>${Number(r.vocational||0).toFixed(1)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(1)}%</td><td>${Number(r.tasks||0).toFixed(1)}%</td><td>${Number(r.economy||0).toFixed(1)}%</td><td>${Number(r.hotelPoints||0).toFixed(1)}%</td><td>${v231bHistoryArray(s).length}</td><td><button type="button" class="student-delete-btn" data-delete-student="${escapeHtml(s.code)}">🗑 Ta bort</button></td></tr>`;
     }).join('')}</tbody></table></div>`;
     root.querySelectorAll('[data-score-student]').forEach(row=>row.addEventListener('click',e=>{if(e.target.closest('input,button'))return;renderScoreboardStudentDetail(row.dataset.scoreStudent);}));
     root.querySelectorAll('[data-student-meta]').forEach(input=>{
@@ -13161,13 +12644,8 @@
   };
 
   renderTeacherHighscores=function(){
-    const root=document.getElementById('highscoreView');if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(v231bStudentHasHistory),newRows=[],legacyRows=[];students.forEach(s=>{const l=v231bLatestSnapshot(s),p=studentDisplayParts(s);(v231bIsLegacySnapshot(l)?legacyRows:newRows).push({s,l,p});});newRows.sort((a,b)=>Number(b.l?.ranking?.total||0)-Number(a.l?.ranking?.total||0));legacyRows.sort((a,b)=>v231bLegacyQuality(b.l)-v231bLegacyQuality(a.l));const tableNew=`<div class="highscore-card"><h4>🏆 Ny ranking · v.01-231</h4>${newRows.length?`<table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Yrk.</th><th>Gäst</th><th>Uppg.</th><th>Eko</th><th>Hotellp.</th><th>Ranking</th></tr></thead><tbody>${newRows.slice(0,10).map((x,i)=>{const r=x.l.ranking||{};return `<tr><td>${rankMedal(i)}</td><td>${escapeHtml(x.p.classCode||'—')}</td><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(r.vocational||0).toFixed(0)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(0)}%</td><td>${Number(r.tasks||0).toFixed(0)}%</td><td>${Number(r.economy||0).toFixed(0)}%</td><td>${Number(r.hotelPoints||0).toFixed(0)}%<br><small>${Number(x.l.score||0)} p</small></td><td><b>${Number(r.total||0).toFixed(1)}%</b></td></tr>`;}).join('')}</tbody></table>`:'<div class="info">Ingen elev har ännu en rapport enligt den nya rankingmodellen.</div>'}</div>`;const tableOld=`<div class="highscore-card"><h4>📚 Äldre historik · bevarad</h4>${legacyRows.length?`<table class="highscore-table"><thead><tr><th>Elev</th><th>Dag</th><th>Äldre resultat</th><th>Yrk.progression</th><th>Gäst</th></tr></thead><tbody>${legacyRows.map(x=>`<tr><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(x.l.day||1)}</td><td><b>${v231bLegacyQuality(x.l).toFixed(1)}%</b></td><td>${v231bLegacyVocational(x.l).toFixed(1)}%</td><td>${Number(x.l.guestAverage||0).toFixed(1)}%</td></tr>`).join('')}</tbody></table><div class="info">Äldre bedömningsresultat visas separat och räknas inte om till den nya 40/35/15/5/5-modellen. Däremot förs elevens tidigare hotellpoäng vidare så att poängställningen inte börjar om från noll.</div>`:'<div class="info">Ingen äldre historik i det här registret.</div>'}</div>`;root.innerHTML=`<div class="highscore-grid">${tableNew}${tableOld}</div>`;
+    const root=document.getElementById('highscoreView');if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(v231bStudentHasHistory),newRows=[],legacyRows=[];students.forEach(s=>{const l=v231bLatestSnapshot(s),p=studentDisplayParts(s);(v231bIsLegacySnapshot(l)?legacyRows:newRows).push({s,l,p});});newRows.sort((a,b)=>Number(b.l?.ranking?.total||0)-Number(a.l?.ranking?.total||0));legacyRows.sort((a,b)=>v231bLegacyQuality(b.l)-v231bLegacyQuality(a.l));const tableNew=`<div class="highscore-card"><h4>🏆 Ny ranking · v.01-231</h4>${newRows.length?`<table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Yrk.</th><th>Gäst</th><th>Uppg.</th><th>Eko</th><th>Hotellp.</th><th>Ranking</th></tr></thead><tbody>${newRows.slice(0,10).map((x,i)=>{const r=x.l.ranking||{};return `<tr><td>${rankMedal(i)}</td><td>${escapeHtml(x.p.classCode||'—')}</td><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(r.vocational||0).toFixed(0)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(0)}%</td><td>${Number(r.tasks||0).toFixed(0)}%</td><td>${Number(r.economy||0).toFixed(0)}%</td><td>${Number(r.hotelPoints||0).toFixed(0)}%</td><td><b>${Number(r.total||0).toFixed(1)}%</b></td></tr>`;}).join('')}</tbody></table>`:'<div class="info">Ingen elev har ännu en rapport enligt den nya rankingmodellen.</div>'}</div>`;const tableOld=`<div class="highscore-card"><h4>📚 Äldre historik · bevarad</h4>${legacyRows.length?`<table class="highscore-table"><thead><tr><th>Elev</th><th>Dag</th><th>Äldre resultat</th><th>Yrk.progression</th><th>Gäst</th></tr></thead><tbody>${legacyRows.map(x=>`<tr><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(x.l.day||1)}</td><td><b>${v231bLegacyQuality(x.l).toFixed(1)}%</b></td><td>${v231bLegacyVocational(x.l).toFixed(1)}%</td><td>${Number(x.l.guestAverage||0).toFixed(1)}%</td></tr>`).join('')}</tbody></table><div class="info">Äldre resultat visas separat och rangordnas inte tillsammans med den nya 40/35/15/5/5-modellen.</div>`:'<div class="info">Ingen äldre historik i det här registret.</div>'}</div>`;root.innerHTML=`<div class="highscore-grid">${tableNew}${tableOld}</div>`;
   };
-
-  try{
-    const v254Board=scoreboardLoad();
-    if(v254NormalizeLegacyPointsBoard(v254Board))scoreboardSave(v254Board,{keepPrevious:false});
-  }catch(_e){}
 
   v231bInstallRecoveryUi();
   Object.assign(assessmentLabels,{routine_control_verified:"Verifierad arbetskontroll",period_work_task_completed:"Huvuduppgift genomförd",period_work_task_handed_over:"Huvuduppgift korrekt överlämnad",period_work_task_skipped:"Huvuduppgift hoppades över",period_work_serious_penalty:"Stort avdrag för ogjort arbete",handover_created:"Överlämning skapad",handover_acknowledged:"Överlämning kvitterad",breakfast_guest_served:"Frukostgäst serverad",breakfast_table_cleaned:"Frukostbord återställt",breakfast_buffet_refilled:"Frukostbuffé påfylld",breakfast_stock_low:"Frukostbuffé börjar ta slut",phone_reservation_saved:"Telefonreservation registrerad",checkout_completed:"Check-out slutförd",guest_environment_satisfaction:"Miljö påverkade gästnöjdheten"});
@@ -13179,7 +12657,7 @@
   refreshDailyTaskCompletion();
   updateHud();
   updateMission();
-  if(currentStudentCode&&localStorage.getItem(AUTO_START_KEY)==="1"){localStorage.removeItem(AUTO_START_KEY);setTimeout(()=>{v255ShowRecoveryCard();startOrContinueStudent();},0);}
+  if(currentStudentCode&&localStorage.getItem(AUTO_START_KEY)==="1"){localStorage.removeItem(AUTO_START_KEY);setTimeout(startOrContinueStudent,0);}
   requestAnimationFrame(loop);
 })();
 </script>
