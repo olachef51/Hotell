@@ -1244,7 +1244,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-260</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-261</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1918,8 +1918,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-260";
-  const MASTER_CONTENT_VERSION = "v.01-260";
+  const HOTEL_VERSION = "v.01-261";
+  const MASTER_CONTENT_VERSION = "v.01-261";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -8969,15 +8969,64 @@
     return Boolean(!state.tasks.phoneBooking&&state.pendingPhoneReservation&&progress>=41&&progress<90);
   }
 
+  // v.01-261: Telefonbokningen ska aldrig kunna fastna på ett tomt rumsfält.
+  // Rummet som valts internt i telefonsamtalet förs automatiskt in i PMS.
+  // Om äldre sparad data saknar rumsnummer väljs första giltiga rum av rätt typ.
+  function ensureForcedPhoneRoomNumber(){
+    if(!phoneRegistrationIsActive()||!state.pendingPhoneReservation)return 0;
+    const pending=state.pendingPhoneReservation;
+    const start=Number(pending.start??getTodayIndex());
+    const nights=Math.max(1,Number(pending.nights||1));
+    const wantedType=String(pending.roomType||"");
+    const allowOverbooking=phoneOverbookingModeActive();
+    const rooms=builtRooms().slice().sort((a,b)=>Number(a.id)-Number(b.id));
+    const roomIsUsable=room=>{
+      if(!room)return false;
+      if(wantedType&&roomTypeForId(room.id)!==wantedType)return false;
+      return allowOverbooking||!findReservationConflict(room.id,start,nights);
+    };
+    let room=rooms.find(r=>Number(r.id)===Number(pending.selectedRoomId||0)&&roomIsUsable(r));
+    if(!room&&state.phoneReservationDraft){
+      room=rooms.find(r=>Number(r.id)===Number(state.phoneReservationDraft.roomId||0)&&roomIsUsable(r));
+    }
+    if(!room)room=rooms.find(roomIsUsable);
+    if(!room){
+      // Sista reservväg: om rätt rumstyp inte längre finns, ta första giltiga rum.
+      room=rooms.find(r=>allowOverbooking||!findReservationConflict(r.id,start,nights))||null;
+    }
+    if(!room)return 0;
+    pending.selectedRoomId=Number(room.id);
+    pending.roomType=roomTypeForId(room.id);
+    if(state.phoneReservationDraft)state.phoneReservationDraft.roomId=Number(room.id);
+    return Number(room.id);
+  }
+
+  function syncForcedPhoneRoomToForm(){
+    const roomId=ensureForcedPhoneRoomNumber();
+    const roomSelect=document.getElementById("newReservationRoom");
+    if(roomId&&roomSelect){
+      const exists=[...roomSelect.options].some(o=>Number(o.value)===roomId);
+      if(!exists){
+        const opt=document.createElement("option");
+        opt.value=String(roomId);
+        opt.textContent=`Rum ${roomId} · ${roomTypeForId(roomId)} · VALT I TELEFONSAMTALET`;
+        roomSelect.appendChild(opt);
+      }
+      roomSelect.value=String(roomId);
+    }
+    return roomId;
+  }
+
   function ensurePhoneReservationDraft(){
     if(!phoneRegistrationIsActive())return null;
     const periodKey=phoneTaskPeriodKey(),day=Number(state.day||1),s=activePhoneScenario();
+    const forcedRoomId=ensureForcedPhoneRoomNumber();
     const existing=state.phoneReservationDraft;
     if(existing&&Number(existing.day||0)===day&&String(existing.periodKey||"")===periodKey)return existing;
     state.phoneReservationDraft={
       day,periodKey,
       guest:"",phone:"",city:"",address:"",
-      roomId:Number(s.selectedRoomId||0),
+      roomId:Number(forcedRoomId||s.selectedRoomId||0),
       start:Number(s.start||getTodayIndex()),
       nights:Math.max(1,Number(s.nights||1)),
       partySize:0,
@@ -8994,7 +9043,18 @@
     if(get("newReservationPhone"))draft.phone=String(get("newReservationPhone").value||"");
     if(get("newReservationCity"))draft.city=String(get("newReservationCity").value||"");
     if(get("newReservationAddress"))draft.address=String(get("newReservationAddress").value||"");
-    if(get("newReservationRoom"))draft.roomId=Number(get("newReservationRoom").value||0);
+    if(get("newReservationRoom")){
+      const selectedRoom=Number(get("newReservationRoom").value||0);
+      if(selectedRoom){
+        draft.roomId=selectedRoom;
+        if(state.pendingPhoneReservation){
+          state.pendingPhoneReservation.selectedRoomId=selectedRoom;
+          state.pendingPhoneReservation.roomType=roomTypeForId(selectedRoom);
+        }
+      }else{
+        draft.roomId=Number(syncForcedPhoneRoomToForm()||draft.roomId||0);
+      }
+    }
     if(get("newReservationStart"))draft.start=Number(get("newReservationStart").value||0);
     if(get("newReservationNights"))draft.nights=Number(get("newReservationNights").value||1);
     if(get("newReservationPartySize"))draft.partySize=Number(get("newReservationPartySize").value||0);
@@ -9010,6 +9070,7 @@
   }
 
   function phoneReservationFormValidation(){
+    syncForcedPhoneRoomToForm();
     const draft=capturePhoneReservationDraft(false)||ensurePhoneReservationDraft(),s=activePhoneScenario(),issues=[];
     if(!draft)return {ok:false,issues:["Öppna reservationsformuläret först."],draft:null};
     if(normalizeCompare(draft.guest)!==normalizeCompare(s.name))issues.push("gästens namn");
@@ -9044,6 +9105,7 @@
   }
 
   function confirmPhoneReservationReadback(){
+    if(phoneRegistrationIsActive())syncForcedPhoneRoomToForm();
     if(!phoneRegistrationIsActive()){
       const progress=Number(state.phoneCallProgress||0);
       if(state.pendingPhoneReservation&&progress>=41&&!state.tasks.phoneBooking){state.phoneCallStatus="in_call";saveState();}
@@ -9303,6 +9365,7 @@
           setPhoneBubble("staff","Tack. Jag öppnar bokningen och registrerar uppgifterna medan ni är kvar på tråden.");
           state.phoneCallProgress=41;
           state.phoneReservationReadbackConfirmed=false;
+          ensureForcedPhoneRoomNumber();
           ensurePhoneReservationDraft();
           saveState();updateMission();renderPhoneDialogueStep();openPhoneReservationWorkspace();
         }},
@@ -9311,13 +9374,15 @@
           state.score=Math.max(0,Number(state.score||0)+5);
           state.phoneCallProgress=41;
           state.phoneReservationReadbackConfirmed=false;
+          ensureForcedPhoneRoomNumber();
           ensurePhoneReservationDraft();
           saveState();updateMission();renderPhoneDialogueStep();openPhoneReservationWorkspace();
         }}
       ],"register_while_calling");
     }else if(step===41){
       const info=document.createElement("div");info.className="phone-dialogue-bubble guest";
-      info.innerHTML="<strong>Gästen är kvar på tråden.</strong><br>Fyll i uppgifterna i PMS. När allt är inskrivet ska du läsa tillbaka hela bokningen till gästen.";
+      const forcedRoomId=ensureForcedPhoneRoomNumber();
+      info.innerHTML=`<strong>Gästen är kvar på tråden.</strong><br>Fyll i uppgifterna i PMS. Rumsnumret ${forcedRoomId?`<strong>${forcedRoomId}</strong> är redan infört automatiskt från det interna rumsvalet.`:"förs in automatiskt från det interna rumsvalet."}<br>När allt är inskrivet ska du läsa tillbaka hela bokningen till gästen.`;
       choices.appendChild(info);
       const open=document.createElement("button");open.type="button";open.textContent=document.getElementById("newReservationModal")?.classList.contains("show")?"PMS ÄR ÖPPET – FYLL I UPPGIFTERNA":"ÖPPNA PMS / RESERVATIONSFORMULÄR";
       open.onclick=openPhoneReservationWorkspace;choices.appendChild(open);
@@ -9864,7 +9929,15 @@
     body.innerHTML=`<div class="availability-period"><strong>${escapeHtml(hotelCalendarDayLabel(start))} → ${escapeHtml(hotelCalendarDayLabel(checkoutIndex))}</strong><span>${nights} natt${nights===1?"":"er"}</span></div><div class="availability-grid">${builtRooms().map(room=>{const conflict=findReservationConflict(room.id,start,nights);const selected=room.id===selectedRoomId;return `<button class="availability-room ${conflict?"busy":"free"} ${selected?"selected":""}" data-availability-room="${room.id}" ${conflict&&!allowOverbooking?"disabled":""}><b>Rum ${room.id}</b><small>${escapeHtml(roomTypeForId(room.id))}</small><span class="status">${conflict?`BOKAD VALD PERIOD · ${escapeHtml(conflict.guest)}${allowOverbooking?" · KAN ÖVERBOKAS":""}`:`LEDIG VALD PERIOD · status idag: ${escapeHtml(roomCurrentStatusText(room))}`}</span></button>`;}).join("")}</div>`;
     body.querySelectorAll("[data-availability-room]").forEach(button=>button.onclick=()=>{
       if(button.disabled)return;
-      document.getElementById("newReservationRoom").value=button.dataset.availabilityRoom;
+      const selectedRoomId=Number(button.dataset.availabilityRoom||0);
+      document.getElementById("newReservationRoom").value=String(selectedRoomId||"");
+      if(phoneRegistrationIsActive()&&selectedRoomId){
+        if(state.pendingPhoneReservation){
+          state.pendingPhoneReservation.selectedRoomId=selectedRoomId;
+          state.pendingPhoneReservation.roomType=roomTypeForId(selectedRoomId);
+        }
+        if(state.phoneReservationDraft)state.phoneReservationDraft.roomId=selectedRoomId;
+      }
       reservationAvailabilityChecked=true;
       document.getElementById("reservationAvailabilityModal").classList.remove("show");
       updateNewReservationRoomOptions();
@@ -9879,9 +9952,11 @@
     if(!roomSelect||!startSelect||!nightsSelect)return;
     roomSelect.disabled=false;
     roomSelect.style.pointerEvents="auto";
-    const draftRoom=phoneRegistrationIsActive()?Number(state.phoneReservationDraft?.roomId||state.pendingPhoneReservation?.selectedRoomId||0):0;
+    const phoneActive=phoneRegistrationIsActive();
+    const forcedPhoneRoom=phoneActive?Number(ensureForcedPhoneRoomNumber()||0):0;
+    const draftRoom=phoneActive?Number(state.phoneReservationDraft?.roomId||state.pendingPhoneReservation?.selectedRoomId||0):0;
     const currentRoom=Number(roomSelect.value||0);
-    const selected=draftRoom||currentRoom||0;
+    const selected=forcedPhoneRoom||draftRoom||currentRoom||0;
     const start=Number(startSelect.value||getTodayIndex()),nights=Math.max(1,Number(nightsSelect.value||1)),allowOverbooking=phoneOverbookingModeActive();
     const rooms=builtRooms();
     const options=rooms.map(room=>{
@@ -9905,6 +9980,7 @@
       roomSelect.appendChild(opt);
       roomSelect.value="";
     }
+    if(phoneActive)syncForcedPhoneRoomToForm();
   }
 
   function openNewReservationModal(){
@@ -9916,7 +9992,9 @@
 
     const phoneActive=phoneRegistrationIsActive();
     if(phoneActive){
+      const forcedPhoneRoomId=ensureForcedPhoneRoomNumber();
       const draft=ensurePhoneReservationDraft(),s=activePhoneScenario();
+      if(draft&&forcedPhoneRoomId)draft.roomId=forcedPhoneRoomId;
       document.getElementById("newReservationGuest").value=String(draft?.guest||"");
       document.getElementById("newReservationPhone").value=String(draft?.phone||"");
       document.getElementById("newReservationCity").value=String(draft?.city||"");
@@ -9932,11 +10010,14 @@
       document.getElementById("newReservationSource").value="Telefon";
       // Bygg rumslistan efter att period/nätter satts och återställ sedan det interna rumsvalet.
       updateNewReservationRoomOptions();
-      const preferredDraftRoom=Number(draft?.roomId||s.selectedRoomId||0);
-      if(preferredDraftRoom&&[...roomSelect.options].some(o=>Number(o.value)===preferredDraftRoom&&!o.disabled))roomSelect.value=String(preferredDraftRoom);
-      else if(!Number(roomSelect.value||0))roomSelect.value="";
+      const preferredDraftRoom=Number(forcedPhoneRoomId||draft?.roomId||s.selectedRoomId||0);
+      if(preferredDraftRoom){
+        syncForcedPhoneRoomToForm();
+        roomSelect.value=String(preferredDraftRoom);
+      }else if(!Number(roomSelect.value||0))roomSelect.value="";
       const error=document.getElementById("newReservationError");
-      error.textContent=state.phoneReservationReadbackConfirmed?"✓ Gästen har bekräftat återläsningen. Spara reservationen.":"📞 Gästen är kvar i telefonen. Fyll i uppgifterna medan ni pratar och läs sedan tillbaka hela bokningen.";
+      const roomNotice=preferredDraftRoom?` Rum ${preferredDraftRoom} är infört automatiskt från telefonsamtalets interna rumsval.`:"";
+      error.textContent=state.phoneReservationReadbackConfirmed?`✓ Gästen har bekräftat återläsningen.${roomNotice} Spara reservationen.`:`📞 Gästen är kvar i telefonen.${roomNotice} Fyll i övriga uppgifter och läs sedan tillbaka hela bokningen.`;
     }else{
       document.getElementById("newReservationGuest").value="";
       document.getElementById("newReservationPhone").value="";
@@ -9960,7 +10041,17 @@
     ["newReservationGuest","newReservationPhone","newReservationCity","newReservationAddress"].forEach(id=>{
       const el=document.getElementById(id);if(el)el.oninput=()=>{if(phoneActive)capturePhoneReservationDraft(true);refreshPhoneReservationSaveButton();};
     });
-    roomSelect.onchange=stale;
+    roomSelect.onchange=()=>{
+      if(phoneActive){
+        const roomId=Number(roomSelect.value||0);
+        if(roomId&&state.pendingPhoneReservation){
+          state.pendingPhoneReservation.selectedRoomId=roomId;
+          state.pendingPhoneReservation.roomType=roomTypeForId(roomId);
+          if(state.phoneReservationDraft)state.phoneReservationDraft.roomId=roomId;
+        }
+      }
+      stale();
+    };
     startSelect.onchange=()=>{stale();updateNewReservationRoomOptions();if(phoneActive)capturePhoneReservationDraft(true);};
     nightsSelect.onchange=()=>{stale();updateNewReservationRoomOptions();if(phoneActive)capturePhoneReservationDraft(true);};
     const partySelect=document.getElementById("newReservationPartySize");if(partySelect)partySelect.onchange=()=>{if(phoneActive)capturePhoneReservationDraft(true);refreshPhoneReservationSaveButton();};
@@ -9981,6 +10072,12 @@
   }
 
   function saveNewReservation(forceOverride=false){
+    const phoneRoomId=phoneRegistrationIsActive()?Number(syncForcedPhoneRoomToForm()||0):0;
+    if(phoneRoomId){
+      const roomControl=document.getElementById("newReservationRoom");
+      if(roomControl)roomControl.value=String(phoneRoomId);
+      if(state.phoneReservationDraft)state.phoneReservationDraft.roomId=phoneRoomId;
+    }
     const guest=document.getElementById("newReservationGuest").value.trim();
     const phone=cleanText(document.getElementById("newReservationPhone").value),city=cleanText(document.getElementById("newReservationCity").value),address=cleanText(document.getElementById("newReservationAddress").value);
     const roomId=Number(document.getElementById("newReservationRoom").value),start=Number(document.getElementById("newReservationStart").value),nights=Number(document.getElementById("newReservationNights").value),partySize=Math.max(1,Math.min(4,Number(document.getElementById("newReservationPartySize")?.value||1))),source=document.getElementById("newReservationSource").value;
@@ -11873,6 +11970,7 @@
   // v.01-260 · Telefonreservation: robust telefonnummerjämförelse, aktivt val av antal gäster och tydligare periodtillgänglighet.
   // v.01-260 · UI-fix: dockad telefonruta döljs när annat arbetsmoment/lärarläge öppnas och återkommer efter stängning.
   // v.01-260 · Låsningsfix: rumsdropdown hålls aktiv, reservationsformuläret byggs inte om efter återläsning och ändringar under återläsning kräver ny bekräftelse.
+  // v.01-261 · FORCE-FIX: telefonens interna rumsval förs alltid in i PMS. Saknas rumsnummer väljs ett giltigt rum automatiskt och värdet synkas före återläsning och sparning.
   // v.01-252 · Telefonreservation: uppgifterna registreras medan gästen är kvar i samtalet, återläses, dubbelbekräftas och sparas innan avslut.
   // Uppgiften avslutas först genom riktig sparning i PMS; ingen separat PMS-only-uppgift.
 
