@@ -505,6 +505,7 @@
   body.phone-call-docked #newReservationModal{padding-left:430px}
   body.phone-call-docked #newReservationModal .new-reservation-box{max-width:min(940px,calc(100vw - 455px));transform:none!important;pointer-events:auto;isolation:isolate}
   body.phone-call-docked #newReservationRoom{pointer-events:auto!important;position:relative;z-index:6}
+  body.phone-call-docked #saveNewReservationBtn{pointer-events:auto!important;position:relative;z-index:20}
   @media(max-width:1050px){#phoneBookingModal.docked .phone-booking-box{left:8px;top:auto;bottom:8px;width:calc(100vw - 16px);max-width:none;max-height:42vh}#breakfastTaskModal.docked .breakfast-task-box{left:8px;top:auto;bottom:8px;width:calc(100vw - 16px);max-width:none;max-height:42vh}body.phone-call-docked #newReservationModal{padding-left:clamp(8px,2vh,18px)}body.phone-call-docked #receptionModal .pms-box,body.phone-call-docked #newReservationModal .new-reservation-box,body.phone-call-docked #reservationAvailabilityModal .availability-box,body.breakfast-task-docked #receptionModal .pms-box{max-width:96vw;transform:none}}
   .checkout-moment{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 4px;border-bottom:1px solid #e5e9ee}.checkout-moment strong{display:block}.checkout-moment small{display:block;color:#71808b;margin-top:3px}.checkout-action-btn{border:0;border-radius:12px;padding:10px 13px;background:#516fe8;color:#fff;font-weight:950}.checkout-action-btn.done{background:#cfeedd;color:#246844}.checkout-status-pill{border-radius:999px;padding:7px 10px;font-size:11px;font-weight:950;background:#eef1f4;color:#5d6870}.checkout-status-pill.done{background:#d9f3e4;color:#237047}.checkout-dialogue-box{width:min(680px,95vw)}.checkout-dialogue-body{padding:16px}.checkout-dialogue-line{background:#f5f7fb;border:2px solid #dfe5f2;border-radius:15px;padding:13px 15px;margin-bottom:12px;font-weight:800;color:#34445a;line-height:1.45}.checkout-dialogue-choices{display:grid;gap:8px}.checkout-dialogue-choices button{border:2px solid #d9dfec;background:#fff;border-radius:13px;padding:11px 13px;text-align:left;font-weight:900;color:#273858}
   .room-choice-statusbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}.room-choice-statusbar div{background:#f3f6f7;border:1px solid #dde5e8;border-radius:10px;padding:9px}.room-choice-statusbar span{display:block;font-size:9px;font-weight:1000;color:#7a878d}.room-choice-statusbar b{display:block;margin-top:2px;font-size:13px;color:#293943}
@@ -1244,7 +1245,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-261</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-262</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1918,8 +1919,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-261";
-  const MASTER_CONTENT_VERSION = "v.01-261";
+  const HOTEL_VERSION = "v.01-262";
+  const MASTER_CONTENT_VERSION = "v.01-262";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -9125,6 +9126,7 @@
     const choices=document.getElementById("phoneDialogueChoices");if(choices)choices.innerHTML="";
     setPhoneBubble("staff",summary);
     state.phoneReservationReadbackConfirmed=true;
+    if(error)error.textContent="✓ Uppgifterna är kontrollerade. Väntar på gästens bekräftelse…";
     const readbackSnapshot=JSON.stringify({guest:d.guest,phone:d.phone,city:d.city,address:d.address,roomId:Number(d.roomId||0),start:Number(d.start),nights:Number(d.nights),partySize:Number(d.partySize||0),source:d.source});
     saveState();
     if(phoneDialogueTimer){clearTimeout(phoneDialogueTimer);phoneDialogueTimer=null;}
@@ -9141,6 +9143,8 @@
       }
       state.phoneCallProgress=42;
       saveState();updateMission();renderPhoneDialogueStep();refreshPhoneReservationSaveButton();
+      const err=document.getElementById("newReservationError");
+      if(err)err.textContent="✓ Gästen har dubbelbekräftat. Klicka på SPARA RESERVATION.";
     },850);
     return true;
   }
@@ -10072,6 +10076,8 @@
   }
 
   function saveNewReservation(forceOverride=false){
+    // v.01-262: funktionen kan anropas både direkt och från klickhändelse. Ett MouseEvent får aldrig tolkas som override=true.
+    if(forceOverride&&typeof forceOverride==="object")forceOverride=false;
     const phoneRoomId=phoneRegistrationIsActive()?Number(syncForcedPhoneRoomToForm()||0):0;
     if(phoneRoomId){
       const roomControl=document.getElementById("newReservationRoom");
@@ -10087,8 +10093,10 @@
     if(state.pendingPhoneReservation&&Number(state.phoneCallProgress||0)<41){error.textContent="Fortsätt telefonsamtalet tills gästen har lämnat sina bokningsuppgifter.";return;}
     if(activePhoneRegistration&&!state.phoneReservationReadbackConfirmed){error.textContent="Läs tillbaka hela bokningen till gästen och få ett tydligt ja innan du sparar.";return;}
     if(activePhoneRegistration){
-      const validation=phoneReservationFormValidation();
-      if(!validation.ok){error.textContent=`Kontrollera ${validation.issues.join(", ")} och läs sedan tillbaka bokningen igen.`;state.phoneReservationReadbackConfirmed=false;if(Number(state.phoneCallProgress||0)===42)state.phoneCallProgress=41;saveState();refreshPhoneReservationSaveButton();return;}
+      // v.01-262: återläsningen är redan valideringen. När gästen har dubbelbekräftat får
+      // Spara-knappen inte köra en ny valideringsrunda som kan skapa ett falskt låsläge.
+      // Alla verkliga ändringar i fälten har egna input/change-handlers som direkt gör återläsningen stale.
+      if(!roomId){error.textContent="Rumsnummer saknas. Öppna rumsvalet och försök igen.";return;}
     }
     const conflict=findReservationConflict(roomId,start,nights);
     const sameGuestConflict=Boolean(conflict&&normalizeCompare(conflict.guest)===normalizeCompare(guest));
@@ -11647,6 +11655,24 @@
   document.getElementById("startCheckoutBtn").onclick=startCheckoutFromBell;
   document.getElementById("completeCheckoutBtn").onclick=completeReceptionCheckout;
   document.getElementById("saveNewReservationBtn").onclick=saveNewReservation;
+  // v.01-262: HARD FIX för telefonbokningens Spara-knapp.
+  // Capture-lyssnaren kör före andra lager/handlers och gör sparningen deterministisk i dockat telefonläge.
+  document.addEventListener("click",e=>{
+    const target=e.target;
+    const btn=target&&typeof target.closest==="function"?target.closest("#saveNewReservationBtn"):null;
+    if(!btn)return;
+    const modal=document.getElementById("newReservationModal");
+    if(!modal?.classList.contains("show"))return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(typeof e.stopImmediatePropagation==="function")e.stopImmediatePropagation();
+    if(btn.disabled)return;
+    if(phoneRegistrationIsActive()){
+      const ready=Boolean(state.phoneReservationReadbackConfirmed&&Number(state.phoneCallProgress||0)>=42);
+      if(ready)saveNewReservation(false);
+      else confirmPhoneReservationReadback();
+    }else saveNewReservation(false);
+  },true);
   document.getElementById("guestContactReturnBtn").onclick=()=>{
     const checked=document.getElementById("guestContactChecked"),booking=getArrivalBooking();
     if(booking)syncVisibleGuestContactInputs(booking);
@@ -11971,6 +11997,7 @@
   // v.01-260 · UI-fix: dockad telefonruta döljs när annat arbetsmoment/lärarläge öppnas och återkommer efter stängning.
   // v.01-260 · Låsningsfix: rumsdropdown hålls aktiv, reservationsformuläret byggs inte om efter återläsning och ändringar under återläsning kräver ny bekräftelse.
   // v.01-261 · FORCE-FIX: telefonens interna rumsval förs alltid in i PMS. Saknas rumsnummer väljs ett giltigt rum automatiskt och värdet synkas före återläsning och sparning.
+  // v.01-262 · HARD-FIX: Spara reservation fångas i capture-fas, MouseEvent kan inte bli override, dubbelbekräftad telefonbokning omvalideras inte vid själva sparögonblicket och gammal feltext rensas.
   // v.01-252 · Telefonreservation: uppgifterna registreras medan gästen är kvar i samtalet, återläses, dubbelbekräftas och sparas innan avslut.
   // Uppgiften avslutas först genom riktig sparning i PMS; ingen separat PMS-only-uppgift.
 
