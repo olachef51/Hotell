@@ -1248,6 +1248,20 @@
   .teacher-money-btn:hover{filter:brightness(1.05)}
   #redeemTeacherMoneyBtn{border:0;border-radius:13px;background:#1e9d62;color:#fff;font-weight:1000;padding:8px 10px;box-shadow:0 3px 0 #11643f;white-space:nowrap}
   #redeemTeacherMoneyBtn:hover{filter:brightness(1.05)}
+  /* v.01-267 · gemensam lärarpengakod för hela klassen */
+  .teacher-cash-control{margin:12px 0 16px;padding:14px;border:2px solid #b8dfca;border-radius:16px;background:#f3fff8}
+  .teacher-cash-control h4{margin:0 0 6px;color:#17613d;font-size:16px}
+  .teacher-cash-control p{margin:0 0 10px;color:#43564c;font-size:12px;line-height:1.45}
+  .teacher-cash-row{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+  .teacher-cash-row label{display:grid;gap:4px;font-size:11px;font-weight:900;color:#3a4c42}
+  .teacher-cash-row input{width:150px;border:1px solid #c8d8cf;border-radius:10px;padding:9px 10px;font-weight:900;background:#fff}
+  .teacher-cash-presets{display:flex;gap:6px;flex-wrap:wrap}
+  .teacher-cash-presets button,.teacher-cash-activate{border:0;border-radius:10px;padding:9px 11px;font-weight:1000;cursor:pointer}
+  .teacher-cash-presets button{background:#e2efe8;color:#28523d}
+  .teacher-cash-activate{background:#1e9d62;color:#fff;box-shadow:0 3px 0 #11643f}
+  .teacher-cash-status{margin-top:11px;padding:11px 12px;border-radius:12px;background:#fff;border:1px solid #d7e8de;color:#3b4f44;font-size:12px;line-height:1.45}
+  .teacher-cash-status.active{border-color:#7cc69e;background:#edfff5}
+  .teacher-cash-code{display:inline-block;margin:3px 4px;padding:5px 9px;border-radius:9px;background:#173f2d;color:#fff;font-size:18px;font-weight:1000;letter-spacing:1.5px}
 </style>
 </head>
 <body>
@@ -1255,9 +1269,9 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-265</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-268</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
-    <button id="redeemTeacherMoneyBtn" type="button" title="Skriv in lärarens 8-teckens lösenord">🎁 Lärarpengar</button>
+    <button id="redeemTeacherMoneyBtn" type="button" title="Skriv in den aktiva 7-siffriga lärarkoden">🎁 Lärarpengar</button>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
     <button class="next-day-btn" id="nextDayBtn" type="button">Nästa period ▶</button>
@@ -1710,6 +1724,23 @@
       <div class="scoreboard-note"><strong>Samlat resultat:</strong> Check-in, Service, Städ, Frukost, Ekonomi och Gästnöjdhet väger lika. Om ett område ännu inte har genomförts räknas det inte med.</div>
       <div class="info" id="teacherProgressLocalStatus"><strong>Automatiskt lokalt register:</strong> elevprogressionen läses och sparas automatiskt i samma webbläsare. Du behöver normalt inte använda några backupknappar.</div>
       <details class="teacher-advanced-tools"><summary>Avancerat · backup och återställning</summary><div class="scoreboard-tools"><button class="secondary" id="exportTeacherProgressBtn" type="button">💾 Spara lärarbackup</button><button class="secondary" id="importTeacherProgressBtn" type="button">📂 Läs in lärarbackup</button><button class="secondary" id="restoreTeacherProgressBtn" type="button">↩ Återställ föregående</button><button class="secondary" id="clearScoreboardBtn" type="button">Rensa all progression</button><input id="teacherProgressBackupFile" type="file" accept=".json,application/json" hidden></div></details>
+      <div class="teacher-cash-control" id="teacherCashControl">
+        <h4>💰 Lärarpengar · en kod till hela klassen</h4>
+        <p>Välj belopp och aktivera. Eleverna kan stänga spelet, öppna länken igen och skriva in samma kod under <strong>🎁 Lärarpengar</strong>. Koden gäller i 15 minuter och kan användas en gång per elevspel.</p>
+        <div class="teacher-cash-row">
+          <label>Belopp
+            <input id="teacherCashAmount" type="number" min="50" max="50000" step="50" value="1000">
+          </label>
+          <div class="teacher-cash-presets">
+            <button type="button" data-teacher-cash-preset="100">100 kr</button>
+            <button type="button" data-teacher-cash-preset="500">500 kr</button>
+            <button type="button" data-teacher-cash-preset="1000">1 000 kr</button>
+            <button type="button" data-teacher-cash-preset="5000">5 000 kr</button>
+          </div>
+          <button class="teacher-cash-activate" id="activateTeacherCashBtn" type="button">AKTIVERA KOD I 15 MIN</button>
+        </div>
+        <div class="teacher-cash-status" id="teacherCashStatus">Ingen lärarpengakod är aktiverad på den här lärardatorn.</div>
+      </div>
       <div id="scoreboardView"></div>
       <div class="scoreboard-detail" id="scoreboardDetail"></div>
     </section>
@@ -1931,7 +1962,7 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-265";
+  const HOTEL_VERSION = "v.01-268";
   const MASTER_CONTENT_VERSION = "v.01-265";
   const TEACHER_PASSWORD = "password1234";
 
@@ -10375,72 +10406,121 @@
     showTip(hasSaved?"Telefonuppgiften avslutades. Reservationen ligger kvar i PMS och du kan gå vidare.":"Reservationssamtalet hoppades över. Du kan gå vidare till nästa uppgift.");
   }
 
-  // ---------- v.01-264 · lärarpengar via kort lösenord, giltigt i 15 minuter ----------
-  const V264_CASH_ALPHABET="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  function v264CashHash(text){
+  // ---------- v.01-267 · gemensam lärarpengakod, offline och giltig i 15 minuter ----------
+  // Koden behöver ingen server. Den innehåller ett signerat belopp och en kort tidsstämpel.
+  // Därför kan samma kod skrivas in på elevdatorerna även efter att spelet stängts och öppnats igen.
+  const V267_CASH_STEP=50;
+  const V267_CASH_MAX=50000;
+  const V267_CASH_SIG_BASE=8192;       // 13-bitars signatur
+  const V267_CASH_MASK=0x4D3A71;       // reversibel mask, håller koden till 7 siffror
+  const V267_CASH_BLOCK_MS=30000;      // 30 sekunder
+  const V267_CASH_VALID_BLOCKS=30;     // 30 × 30 s = 15 minuter
+  const V267_CASH_TEACHER_KEY="hotelManagerTeacherCashActive_v267";
+  const V267_CASH_SECRET="HOTEL-MANAGER-V267-CLASS-CASH-2026-10";
+
+  function v267CashHash(text){
     let h1=2166136261,h2=2246822519;const s=String(text||"");
     for(let i=0;i<s.length;i++){
-      const c=s.charCodeAt(i);h1^=c;h1=Math.imul(h1,16777619);h2^=(c+i*131);h2=Math.imul(h2,3266489917);
+      const c=s.charCodeAt(i);
+      h1^=c;h1=Math.imul(h1,16777619);
+      h2^=(c+i*131);h2=Math.imul(h2,3266489917);
     }
     return [(h1>>>0),(h2>>>0)];
   }
-  function v264EncodeCashAmount(amount){
-    let value=Math.max(1,Math.min(50000,Math.round(Number(amount)||0))),out="";
-    for(let i=0;i<4;i++){out=V264_CASH_ALPHABET[value%32]+out;value=Math.floor(value/32);}
-    return out;
+  function v267CashUnits(amount){
+    const n=Math.round(Number(amount)||0);
+    if(n<V267_CASH_STEP||n>V267_CASH_MAX||n%V267_CASH_STEP!==0)return 0;
+    return n/V267_CASH_STEP;
   }
-  function v264DecodeCashAmount(part){
-    let value=0;for(const ch of String(part||"")){const i=V264_CASH_ALPHABET.indexOf(ch);if(i<0)return 0;value=value*32+i;}
-    return value>=1&&value<=50000?value:0;
+  function v267CashSignature(units,block){
+    const [a,b]=v267CashHash(`${V267_CASH_SECRET}|${Number(units)}|${Number(block)}`);
+    return ((a^(b>>>11)^Math.imul(Number(units),2654435761))>>>0)&(V267_CASH_SIG_BASE-1);
   }
-  function v264CashPasswordFor(studentCode,amount,minuteStamp){
-    const code=normalizeStudentCode(studentCode),cash=Math.max(1,Math.min(50000,Math.round(Number(amount)||0)));
-    const [a,b]=v264CashHash(`HOTEL-MANAGER-V264|${code}|${cash}|${Number(minuteStamp)}`);
-    let value=(BigInt(a)<<32n)|BigInt(b),signature="";
-    const base=BigInt(V264_CASH_ALPHABET.length);
-    for(let i=0;i<4;i++){signature=V264_CASH_ALPHABET[Number(value%base)]+signature;value/=base;}
-    return v264EncodeCashAmount(cash)+signature;
+  function v267CashCodeFor(amount,block){
+    const units=v267CashUnits(amount);if(!units)return "";
+    const sig=v267CashSignature(units,block);
+    const combined=(units-1)*V267_CASH_SIG_BASE+sig;
+    const token=((combined^V267_CASH_MASK)>>>0);
+    return String(token).padStart(7,"0");
   }
-  function v264NormalizeCashPassword(value){return String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);}
-
-  async function v263TeacherGiveMoney(studentCode){
-    const code=normalizeStudentCode(studentCode);if(!code)return;
-    const raw=prompt(`Hur många kronor vill du ge ${code} att köpa för?`,"1000");
-    if(raw===null)return;
-    const amount=Math.round(Number(String(raw).replace(/\s/g,"").replace(",",".")));
-    if(!Number.isFinite(amount)||amount<1||amount>50000){showTip("Ange ett belopp mellan 1 och 50 000 kr.");return;}
-    const minute=Math.floor(Date.now()/60000),password=v264CashPasswordFor(code,amount,minute);
-    const display=`${password.slice(0,4)}-${password.slice(4)}`;
-    const copied=await copyTextRobust(display);
-    prompt(`${code} får ${amount} kr.\n\nLösenord: ${display}\nGiltigt i 15 minuter.\n${copied?"Lösenordet är kopierat.":"Ge lösenordet till eleven."}\n\nEleven klickar 🎁 Lärarpengar och skriver in lösenordet.`,display);
-    showTip(`Lösenord skapat för ${code}: ${amount} kr · giltigt i 15 minuter.`);
-  }
-
-  function v263RedeemTeacherMoney(){
-    const entered=prompt("Skriv lösenordet från läraren (8 tecken):","");if(entered===null)return;
-    const password=v264NormalizeCashPassword(entered);
-    if(password.length!==8){showTip("Lösenordet ska vara 8 tecken.");return;}
-    const code=normalizeStudentCode(currentStudentCode||state.studentCode||"");
-    if(!code){showTip("Välj elevkod innan du löser in lärarpengar.");return;}
-    const nowMinute=Math.floor(Date.now()/60000),amount=v264DecodeCashAmount(password.slice(0,4));
-    let found=null;
-    if(amount){
-      // Kontrollera endast de senaste 15 minuterna. Beloppet ligger kompakt i lösenordet,
-      // så elevens dator behöver inte söka igenom tusentals belopp.
-      for(let age=0;age<15;age++){
-        const minute=nowMinute-age;
-        if(v264CashPasswordFor(code,amount,minute)===password){found={amount,minute};break;}
+  function v267NormalizeCashCode(value){return String(value||"").replace(/\D/g,"").slice(0,7);}
+  function v267DisplayCashCode(code){const c=v267NormalizeCashCode(code);return c.length===7?`${c.slice(0,3)} ${c.slice(3)}`:c;}
+  function v267DecodeCashCode(value,now=Date.now()){
+    const code=v267NormalizeCashCode(value);if(code.length!==7)return null;
+    const token=Number(code);if(!Number.isInteger(token)||token<0||token>8388607)return null;
+    const combined=((token^V267_CASH_MASK)>>>0);
+    const maxCombined=(V267_CASH_MAX/V267_CASH_STEP)*V267_CASH_SIG_BASE;
+    if(combined>=maxCombined)return null;
+    const units=Math.floor(combined/V267_CASH_SIG_BASE)+1;
+    const sig=combined%V267_CASH_SIG_BASE;
+    const amount=units*V267_CASH_STEP;
+    const nowBlock=Math.floor(Number(now)/V267_CASH_BLOCK_MS);
+    for(let age=0;age<V267_CASH_VALID_BLOCKS;age++){
+      const block=nowBlock-age;
+      if(v267CashSignature(units,block)===sig){
+        const activatedAt=block*V267_CASH_BLOCK_MS;
+        const expiresAt=(block+V267_CASH_VALID_BLOCKS)*V267_CASH_BLOCK_MS;
+        if(Number(now)>=activatedAt&&Number(now)<expiresAt)return {code,amount,block,activatedAt,expiresAt};
       }
     }
-    if(!found){showTip("Lösenordet är fel eller har gått ut. Be läraren skapa ett nytt.");return;}
+    return null;
+  }
+  function v267CashTime(ts){
+    try{return new Date(Number(ts)).toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"});}catch(_){return "";}
+  }
+  function v267TeacherCashStored(){
+    try{const raw=localStorage.getItem(V267_CASH_TEACHER_KEY);return raw?JSON.parse(raw):null;}catch(_){return null;}
+  }
+  function v267StoreTeacherCash(data){
+    try{localStorage.setItem(V267_CASH_TEACHER_KEY,JSON.stringify(data));}catch(_){/* spelet fungerar ändå */}
+  }
+  function v267RenderTeacherCashControl(){
+    const status=document.getElementById("teacherCashStatus");if(!status)return;
+    const active=v267TeacherCashStored(),now=Date.now();
+    if(!active||!active.code||Number(active.expiresAt||0)<=now){
+      status.classList.remove("active");
+      status.innerHTML="Ingen aktiv kod just nu. Aktivera en ny kod ovan när eleverna ska få pengar.";
+      return;
+    }
+    const seconds=Math.max(0,Math.ceil((Number(active.expiresAt)-now)/1000));
+    const min=Math.floor(seconds/60),sec=seconds%60;
+    status.classList.add("active");
+    status.innerHTML=`<strong>AKTIV:</strong> <span class="teacher-cash-code">${escapeHtml(v267DisplayCashCode(active.code))}</span> ger <strong>${Math.round(Number(active.amount||0))} kr</strong> · giltig till <strong>${escapeHtml(v267CashTime(active.expiresAt))}</strong> · cirka ${min}:${String(sec).padStart(2,"0")} kvar.`;
+  }
+  async function v267ActivateTeacherCashCode(){
+    const input=document.getElementById("teacherCashAmount");
+    const amount=Math.round(Number(input?.value||0));
+    if(!v267CashUnits(amount)){
+      showTip("Beloppet måste vara 50–50 000 kr och anges i hela 50-kronorssteg.");input?.focus();return;
+    }
+    const block=Math.floor(Date.now()/V267_CASH_BLOCK_MS),code=v267CashCodeFor(amount,block);
+    const activatedAt=block*V267_CASH_BLOCK_MS,expiresAt=(block+V267_CASH_VALID_BLOCKS)*V267_CASH_BLOCK_MS;
+    const active={code,amount,block,activatedAt,expiresAt,createdAt:Date.now()};
+    v267StoreTeacherCash(active);v267RenderTeacherCashControl();
+    const display=v267DisplayCashCode(code),copied=await copyTextRobust(display);
+    prompt(`Lärarpengakoden är aktiverad.\n\nKod: ${display}\nBelopp: ${amount} kr\nGäller till: ${v267CashTime(expiresAt)}\n\nSamma kod kan användas av hela klassen och en gång per elevspel.${copied?"\n\nKoden är kopierad.":""}`,display);
+    showTip(`Lärarpengakod ${display} aktiverad · ${amount} kr · giltig i 15 minuter.`);
+  }
+
+  // Kompatibilitetsnamn från v.01-263. En elevrad skapar inte längre en egen kod.
+  function v263TeacherGiveMoney(){return v267ActivateTeacherCashCode();}
+
+  function v263RedeemTeacherMoney(){
+    const entered=prompt("Skriv den aktiva 7-siffriga lärarkoden:","");if(entered===null)return;
+    const code=v267NormalizeCashCode(entered);
+    if(code.length!==7){showTip("Koden ska bestå av 7 siffror.");return;}
+    const studentCode=normalizeStudentCode(currentStudentCode||state.studentCode||"");
+    if(!studentCode){showTip("Välj elevkod innan du löser in lärarpengar.");return;}
+    const found=v267DecodeCashCode(code,Date.now());
+    if(!found){showTip("Koden är fel eller har gått ut. Be läraren aktivera en ny kod.");return;}
     if(!Array.isArray(state.teacherCashGrantsRedeemed))state.teacherCashGrantsRedeemed=[];
-    const redeemId=`V264|${code}|${password}|${found.minute}`;
-    if(state.teacherCashGrantsRedeemed.includes(redeemId)){showTip("Det här lösenordet är redan använt.");return;}
+    const redeemId=`V267|${found.code}|${found.block}`;
+    if(state.teacherCashGrantsRedeemed.includes(redeemId)){showTip("Du har redan använt den här lärarpengakoden.");return;}
     state.teacherCashGrantsRedeemed.push(redeemId);
     state.money=Number(state.money||0)+Number(found.amount||0);
-    recordAssessment("teacher_cash_grant",{amount:found.amount,grantId:redeemId,studentCode:code,correct:true,day:Number(state.day||1)});
+    recordAssessment("teacher_cash_grant",{amount:found.amount,grantId:redeemId,studentCode,correct:true,day:Number(state.day||1),expiresAt:found.expiresAt});
     saveState();updateHud();renderHotelDevelopment();
-    showTip(`✓ Läraren gav hotellet ${found.amount} kr att köpa för. Ny kassa: ${Math.round(Number(state.money||0))} kr.`);
+    showTip(`✓ ${found.amount} kr lades till i hotellkassan. Ny kassa: ${Math.round(Number(state.money||0))} kr.`);
   }
 
 
@@ -11913,6 +11993,10 @@
   document.getElementById("saveNewReservationBtn").onclick=()=>v263HandleReservationSaveClick(false);
   document.getElementById("skipPhoneBookingTaskBtn")?.addEventListener("click",v263SkipPhoneBookingTask);
   document.getElementById("redeemTeacherMoneyBtn")?.addEventListener("click",v263RedeemTeacherMoney);
+  document.getElementById("activateTeacherCashBtn")?.addEventListener("click",v267ActivateTeacherCashCode);
+  document.querySelectorAll("[data-teacher-cash-preset]").forEach(btn=>btn.addEventListener("click",()=>{const input=document.getElementById("teacherCashAmount");if(input)input.value=String(btn.dataset.teacherCashPreset||"1000");}));
+  v267RenderTeacherCashControl();
+  setInterval(v267RenderTeacherCashControl,30000);
   document.addEventListener("click",e=>{
     const target=e.target;
     const btn=target&&typeof target.closest==="function"?target.closest("#forceReservationOverrideBtn"):null;
@@ -13091,23 +13175,16 @@
     const root=document.getElementById('highscoreView');if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(v231bStudentHasHistory),newRows=[],legacyRows=[];students.forEach(s=>{const l=v231bLatestSnapshot(s),p=studentDisplayParts(s);(v231bIsLegacySnapshot(l)?legacyRows:newRows).push({s,l,p});});newRows.sort((a,b)=>Number(b.l?.ranking?.total||0)-Number(a.l?.ranking?.total||0));legacyRows.sort((a,b)=>v231bLegacyQuality(b.l)-v231bLegacyQuality(a.l));const tableNew=`<div class="highscore-card"><h4>🏆 Ny ranking · v.01-231</h4>${newRows.length?`<table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Yrk.</th><th>Gäst</th><th>Uppg.</th><th>Eko</th><th>Hotellp.</th><th>Ranking</th></tr></thead><tbody>${newRows.slice(0,10).map((x,i)=>{const r=x.l.ranking||{};return `<tr><td>${rankMedal(i)}</td><td>${escapeHtml(x.p.classCode||'—')}</td><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(r.vocational||0).toFixed(0)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(0)}%</td><td>${Number(r.tasks||0).toFixed(0)}%</td><td>${Number(r.economy||0).toFixed(0)}%</td><td>${Number(r.hotelPoints||0).toFixed(0)}%</td><td><b>${Number(r.total||0).toFixed(1)}%</b></td></tr>`;}).join('')}</tbody></table>`:'<div class="info">Ingen elev har ännu en rapport enligt den nya rankingmodellen.</div>'}</div>`;const tableOld=`<div class="highscore-card"><h4>📚 Äldre historik · bevarad</h4>${legacyRows.length?`<table class="highscore-table"><thead><tr><th>Elev</th><th>Dag</th><th>Äldre resultat</th><th>Yrk.progression</th><th>Gäst</th></tr></thead><tbody>${legacyRows.map(x=>`<tr><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(x.l.day||1)}</td><td><b>${v231bLegacyQuality(x.l).toFixed(1)}%</b></td><td>${v231bLegacyVocational(x.l).toFixed(1)}%</td><td>${Number(x.l.guestAverage||0).toFixed(1)}%</td></tr>`).join('')}</tbody></table><div class="info">Äldre resultat visas separat och rangordnas inte tillsammans med den nya 40/35/15/5/5-modellen.</div>`:'<div class="info">Ingen äldre historik i det här registret.</div>'}</div>`;root.innerHTML=`<div class="highscore-grid">${tableNew}${tableOld}</div>`;
   };
 
-  // v.01-263: lägg pengaknappen efter den sista scoreboard-renderaren så att den inte skrivs över av kompatibilitetslagret.
+  // v.01-267: lärarpengar är nu en gemensam klasskod i lärarpanelen, inte elevunika koder.
   const v263RenderTeacherScoreboardBase=renderTeacherScoreboard;
   renderTeacherScoreboard=function(){
     v263RenderTeacherScoreboardBase();
-    const root=document.getElementById("scoreboardView");if(!root)return;
-    root.querySelectorAll("tr[data-score-student]").forEach(row=>{
-      const code=normalizeStudentCode(row.dataset.scoreStudent||"");if(!code)return;
-      const cell=row.lastElementChild||row.appendChild(document.createElement("td"));
-      if(cell.querySelector("[data-give-student-money]"))return;
-      const btn=document.createElement("button");btn.type="button";btn.className="teacher-money-btn";btn.dataset.giveStudentMoney=code;btn.textContent="💰 Ge pengar";btn.title="Skapa ett 8-teckens lösenord som gäller i 15 minuter";
-      btn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();v263TeacherGiveMoney(code);});cell.appendChild(btn);
-    });
+    v267RenderTeacherCashControl();
   };
 
 
   // ============================================================================
-  // v.01-266 · TELEFONBOKNING + PROFESSIONELL BACKNING VID MISSFÖRSTÅND
+  // v.01-268 · TELEFONBOKNING + SPARAT→AVSLUTA HARD FIX + GEMENSAM LÄRARPENGAKOD
   // ----------------------------------------------------------------------------
   // Telefonbokningen använder från och med denna version INTE den vanliga
   // "Ny reservation"-modalens sparknappar eller tidigare telefonpatchar.
@@ -13115,7 +13192,7 @@
   // direkt, deterministisk sparfunktion. Därmed kan gamla onclick/capture-
   // lyssnare inte längre låsa telefonbokningen.
   // ============================================================================
-  const V265_PHONE_FLOW_VERSION="v.01-266-rebuilt-with-date-recovery";
+  const V265_PHONE_FLOW_VERSION="v.01-268-rebuilt-save-finish-hardfix";
 
   function v265Safe(fn,fallback=null){try{return fn();}catch(err){console.error("v.01-265",err);return fallback;}}
   function v265Stage(){return String(state.phoneV265Stage||"idle");}
@@ -13211,6 +13288,7 @@
         #v265ReadbackBtn{background:#5d72ef;color:white}
         .v266-correct-dates{background:#fff4dd!important;color:#6b4700!important;border:2px solid #e5b44a!important}
         .v266-correct-dates:hover{filter:brightness(.98)}
+        .v268-finish-now{background:#eef1f6!important;border:2px solid #cfd7e6!important;color:#263657!important;font-weight:1000!important}
         .v265-phone-error{min-height:24px;margin-top:10px;color:#b52e22;font-weight:800}
         .v265-phone-error.ok{color:#167853}
         .v265-room-status{display:none;margin-top:12px;padding:12px;border-radius:12px;background:#eef3ff;border:1px solid #c9d5f5;line-height:1.55}
@@ -13316,6 +13394,15 @@
   }
   function v265OpenPms(){
     v265EnsureUi();
+    // v.01-268: när reservationen redan finns i kalendern ska PMS inte kunna backa flödet
+    // till "pms/confirmed". Visa i stället direkt avslutningen av samtalet.
+    if(v268FindSavedPhoneBooking()){
+      v268ReconcileSavedPhoneState();
+      document.getElementById("phonePmsV265Modal")?.classList.remove("show");
+      document.getElementById("phoneBookingModal")?.classList.add("show");setPhoneCallDocked(true);renderPhoneDialogueStep();
+      showTip("✓ Reservationen är redan sparad i PMS. Avsluta nu samtalet med gästen.");
+      return true;
+    }
     if(v265Stage()!=="confirmed")v265SetStage("pms",41);
     const s=v265Scenario();v265PopulateDates();
     const d=state.phoneV265Draft||{guest:"",phone:"",city:"",address:"",roomId:0,start:Number(s.start),nights:Number(s.nights),partySize:0,source:"Telefon"};
@@ -13378,7 +13465,9 @@
     state.receptionCheckin.selectedBookingId=id;
     state.phoneV265SavedBookingId=id;state.phoneSavedBookingId=id;state.phoneReservationReadbackConfirmed=true;
     state.phoneCallStatus="in_call";state.phoneCallBranch=forceOverride?(conflict?"overbooked":"override"):"booked";
-    v265SetStage("saved",43);
+    // v.01-268: sätt sparat-läget direkt i state innan NÅGON annan funktion körs.
+    // Därmed kan ingen äldre render/update-rutin lämna samtalet kvar på "Spara".
+    state.phoneV265Stage="saved";state.phoneCallProgress=43;state.phoneFlowVersion=V265_PHONE_FLOW_VERSION;
     // Spara direkt efter push; följdfunktioner får inte kunna hindra bokningen.
     let persisted=false;
     try{saveState();persisted=true;}catch(err){console.error("v.01-265 saveState",err);}
@@ -13388,7 +13477,11 @@
     v265Safe(()=>renderBookingCalendar());v265Safe(()=>updateHud());v265Safe(()=>updateMission());
     document.getElementById("phonePmsV265Modal")?.classList.remove("show");
     document.getElementById("newReservationModal")?.classList.remove("show");
-    document.getElementById("phoneBookingModal")?.classList.add("show");setPhoneCallDocked(true);renderPhoneDialogueStep();
+    document.getElementById("phoneBookingModal")?.classList.add("show");setPhoneCallDocked(true);
+    // Kör återställningen både direkt och i nästa event-loop. Om en äldre listener försöker
+    // rendera "confirmed" efter klicket korrigeras den tillbaka till "saved".
+    v268ReconcileSavedPhoneState();renderPhoneDialogueStep();
+    setTimeout(()=>{v268ReconcileSavedPhoneState();renderPhoneDialogueStep();},0);
     showTip(`✓ SPARAD I PMS: ${d.guest} · rum ${d.roomId}. Gästen är kvar i telefonen – avsluta samtalet trevligt.`);
     return true;
   }
@@ -13460,11 +13553,46 @@
     choices.appendChild(wrap);
   }
 
+  function v268FindSavedPhoneBooking(){
+    const ids=[Number(state.phoneV265SavedBookingId||0),Number(state.phoneSavedBookingId||0)].filter(Boolean);
+    for(const id of ids){const b=state.bookings.find(x=>Number(x.id)===id);if(b)return b;}
+    const s=state.phoneV265Scenario||null,d=state.phoneV265Draft||null;
+    if(!s&&!d)return null;
+    const guest=normalizeCompare(String(d?.guest||s?.name||""));
+    const start=Number(d?.start??s?.start);
+    const nights=Number(d?.nights??s?.nights);
+    const roomId=Number(d?.roomId||0);
+    const found=[...state.bookings].reverse().find(b=>
+      String(b.source||"").toLowerCase()==="telefon"&&
+      (!guest||normalizeCompare(String(b.guest||""))===guest)&&
+      (!Number.isFinite(start)||Number(b.start)===start)&&
+      (!Number.isFinite(nights)||Number(b.nights)===nights)&&
+      (!roomId||Number(b.roomId)===roomId)
+    );
+    if(found){state.phoneV265SavedBookingId=Number(found.id||0);state.phoneSavedBookingId=Number(found.id||0);}
+    return found||null;
+  }
+  function v268ReconcileSavedPhoneState(){
+    const booking=v268FindSavedPhoneBooking();
+    if(!booking)return null;
+    const stage=v265Stage();
+    if(!["saved","farewell","completed","skipped"].includes(stage)){
+      state.phoneV265Stage="saved";
+      state.phoneCallProgress=Math.max(43,Number(state.phoneCallProgress||0));
+      state.phoneCallStatus="in_call";
+      state.phoneReservationReadbackConfirmed=true;
+      v265Safe(()=>saveState());
+    }
+    return booking;
+  }
   function v265FinishCall(){
-    if(!state.phoneV265SavedBookingId){showTip("Reservationen måste sparas innan det färdiga bokningssamtalet kan avslutas.");return false;}
+    const booking=v268FindSavedPhoneBooking();
+    if(!booking){showTip("Reservationen måste sparas innan det färdiga bokningssamtalet kan avslutas.");return false;}
+    const bookingId=Number(booking.id||state.phoneV265SavedBookingId||state.phoneSavedBookingId||0);
+    state.phoneV265SavedBookingId=bookingId;state.phoneSavedBookingId=bookingId;
     state.tasks.phoneBooking=true;state.phoneTaskCompletedDay=Number(state.day||1);state.phoneTaskCompletedPeriodKey=phoneTaskPeriodKey();
     state.phoneCallHeardDay=Number(state.day||1);state.phoneConversationCompletedDay=Number(state.day||1);state.phoneCallStatus="completed";state.phoneCallCountdownEnd=0;state.phoneCallProgress=45;state.phoneV265Stage="completed";
-    v265Safe(()=>recordAssessment("phone_call_closed_after_booking",{bookingId:Number(state.phoneV265SavedBookingId),day:Number(state.day||1),correct:true,points:10}));
+    v265Safe(()=>recordAssessment("phone_call_closed_after_booking",{bookingId,day:Number(state.day||1),correct:true,points:10}));
     v265Safe(()=>saveState());v265Safe(()=>updateMission());v265Safe(()=>updateHud());
     document.getElementById("phonePmsV265Modal")?.classList.remove("show");closePhoneCallPanel();showTip("Telefonbokningen är klar. Reservationen är sparad och samtalet avslutades professionellt.");return true;
   }
@@ -13477,6 +13605,8 @@
     document.getElementById("phonePmsV265Modal")?.classList.remove("show");closePhoneCallPanel();showTip(saved?"Telefonuppgiften avslutades. Bokningen ligger kvar i PMS.":"Telefonuppgiften hoppades över. Du kan gå vidare till nästa arbete.");return true;
   }
   function v265HangUp(){
+    // v.01-268: om bokningen redan finns i PMS får Lägg på ALDRIG behandlas som "hoppa över".
+    if(v268FindSavedPhoneBooking())return v265FinishCall();
     if(v265Stage()==="farewell"||v265Stage()==="saved")return v265FinishCall();
     return v265SkipPhoneBooking();
   }
@@ -13494,6 +13624,9 @@
   // Ersätter hela telefondialogens state machine.
   renderPhoneDialogueStep=function(){
     v265EnsureUi();
+    // v.01-268: kalendern/PMS är sanningen. Finns telefonreservationen sparad så
+    // får dialogen aldrig ligga kvar i "confirmed" och be eleven spara en gång till.
+    v268ReconcileSavedPhoneState();
     const root=document.getElementById("phoneRequestSummary"),choices=document.getElementById("phoneDialogueChoices"),s=v265Scenario();if(!choices)return;
     const stage=v265Stage();choices.innerHTML="";
     if(root){root.innerHTML=v265SummaryHtml();root.classList.toggle("show",!["idle","waiting","greeting"].includes(stage));}
@@ -13541,9 +13674,11 @@
       choices.appendChild(v265Choice("ÅTERGÅ TILL PMS OCH SPARA",v265OpenPms,"primary"));v266AddRecoveryButton(choices);return;
     }
     if(stage==="saved"){
+      const booking=v268FindSavedPhoneBooking();
       setPhoneBubble("guest","Tack så mycket!");
-      const done=document.createElement("div");done.className="phone-dialogue-bubble guest";done.innerHTML=`<strong>✓ Reservationen är sparad i PMS.</strong><br>Boknings-ID: ${Number(state.phoneV265SavedBookingId||0)}. Avsluta samtalet professionellt.`;choices.appendChild(done);
-      choices.appendChild(v265Choice("Tack för att ni ringde. Ha en fortsatt trevlig dag!",()=>v265Advance("farewell",44,"Tack för att ni ringde. Ha en fortsatt trevlig dag!",15)));return;
+      const done=document.createElement("div");done.className="phone-dialogue-bubble guest";done.innerHTML=`<strong>✓ RESERVATIONEN ÄR SPARAD I PMS.</strong><br>${booking?`Rum ${Number(booking.roomId||0)} · ${escapeHtml(hotelCalendarDayLabel(Number(booking.start||0)))}.`:""}<br><strong>Nu ska du avsluta telefonsamtalet.</strong>`;choices.appendChild(done);
+      choices.appendChild(v265Choice("Tack för att ni ringde. Ha en fortsatt trevlig dag!",()=>v265Advance("farewell",44,"Tack för att ni ringde. Ha en fortsatt trevlig dag!",15),"primary"));
+      choices.appendChild(v265Choice("☎ AVSLUTA SAMTALET NU",v265FinishCall,"v268-finish-now"));return;
     }
     if(stage==="farewell"){
       setPhoneBubble("guest","Tack detsamma. Hej då!");choices.appendChild(v265Choice("LÄGG PÅ – BOKNING OCH SAMTAL KLART",v265FinishCall,"primary"));return;
