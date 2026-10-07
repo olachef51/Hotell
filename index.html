@@ -467,7 +467,7 @@
   #phoneBookingModal.docked .phone-booking-body{padding:10px 14px 16px}
   #phoneBookingModal.docked .phone-dialogue-bubble{max-width:96%;font-size:12px;padding:9px 10px}
   #phoneBookingModal.docked .phone-dialogue-choices button{font-size:12px;padding:9px 10px}
-  /* v.01-259 · Telefonpanelen får bara ligga ovanpå själva telefon/PMS-arbetsflödet.
+  /* v.01-260 · Telefonpanelen får bara ligga ovanpå själva telefon/PMS-arbetsflödet.
      Om eleven öppnar ett annat arbetsmoment eller lärarläget döljs panelen tillfälligt.
      Samtalet och bokningsinformationen ligger kvar och panelen visas igen när det andra fönstret stängs. */
   body:has(.modal.show:not(#phoneBookingModal):not(#receptionModal):not(#newReservationModal):not(#reservationAvailabilityModal)) #phoneBookingModal.docked{display:none!important}
@@ -500,7 +500,12 @@
   .checkin-feedback-score{margin-top:13px;text-align:right;font-size:13px;font-weight:1000;color:#46556a}
 
   body.phone-call-docked #receptionModal .pms-box,body.phone-call-docked #newReservationModal .new-reservation-box,body.phone-call-docked #reservationAvailabilityModal .availability-box{max-width:calc(100vw - 430px);transform:translateX(195px)}
-  @media(max-width:1050px){#phoneBookingModal.docked .phone-booking-box{left:8px;top:auto;bottom:8px;width:calc(100vw - 16px);max-width:none;max-height:42vh}#breakfastTaskModal.docked .breakfast-task-box{left:8px;top:auto;bottom:8px;width:calc(100vw - 16px);max-width:none;max-height:42vh}body.phone-call-docked #receptionModal .pms-box,body.phone-call-docked #newReservationModal .new-reservation-box,body.phone-call-docked #reservationAvailabilityModal .availability-box,body.breakfast-task-docked #receptionModal .pms-box{max-width:96vw;transform:none}}
+  /* v.01-260: native rullgardinsmenyer i reservationsformuläret ska aldrig hamna i ett transformerat lager.
+     Själva reservationsmodalen får plats för den dockade telefonen med padding i stället för transform. */
+  body.phone-call-docked #newReservationModal{padding-left:430px}
+  body.phone-call-docked #newReservationModal .new-reservation-box{max-width:min(940px,calc(100vw - 455px));transform:none!important;pointer-events:auto;isolation:isolate}
+  body.phone-call-docked #newReservationRoom{pointer-events:auto!important;position:relative;z-index:6}
+  @media(max-width:1050px){#phoneBookingModal.docked .phone-booking-box{left:8px;top:auto;bottom:8px;width:calc(100vw - 16px);max-width:none;max-height:42vh}#breakfastTaskModal.docked .breakfast-task-box{left:8px;top:auto;bottom:8px;width:calc(100vw - 16px);max-width:none;max-height:42vh}body.phone-call-docked #newReservationModal{padding-left:clamp(8px,2vh,18px)}body.phone-call-docked #receptionModal .pms-box,body.phone-call-docked #newReservationModal .new-reservation-box,body.phone-call-docked #reservationAvailabilityModal .availability-box,body.breakfast-task-docked #receptionModal .pms-box{max-width:96vw;transform:none}}
   .checkout-moment{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 4px;border-bottom:1px solid #e5e9ee}.checkout-moment strong{display:block}.checkout-moment small{display:block;color:#71808b;margin-top:3px}.checkout-action-btn{border:0;border-radius:12px;padding:10px 13px;background:#516fe8;color:#fff;font-weight:950}.checkout-action-btn.done{background:#cfeedd;color:#246844}.checkout-status-pill{border-radius:999px;padding:7px 10px;font-size:11px;font-weight:950;background:#eef1f4;color:#5d6870}.checkout-status-pill.done{background:#d9f3e4;color:#237047}.checkout-dialogue-box{width:min(680px,95vw)}.checkout-dialogue-body{padding:16px}.checkout-dialogue-line{background:#f5f7fb;border:2px solid #dfe5f2;border-radius:15px;padding:13px 15px;margin-bottom:12px;font-weight:800;color:#34445a;line-height:1.45}.checkout-dialogue-choices{display:grid;gap:8px}.checkout-dialogue-choices button{border:2px solid #d9dfec;background:#fff;border-radius:13px;padding:11px 13px;text-align:left;font-weight:900;color:#273858}
   .room-choice-statusbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}.room-choice-statusbar div{background:#f3f6f7;border:1px solid #dde5e8;border-radius:10px;padding:9px}.room-choice-statusbar span{display:block;font-size:9px;font-weight:1000;color:#7a878d}.room-choice-statusbar b{display:block;margin-top:2px;font-size:13px;color:#293943}
   @media(max-width:650px){.phone-booking-grid{grid-template-columns:1fr}.phone-booking-grid .wide{grid-column:auto}.room-choice-statusbar{grid-template-columns:1fr}}
@@ -1239,7 +1244,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-259</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-260</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1913,8 +1918,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-259";
-  const MASTER_CONTENT_VERSION = "v.01-259";
+  const HOTEL_VERSION = "v.01-260";
+  const MASTER_CONTENT_VERSION = "v.01-260";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -8438,7 +8443,7 @@
 
   function cleanText(value){return String(value||"").trim().replace(/\s+/g," ");}
   function normalizeCompare(value){return cleanText(value).toLowerCase().replace(/[.,-]/g,"");}
-  // v.01-259: telefonnummer jämförs på siffrorna, inte på hur eleven skriver mellanslag/bindestreck.
+  // v.01-260: telefonnummer jämförs på siffrorna, inte på hur eleven skriver mellanslag/bindestreck.
   function normalizePhoneCompare(value){return String(value||"").replace(/\D/g,"");}
 
   function expectedContactForBooking(booking){
@@ -8645,7 +8650,16 @@
     saveState();
     document.getElementById("phoneBookingModal")?.classList.add("show");
     setPhoneCallDocked(true);
-    openNewReservationModal();
+    const reservationModal=document.getElementById("newReservationModal");
+    const roomSelect=document.getElementById("newReservationRoom");
+    if(reservationModal?.classList.contains("show")){
+      // v.01-260: bygg inte om hela formuläret när eleven går tillbaka efter återläsning.
+      // Det kunde nollställa/fastna det native rumsval som just höll på att användas.
+      if(roomSelect){roomSelect.disabled=false;roomSelect.style.pointerEvents="auto";}
+      refreshPhoneReservationSaveButton();
+    }else{
+      openNewReservationModal();
+    }
     showTip("Gästen är kvar i telefonen. Fyll i reservationen och spara den innan du lägger på.");
   }
 
@@ -9049,9 +9063,20 @@
     const choices=document.getElementById("phoneDialogueChoices");if(choices)choices.innerHTML="";
     setPhoneBubble("staff",summary);
     state.phoneReservationReadbackConfirmed=true;
+    const readbackSnapshot=JSON.stringify({guest:d.guest,phone:d.phone,city:d.city,address:d.address,roomId:Number(d.roomId||0),start:Number(d.start),nights:Number(d.nights),partySize:Number(d.partySize||0),source:d.source});
     saveState();
     if(phoneDialogueTimer){clearTimeout(phoneDialogueTimer);phoneDialogueTimer=null;}
     phoneDialogueTimer=setTimeout(()=>{
+      const latest=capturePhoneReservationDraft(false);
+      const latestSnapshot=latest?JSON.stringify({guest:latest.guest,phone:latest.phone,city:latest.city,address:latest.address,roomId:Number(latest.roomId||0),start:Number(latest.start),nights:Number(latest.nights),partySize:Number(latest.partySize||0),source:latest.source}):"";
+      if(!state.phoneReservationReadbackConfirmed||latestSnapshot!==readbackSnapshot){
+        state.phoneReservationReadbackConfirmed=false;
+        state.phoneCallProgress=41;
+        saveState();updateMission();renderPhoneDialogueStep();refreshPhoneReservationSaveButton();
+        const err=document.getElementById("newReservationError");
+        if(err)err.textContent="Uppgifterna ändrades under återläsningen. Kontrollera rummet och läs tillbaka bokningen igen.";
+        return;
+      }
       state.phoneCallProgress=42;
       saveState();updateMission();renderPhoneDialogueStep();refreshPhoneReservationSaveButton();
     },850);
@@ -9299,7 +9324,7 @@
       const readback=document.createElement("button");readback.type="button";readback.textContent="LÄS TILLBAKA OCH DUBBELKONTROLLERA";readback.onclick=confirmPhoneReservationReadback;choices.appendChild(readback);
     }else if(step===42){
       const ok=document.createElement("div");ok.className="phone-dialogue-bubble guest";
-      ok.innerHTML="<strong>✓ Gästen har dubbelbekräftat uppgifterna.</strong><br>Klicka nu på <strong>Spara reservation</strong> i PMS medan gästen fortfarande är kvar på tråden.";
+      ok.innerHTML="<strong>✓ Gästen har dubbelbekräftat uppgifterna.</strong><br>Klicka nu på <strong>Spara reservation</strong> i PMS medan gästen fortfarande är kvar på tråden.<br><small>Behöver du ändra exempelvis rum går det fortfarande bra – då gör du bara återläsningen igen.</small>";
       choices.appendChild(ok);
       const open=document.createElement("button");open.type="button";open.textContent="ÅTERGÅ TILL PMS OCH SPARA";open.onclick=openPhoneReservationWorkspace;choices.appendChild(open);
       refreshPhoneReservationSaveButton();
@@ -9852,25 +9877,39 @@
   function updateNewReservationRoomOptions(){
     const roomSelect=document.getElementById("newReservationRoom"),startSelect=document.getElementById("newReservationStart"),nightsSelect=document.getElementById("newReservationNights");
     if(!roomSelect||!startSelect||!nightsSelect)return;
-    const selected=Number(roomSelect.value)||101;
-    const start=Number(startSelect.value||2),nights=Number(nightsSelect.value||1),allowOverbooking=phoneOverbookingModeActive();
-    const options=builtRooms().map(room=>{
+    roomSelect.disabled=false;
+    roomSelect.style.pointerEvents="auto";
+    const draftRoom=phoneRegistrationIsActive()?Number(state.phoneReservationDraft?.roomId||state.pendingPhoneReservation?.selectedRoomId||0):0;
+    const currentRoom=Number(roomSelect.value||0);
+    const selected=draftRoom||currentRoom||0;
+    const start=Number(startSelect.value||getTodayIndex()),nights=Math.max(1,Number(nightsSelect.value||1)),allowOverbooking=phoneOverbookingModeActive();
+    const rooms=builtRooms();
+    const options=rooms.map(room=>{
       const conflict=findReservationConflict(room.id,start,nights);
-      return `<option value="${room.id}" ${conflict&&!allowOverbooking?"disabled":""}>Rum ${room.id} · ${escapeHtml(roomTypeForId(room.id))} · ${escapeHtml(reservationRoomChoiceStatus(room,start,nights))}${conflict&&allowOverbooking?" · ÖVERBOKNING":""}</option>`;
-    }).join("");
-    roomSelect.innerHTML=options;
-    const hasSelected=builtRooms().some(room=>room.id===selected&&(allowOverbooking||!findReservationConflict(room.id,start,nights)));
-    if(hasSelected){
-      roomSelect.value=String(selected);
+      const disabled=Boolean(conflict&&!allowOverbooking);
+      return `<option value="${room.id}" ${disabled?"disabled":""}>Rum ${room.id} · ${escapeHtml(roomTypeForId(room.id))} · ${escapeHtml(reservationRoomChoiceStatus(room,start,nights))}${conflict&&allowOverbooking?" · ÖVERBOKNING":""}</option>`;
+    });
+    roomSelect.innerHTML=`<option value="">Välj rum</option>${options.join("")}`;
+    const chosen=rooms.find(room=>room.id===selected&&(allowOverbooking||!findReservationConflict(room.id,start,nights)));
+    if(chosen){
+      roomSelect.value=String(chosen.id);
     }else{
-      const firstAvailable=builtRooms().find(room=>!findReservationConflict(room.id,start,nights));
-      const fallback=firstAvailable||(allowOverbooking?builtRooms()[0]:null);
-      if(fallback)roomSelect.value=String(fallback.id);
+      // Under telefonsamtalet ska eleven själv kunna göra rumsvalet i PMS.
+      // Vi väljer inte ett annat rum i smyg om det tidigare valet inte längre är giltigt.
+      roomSelect.value="";
+    }
+    const anySelectable=rooms.some(room=>allowOverbooking||!findReservationConflict(room.id,start,nights));
+    if(!anySelectable){
+      const opt=document.createElement("option");
+      opt.value="";opt.textContent="Inget ledigt rum för vald period";opt.disabled=true;
+      roomSelect.appendChild(opt);
+      roomSelect.value="";
     }
   }
 
   function openNewReservationModal(){
     const roomSelect=document.getElementById("newReservationRoom"),startSelect=document.getElementById("newReservationStart"),nightsSelect=document.getElementById("newReservationNights");
+    if(roomSelect){roomSelect.disabled=false;roomSelect.style.pointerEvents="auto";}
     const todayIndex=getTodayIndex();
     startSelect.innerHTML=Array.from({length:HOTEL_CALENDAR_LAST_INDEX-todayIndex+1},(_,offset)=>{const index=todayIndex+offset;return `<option value="${index}">${escapeHtml(hotelCalendarDayLabel(index,true))}</option>`;}).join("");
     nightsSelect.innerHTML=Array.from({length:7},(_,i)=>`<option value="${i+1}">${i+1} natt${i?"er":""}</option>`).join("");
@@ -9885,7 +9924,7 @@
       startSelect.value=String(Number(draft?.start??s.start));
       nightsSelect.value=String(Math.max(1,Number(draft?.nights ?? s.nights ?? 1)));
       const partySelect=document.getElementById("newReservationPartySize");
-      // v.01-259: antal gäster ska aktivt registreras av eleven från telefonsamtalet.
+      // v.01-260: antal gäster ska aktivt registreras av eleven från telefonsamtalet.
       if(partySelect){
         const savedPartySize=Number(draft?.partySize||0);
         partySelect.value=savedPartySize>=1?String(savedPartySize):"";
@@ -9895,6 +9934,7 @@
       updateNewReservationRoomOptions();
       const preferredDraftRoom=Number(draft?.roomId||s.selectedRoomId||0);
       if(preferredDraftRoom&&[...roomSelect.options].some(o=>Number(o.value)===preferredDraftRoom&&!o.disabled))roomSelect.value=String(preferredDraftRoom);
+      else if(!Number(roomSelect.value||0))roomSelect.value="";
       const error=document.getElementById("newReservationError");
       error.textContent=state.phoneReservationReadbackConfirmed?"✓ Gästen har bekräftat återläsningen. Spara reservationen.":"📞 Gästen är kvar i telefonen. Fyll i uppgifterna medan ni pratar och läs sedan tillbaka hela bokningen.";
     }else{
@@ -11830,8 +11870,9 @@
   renderSavedStudentProfiles();
 
 
-  // v.01-259 · Telefonreservation: robust telefonnummerjämförelse, aktivt val av antal gäster och tydligare periodtillgänglighet.
-  // v.01-259 · UI-fix: dockad telefonruta döljs när annat arbetsmoment/lärarläge öppnas och återkommer efter stängning.
+  // v.01-260 · Telefonreservation: robust telefonnummerjämförelse, aktivt val av antal gäster och tydligare periodtillgänglighet.
+  // v.01-260 · UI-fix: dockad telefonruta döljs när annat arbetsmoment/lärarläge öppnas och återkommer efter stängning.
+  // v.01-260 · Låsningsfix: rumsdropdown hålls aktiv, reservationsformuläret byggs inte om efter återläsning och ändringar under återläsning kräver ny bekräftelse.
   // v.01-252 · Telefonreservation: uppgifterna registreras medan gästen är kvar i samtalet, återläses, dubbelbekräftas och sparas innan avslut.
   // Uppgiften avslutas först genom riktig sparning i PMS; ingen separat PMS-only-uppgift.
 
