@@ -3384,6 +3384,7 @@
   function ensureHousekeepingDoorWorkflow(roomId){
     const id=Number(roomId);
     if(state.activeStaffId!=="housekeeper"||!housekeeperOwnsRoomDoor(id))return false;
+    if(!v270HskOfficeAuthorized(id))return false;
     if(hskWorkflow){
       if(Number(hskWorkflow.roomId)===id&&hskWorkflow.stage==="door")return true;
       showTip(`Luise har redan ett aktivt HSK-moment i rum ${hskWorkflow.roomId}.`);
@@ -3700,9 +3701,62 @@
       : `DND-kontrollen för rum ${roomId} är klar. Rummet är frisläppt till housekeeping och kan nu städas. +80 poäng.`);
   }
 
+  function v270HskOfficeAuthorized(roomId){
+    return Number(state.hskOfficeAssignmentRoomId||0)===Number(roomId)
+      && Number(state.hskOfficeAssignmentDay||0)===Number(state.day||1);
+  }
+  function v270ClearHskOfficeAssignment(roomId=null){
+    if(roomId===null||Number(state.hskOfficeAssignmentRoomId||0)===Number(roomId)){
+      state.hskOfficeAssignmentRoomId=0;
+      state.hskOfficeAssignmentDay=0;
+    }
+  }
+  function v270RouteLuiseToHskOffice(roomId,showMessage=true){
+    const id=Number(roomId)||Number(currentHskRoomId()||0);
+    if(!id){if(showMessage)showTip("Det finns inget rum som väntar på housekeeping just nu.");return false;}
+    if(hskWorkflow){
+      if(Number(hskWorkflow.roomId)===id)return true;
+      if(showMessage)showTip(`Luise arbetar redan med rum ${hskWorkflow.roomId}.`);return false;
+    }
+    selectedMissionTaskKey="clean";
+    publicLitterWorkflow=null;
+    v270ClearHskOfficeAssignment();
+    if(state.activeStaffId!=="housekeeper")setActiveStaff("housekeeper",false);
+    const task=tasks.find(t=>t.id==="clean");
+    if(task){
+      player.targetX=task.x;player.targetY=task.y;
+      player.moving=Math.hypot(Number(player.x)-Number(task.x),Number(player.y)-Number(task.y))>12;
+      focusCameraOnWorldPoint(task.x,task.y);
+    }
+    saveState();renderStaffBar();updateMission();updateInteraction();
+    if(showMessage)showTip(`Rum ${id} väntar. Gå först till HSK-office med Luise och tryck UTFÖR UPPGIFT. Därefter går hon till rummet.`);
+    return true;
+  }
+  function v270AuthorizeHskFromOffice(roomId){
+    const id=Number(roomId)||Number(currentHskRoomId()||0);
+    const task=tasks.find(t=>t.id==="clean");
+    if(!id||!task)return false;
+    if(state.activeStaffId!=="housekeeper"){setActiveStaff("housekeeper",false);}
+    const distance=Math.hypot(Number(player.x)-Number(task.x),Number(player.y)-Number(task.y));
+    if(distance>115){
+      player.targetX=task.x;player.targetY=task.y;player.moving=true;focusCameraOnWorldPoint(task.x,task.y);
+      showTip(`Luise måste först gå till HSK-office för att ta emot uppdraget för rum ${id}.`);
+      return false;
+    }
+    state.hskOfficeAssignmentRoomId=id;
+    state.hskOfficeAssignmentDay=Number(state.day||1);
+    selectedMissionTaskKey="clean";
+    saveState();
+    recordAssessment("housekeeping_assignment_collected_at_hsk_office",{roomId:id,staffId:"housekeeper",day:Number(state.day||1),correct:true});
+    return true;
+  }
   function startHousekeepingWorkflow(task,staffId="housekeeper",mode="ideal",explicitRoomId=null){
     const roomId=Number(explicitRoomId)||currentHskRoomId()||102;
     const room=state.rooms.find(item=>Number(item.id)===roomId);if(!room)return;
+    if(!v270HskOfficeAuthorized(roomId)){
+      v270RouteLuiseToHskOffice(roomId,true);
+      return;
+    }
     const needed=room.status==="dirty"||room.status==="occupied_dirty"||room.status==="occupied";
     const sign=String(room.doorSign||"none").toUpperCase();
     // v.01-229: publikt skräp sprids över hela FOH och markeras lika tydligt som rumsskräp.
@@ -3904,6 +3958,7 @@
     const stage=String(hskWorkflow.stage||"");
     const outside=roomId?hskDoorOutsidePoint(roomId):null;
     recordAssessment("housekeeping_workflow_cancelled",{roomId,stage,reason});
+    v270ClearHskOfficeAssignment(roomId);
     document.getElementById("hskGuestConversationModal")?.classList.remove("show");
     if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
     if(state.activeStaffId==="housekeeper"&&roomId&&pointInsideRoom(roomId,player.x,player.y)&&outside){
@@ -3919,6 +3974,7 @@
   }
 
   function releaseHousekeeperAfterGuestConversation(roomId){
+    v270ClearHskOfficeAssignment(roomId);
     const outside=hskDoorOutsidePoint(roomId);
     if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
     if(outside){
@@ -3958,6 +4014,7 @@
   }
   function hskEnterRoom(){
     if(!hskWorkflow||hskWorkflow.stage!=="door"||Number(hskWorkflow.doorStep||0)!==4)return;
+    state.activeStaffId="housekeeper";
     if(performance.now()<Number(hskWorkflow.announceWaitUntil||0)){
       showTip("Vänta ett ögonblick efter det andra HOUSEKEEPING-utropet innan du går in.");
       return;
@@ -3989,6 +4046,7 @@
       const outside=hskDoorOutsidePoint(roomId);
       if(outside){player.x=Number(outside.x);player.y=Number(outside.y);player.targetX=player.x;player.targetY=player.y;player.moving=false;}
       recordAssessment("housekeeping_door_routine_no_clean_needed",{roomId,knocks:Number(hskWorkflow.knocks||0),announcements:Number(hskWorkflow.announcements||0)});
+      v270ClearHskOfficeAssignment(roomId);
       hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();roomEntryState=null;
       renderStaffBar();updateMission();updateInteraction();
       showTip(`Dörrrutinen var korrekt. Ingen gäst är kvar och rum ${roomId} behöver inte städas just nu.`);
@@ -4018,6 +4076,7 @@
     const guestPresent=isGuestPhysicallyInRoom(roomId);
     player.x=Number(outside.x);player.y=Number(outside.y);player.targetX=player.x;player.targetY=player.y;player.moving=false;
     recordAssessment("housekeeping_dnd_respected",{roomId,guestPresent,period:currentHotelPeriod().short,day:Number(state.day||1),correct:true});
+    v270ClearHskOfficeAssignment(roomId);
     hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();roomEntryState=null;
     selectedMissionTaskKey=null;
     player.speechText=guestPresent?"DND respekteras – gästen är på rummet.":"DND respekteras – följs upp senare.";
@@ -4038,6 +4097,7 @@
     state.hskQueue=state.hskQueue.filter(id=>Number(id)!==roomId);
     state.tasks.clean=hskDailyWorkComplete();
     recordAssessment("housekeeping_dnd_reported",{roomId,reportedBy:"housekeeper",managerCheckRequired:true,housekeeperWaitsOutside:true,points:25,day:Number(state.day||1)});
+    v270ClearHskOfficeAssignment(roomId);
     hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();roomEntryState=null;
     player.speechText="DND rapporterad. Jag väntar på Alex.";player.speechUntil=performance.now()+3000;
     saveState();updateMission();renderReceptionPms();renderStaffBar();updateInteraction();
@@ -4060,6 +4120,7 @@
     state.money+=Math.round(80*multiplier);state.score+=Math.round(100*multiplier);state.happiness=Math.min(100,state.happiness+2);
     removeRoomFromHskQueue(roomId);
     recordAssessment("housekeeping_completed",{roomId,trashCollected:3,knocks:2,announcements:2,announced:true,roomStatus:room.status});
+    v270ClearHskOfficeAssignment(roomId);
     const outside=hskDoorOutsidePoint(roomId);if(outside){player.x=outside.x;player.y=outside.y;player.targetX=player.x;player.targetY=player.y;}
     hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();
     selectedMissionTaskKey=null;
@@ -6950,6 +7011,14 @@
   }
 
   function drawPlayer(){
+    if(hskWorkflow&&["inside","insideGuest"].includes(String(hskWorkflow.stage||""))){
+      state.activeStaffId="housekeeper";
+      const b=roomBoundsForId(hskWorkflow.roomId);
+      if(!Number.isFinite(Number(player.x))||!Number.isFinite(Number(player.y))||!pointInsideRoom(hskWorkflow.roomId,player.x,player.y)){
+        player.x=b.x+b.w*.5;player.y=b.y+b.h*.68;
+        player.targetX=player.x;player.targetY=player.y;player.moving=false;
+      }
+    }
     const member=getStaff(state.activeStaffId);
     player.bob = player.moving ? Math.sin(performance.now()/125)*1.8 : 0;
 
@@ -7164,7 +7233,9 @@
       if(state.activeStaffId==="housekeeper"&&housekeeperOwnsRoomDoor(roomId)){
         roomEntryState=null;
         if(!hskWorkflow){
-          if(ensureHousekeepingDoorWorkflow(roomId)){
+          if(!v270HskOfficeAuthorized(roomId)){
+            interaction={id:"hskNeedOffice",roomId,label:"Gå först till HSK-office",icon:"🧹"};
+          }else if(ensureHousekeepingDoorWorkflow(roomId)){
             interaction={id:"hskKnock",label:"Knacka 1/2",icon:"🚪"};
           }
         }
@@ -7177,7 +7248,7 @@
 
     if(interaction){
       document.getElementById("interact").classList.add("show");
-      const labels={genericRoomKnock:`KNACKA<br>RUM ${interaction.roomId}`,genericRoomEnter:`GÅ IN<br>RUM ${interaction.roomId}`,dndManagerBegin:"KNACKA<br>1/2"};
+      const labels={genericRoomKnock:`KNACKA<br>RUM ${interaction.roomId}`,genericRoomEnter:`GÅ IN<br>RUM ${interaction.roomId}`,hskNeedOffice:"GÅ TILL<br>HSK-OFFICE",dndManagerBegin:"KNACKA<br>1/2"};
       document.getElementById("interact").innerHTML=labels[interaction.id]||"UTFÖR<br>UPPGIFT";
       return;
     }
@@ -7217,6 +7288,7 @@
 
   function performInteraction(){
     if(!interaction) return;
+    if(interaction.id==="hskNeedOffice"){v270RouteLuiseToHskOffice(interaction.roomId,true);return;}
     if(interaction.id==="genericRoomKnock"){genericRoomKnock(interaction.roomId);return;}
     if(interaction.id==="genericRoomEnter"){genericRoomEnter(interaction.roomId);return;}
     if(interaction.id==="hskReportDnd"){hskReportDnd();return;}
@@ -7260,6 +7332,16 @@
     if(interaction.id==="clearBreakfastTable"){
       clearBreakfastTable(interaction.tableId);
       return;
+    }
+    if(interaction.id==="clean"&&state.activeStaffId==="housekeeper"){
+      const roomId=currentHskRoomId();
+      if(roomId){
+        if(v270AuthorizeHskFromOffice(roomId)){
+          startHousekeepingWorkflow(interaction,"housekeeper","ideal",roomId);
+          updateMission();
+        }
+        return;
+      }
     }
     openStaffAssignment(interaction);
   }
@@ -8145,21 +8227,90 @@
 
   let pendingBreakfastAssignment=null;
 
+  function v270BreakfastNeedsRefill(){
+    if(typeof ensureV231State==="function")ensureV231State();
+    return Boolean(state.breakfastReady)&&Number(state.v231BreakfastStock??100)<=35;
+  }
+  function v270BreakfastStock(){
+    if(typeof ensureV231State==="function")ensureV231State();
+    return Math.max(0,Math.min(100,Math.round(Number(state.v231BreakfastStock??100))));
+  }
   function renderBreakfastTaskPanel(){
     const status=document.getElementById("breakfastTaskStatus"),button=document.getElementById("breakfastTaskAction");
     if(!status||!button)return;
-    if(state.breakfastReady){status.className="breakfast-task-status ready";status.textContent="✓ Frukostbuffén är klar för dagens gäster.";button.className="breakfast-task-action ready";button.textContent="✓ BUFFÉ KLAR";button.disabled=true;}
-    else{status.className="breakfast-task-status";status.textContent="⚠ Buffén är inte klar ännu. Gäster som kommer nu blir missnöjda.";button.className="breakfast-task-action";button.textContent="FIXA FRUKOSTBUFFÉN";button.disabled=false;}
+    const stock=v270BreakfastStock();
+    if(state.breakfastReady&&v270BreakfastNeedsRefill()){
+      status.className="breakfast-task-status";
+      status.textContent=`⚠ Buffén är nere på ${stock}%. Fyll på den innan frukostgästerna blir missnöjda.`;
+      button.className="breakfast-task-action";
+      button.textContent="🥐 FYLL PÅ BUFFÉN";
+      button.disabled=false;
+    }else if(state.breakfastReady){
+      status.className="breakfast-task-status ready";
+      status.textContent="✓ Frukostbuffén är klar för dagens gäster.";
+      button.className="breakfast-task-action ready";
+      button.textContent="✓ BUFFÉ KLAR";
+      button.disabled=true;
+    }else{
+      status.className="breakfast-task-status";
+      status.textContent="⚠ Buffén är inte klar ännu. Gäster som kommer nu blir missnöjda.";
+      button.className="breakfast-task-action";
+      button.textContent="FIXA FRUKOSTBUFFÉN";
+      button.disabled=false;
+    }
   }
-  function openBreakfastTaskPanel(task,staffId,mode){pendingBreakfastAssignment={task,staffId,mode};renderBreakfastTaskPanel();const modal=document.getElementById("breakfastTaskModal");if(modal)modal.classList.add("show","docked");document.body.classList.add("breakfast-task-docked");}
-  function closeBreakfastTaskPanel(){const modal=document.getElementById("breakfastTaskModal");if(modal)modal.classList.remove("show","docked");document.body.classList.remove("breakfast-task-docked");}
+  function openBreakfastTaskPanel(task,staffId,mode){
+    pendingBreakfastAssignment={task,staffId,mode};
+    renderBreakfastTaskPanel();
+    const modal=document.getElementById("breakfastTaskModal");
+    if(modal)modal.classList.add("show","docked");
+    document.body.classList.add("breakfast-task-docked");
+  }
+  function closeBreakfastTaskPanel(){
+    const modal=document.getElementById("breakfastTaskModal");
+    if(modal)modal.classList.remove("show","docked");
+    document.body.classList.remove("breakfast-task-docked");
+  }
+  function v270OpenBreakfastRefillTask(){
+    const task=tasks.find(t=>t.id==="breakfast");
+    selectedMissionTaskKey="breakfast";
+    if(state.activeStaffId!=="breakfast")setActiveStaff("breakfast",false);
+    pendingBreakfastAssignment={task,staffId:"breakfast",mode:"ideal"};
+    if(task){
+      const distance=Math.hypot(Number(player.x)-Number(task.x),Number(player.y)-Number(task.y));
+      if(distance>105){
+        player.targetX=task.x;player.targetY=task.y;player.moving=true;
+        focusCameraOnWorldPoint(task.x,task.y);
+      }
+    }
+    openBreakfastTaskPanel(task,"breakfast","ideal");
+    updateMission();
+    showTip(`Buffén är nere på ${v270BreakfastStock()}%. Elsa är vald och uppgiften är öppnad – fyll på buffén.`);
+  }
   function finishBreakfastBuffetTask(){
-    if(state.breakfastReady){renderBreakfastTaskPanel();return;}
     const assignment=pendingBreakfastAssignment||{task:tasks.find(t=>t.id==="breakfast"),staffId:"breakfast",mode:"ideal"};
     const staffId=assignment.staffId||"breakfast",mode=assignment.mode||"ideal",task=assignment.task||tasks.find(t=>t.id==="breakfast");
     if(staffId!=="breakfast"){showTip("Välj Elsa för att göra i ordning frukostbuffén.");return;}
-    if(task&&Math.hypot(player.x-task.x,player.y-task.y)>105){showTip("Elsa måste stå vid frukostbuffén. Hon går dit nu.");setActiveStaff("breakfast",false);player.targetX=task.x;player.targetY=task.y;player.moving=true;focusCameraOnWorldPoint(task.x,task.y);return;}
-    const multiplier=mode==="ideal"?1:mode==="reassigned"?.9:.65;setStaffBusy(staffId,10);state.breakfastReady=true;recomputeBreakfastTask();state.money+=Math.round(100*multiplier);state.score+=Math.round(100*multiplier);state.happiness=Math.min(100,state.happiness+(mode==="service"?1:2));recordAssessment("breakfast_buffet_prepared",{staffId,day:Number(state.day||1),score:Number(state.score||0)});saveState();updateMission();renderBreakfastTaskPanel();showTip("Frukostbuffén är klar för dagens gäster.");setTimeout(()=>{closeBreakfastTaskPanel();openRandomScenario("breakfast",false,{taskId:"breakfast",staffId,mode});},450);
+    if(state.activeStaffId!=="breakfast")setActiveStaff("breakfast",false);
+    if(task&&Math.hypot(player.x-task.x,player.y-task.y)>105){
+      showTip("Elsa går till frukostbuffén. Tryck FYLL PÅ BUFFÉN när hon är framme.");
+      player.targetX=task.x;player.targetY=task.y;player.moving=true;focusCameraOnWorldPoint(task.x,task.y);return;
+    }
+    if(state.breakfastReady&&v270BreakfastNeedsRefill()){
+      const before=v270BreakfastStock();
+      state.v231BreakfastStock=100;
+      state.score=Number(state.score||0)+30;
+      recordAssessment("breakfast_buffet_refilled",{stockBefore:before,stockAfter:100,correct:true,points:30,day:Number(state.day||1),staffId:"breakfast",route:"interactive_task"});
+      saveState();updateMission();renderBreakfastTaskPanel();showTip("Frukostbuffén är påfylld till 100%. +30 poäng.");
+      setTimeout(()=>closeBreakfastTaskPanel(),550);
+      return;
+    }
+    if(state.breakfastReady){renderBreakfastTaskPanel();showTip("Frukostbuffén är redan full och klar.");return;}
+    const multiplier=mode==="ideal"?1:mode==="reassigned"?.9:.65;
+    setStaffBusy(staffId,10);state.breakfastReady=true;recomputeBreakfastTask();state.money+=Math.round(100*multiplier);state.score+=Math.round(100*multiplier);state.happiness=Math.min(100,state.happiness+(mode==="service"?1:2));
+    recordAssessment("breakfast_buffet_prepared",{staffId,day:Number(state.day||1),score:Number(state.score||0)});
+    saveState();updateMission();renderBreakfastTaskPanel();showTip("Frukostbuffén är klar för dagens gäster.");
+    setTimeout(()=>{closeBreakfastTaskPanel();openRandomScenario("breakfast",false,{taskId:"breakfast",staffId,mode});},450);
   }
   function showCheckinFeedback(booking,room,items,scoreBefore){
     const modal=document.getElementById("checkinFeedbackModal"),title=document.getElementById("checkinFeedbackTitle"),body=document.getElementById("checkinFeedbackBody");if(!modal||!body)return;const hasPenalty=items.some(item=>item.kind==="bad");title.textContent=hasPenalty?`Check-in klar · ${booking.guest}`:`Bra check-in · ${booking.guest}`;body.innerHTML=`<div class="checkin-feedback-summary">${escapeHtml(booking.guest)} är incheckad i rum ${room.id}. Läs återkopplingen innan du stänger rutan.</div>${items.map(item=>`<div class="checkin-feedback-row ${item.kind}"><span class="feedback-icon">${item.kind==="bad"?"⚠":item.kind==="good"?"✓":"•"}</span><span>${escapeHtml(item.text)}</span></div>`).join("")}<div class="checkin-feedback-score">Hotellpoäng: ${scoreBefore} → ${Number(state.score||0)}</div>`;modal.classList.add("show");
@@ -8185,7 +8336,11 @@
     }
 
     if(task.id==="clean"){
-      startHousekeepingWorkflow(task,staffId,mode);
+      const roomId=currentHskRoomId();
+      if(roomId&&!v270HskOfficeAuthorized(roomId)){
+        if(!v270AuthorizeHskFromOffice(roomId))return;
+      }
+      startHousekeepingWorkflow(task,staffId,mode,roomId||null);
       return;
     }
     if(task.id==="breakfast"){openBreakfastTaskPanel(task,staffId,mode);return;}
@@ -10853,7 +11008,7 @@
     missionList.innerHTML=items.map((item,index)=>{
       const selected=selectedMissionTaskKey===item.key,priority=Boolean(item.priority);
       const actionText=item.key==="phoneBooking"?(phoneStatus==="idle"?"STARTA RESERVATIONSSAMTAL":phoneStatus==="arming"?"VÄNTA PÅ RINGNING":phoneStatus==="ringing"?"LINA SVARAR":"ÖPPNA SAMTALET"):item.kind==="dnd"&&pendingDndManagerRoomId()?"TILLKALLA CHEF":selected?"VALD":"HJÄLP MIG";
-      const actionLabel=item.kind==="periodRoutine"?"ÖPPNA UPPGIFT":item.kind==="handoverInfo"?"KVITTERA":item.kind==="breakfastRefill"?"FYLL PÅ":item.kind==="noshow"?"HANTERA N/S":item.kind==="checkout"?"TILL C/O":item.kind==="arrival"?"TILL C/I":actionText;
+      const actionLabel=item.kind==="periodRoutine"?"ÖPPNA UPPGIFT":item.kind==="handoverInfo"?"KVITTERA":item.kind==="breakfastRefill"?"FYLL PÅ":item.kind==="noshow"?"HANTERA N/S":item.kind==="checkout"?"TILL C/O":item.kind==="arrival"?"TILL C/I":item.key==="clean"&&item.kind==="room"?"GÅ TILL HSK":actionText;
       return `<div class="mission-row ${priority?"priority":""} ${selected?"selected":""} ${item.kind==="periodRoutine"?"v231-routine":""} ${item.kind==="handoverInfo"?"v231-handover":""}"><span class="mission-number">${index+1}</span><span class="mission-copy"><span class="mission-label">${escapeHtml(item.label)}</span><span class="mission-location">📍 ${escapeHtml(item.location||"Rätt avdelning")}</span></span><button type="button" class="mission-fix ${selected&&item.key!=="phoneBooking"?"selected":""}" data-fix-task="${escapeHtml(item.key)}" data-mission-index="${index}">${actionLabel}</button></div>`;
     }).join("");
     renderSupportCoach(items);
@@ -10863,7 +11018,7 @@
       const missionItem=allItems[Number(button.dataset.missionIndex)]||null;
       if(String(key).startsWith("v231-routine:")){completeV231RoutineTask(String(key).slice(13));return;}
       if(String(key).startsWith("v231-handover:")){acknowledgeV231Handover(String(key).slice(14));return;}
-      if(key==="v231-breakfast-refill"){refillV231BreakfastBuffet();return;}
+      if(key==="v231-breakfast-refill"){v270OpenBreakfastRefillTask();return;}
       if(missionItem?.kind==="noshow"){openNoShowMissionInPms(missionItem);return;}
       if(key==="phoneBooking"){
         const task=tasks.find(t=>t.id==="phoneBooking");
@@ -10919,15 +11074,8 @@
         // v.01-229: även om gästen är inne ska eleven gå fram och göra hela dörrrutinen.
         // Gästen avslöjas först efter att Luise går in i rummet.
         if(roomId){
-          publicLitterWorkflow=null;
-          if(!setActiveStaff("housekeeper",false)){
-            showTip("Luise är upptagen just nu. Vänta tills hans nuvarande moment är klart.");
-            return;
-          }
-          const task=tasks.find(t=>t.id==="clean")||null;
-          selectedMissionTaskKey="clean";
-          startHousekeepingWorkflow(task,"housekeeper","ideal",roomId);
-          updateMission();
+          if(isStaffBusy("housekeeper")){showTip("Luise är upptagen just nu. Vänta tills hennes nuvarande moment är klart.");return;}
+          v270RouteLuiseToHskOffice(roomId,true);
           return;
         }
         if(publicLitterAvailable){
@@ -11052,7 +11200,8 @@
       return;
     }
     if(p.x>=breakfastFixButtonZone.x && p.x<=breakfastFixButtonZone.x+breakfastFixButtonZone.w && p.y>=breakfastFixButtonZone.y && p.y<=breakfastFixButtonZone.y+breakfastFixButtonZone.h){
-      if(state.breakfastReady){showTip("Frukostbuffén är redan klar för dagen.");openBreakfastTaskPanel(tasks.find(t=>t.id==="breakfast"),"breakfast","ideal");}
+      if(state.breakfastReady&&v270BreakfastNeedsRefill()){v270OpenBreakfastRefillTask();}
+      else if(state.breakfastReady){showTip("Frukostbuffén är redan full och klar för dagen.");openBreakfastTaskPanel(tasks.find(t=>t.id==="breakfast"),"breakfast","ideal");}
       else{selectMissionTask("breakfast");openBreakfastTaskPanel(tasks.find(t=>t.id==="breakfast"),"breakfast","ideal");}
       return;
     }
@@ -13192,6 +13341,7 @@
     const root=document.getElementById('highscoreView');if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(v231bStudentHasHistory),newRows=[],legacyRows=[];students.forEach(s=>{const l=v231bLatestSnapshot(s),p=studentDisplayParts(s);(v231bIsLegacySnapshot(l)?legacyRows:newRows).push({s,l,p});});newRows.sort((a,b)=>Number(b.l?.ranking?.total||0)-Number(a.l?.ranking?.total||0));legacyRows.sort((a,b)=>v231bLegacyQuality(b.l)-v231bLegacyQuality(a.l));const tableNew=`<div class="highscore-card"><h4>🏆 Ny ranking · v.01-231</h4>${newRows.length?`<table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Yrk.</th><th>Gäst</th><th>Uppg.</th><th>Eko</th><th>Hotellp.</th><th>Ranking</th></tr></thead><tbody>${newRows.slice(0,10).map((x,i)=>{const r=x.l.ranking||{};return `<tr><td>${rankMedal(i)}</td><td>${escapeHtml(x.p.classCode||'—')}</td><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(r.vocational||0).toFixed(0)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(0)}%</td><td>${Number(r.tasks||0).toFixed(0)}%</td><td>${Number(r.economy||0).toFixed(0)}%</td><td>${Number(r.hotelPoints||0).toFixed(0)}%</td><td><b>${Number(r.total||0).toFixed(1)}%</b></td></tr>`;}).join('')}</tbody></table>`:'<div class="info">Ingen elev har ännu en rapport enligt den nya rankingmodellen.</div>'}</div>`;const tableOld=`<div class="highscore-card"><h4>📚 Äldre historik · bevarad</h4>${legacyRows.length?`<table class="highscore-table"><thead><tr><th>Elev</th><th>Dag</th><th>Äldre resultat</th><th>Yrk.progression</th><th>Gäst</th></tr></thead><tbody>${legacyRows.map(x=>`<tr><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(x.l.day||1)}</td><td><b>${v231bLegacyQuality(x.l).toFixed(1)}%</b></td><td>${v231bLegacyVocational(x.l).toFixed(1)}%</td><td>${Number(x.l.guestAverage||0).toFixed(1)}%</td></tr>`).join('')}</tbody></table><div class="info">Äldre resultat visas separat och rangordnas inte tillsammans med den nya 40/35/15/5/5-modellen.</div>`:'<div class="info">Ingen äldre historik i det här registret.</div>'}</div>`;root.innerHTML=`<div class="highscore-grid">${tableNew}${tableOld}</div>`;
   };
 
+  // v.01-270 · frukostpåfyllning öppnar riktig uppgift + HSK-office obligatoriskt + Louise synlig i rum
   // v.01-269: lärarpengar öppnas från EN knapp i lärarlägets toppfält; inga knappar per elevrad.
   const v263RenderTeacherScoreboardBase=renderTeacherScoreboard;
   renderTeacherScoreboard=function(){
