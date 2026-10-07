@@ -467,6 +467,10 @@
   #phoneBookingModal.docked .phone-booking-body{padding:10px 14px 16px}
   #phoneBookingModal.docked .phone-dialogue-bubble{max-width:96%;font-size:12px;padding:9px 10px}
   #phoneBookingModal.docked .phone-dialogue-choices button{font-size:12px;padding:9px 10px}
+  /* v.01-259 · Telefonpanelen får bara ligga ovanpå själva telefon/PMS-arbetsflödet.
+     Om eleven öppnar ett annat arbetsmoment eller lärarläget döljs panelen tillfälligt.
+     Samtalet och bokningsinformationen ligger kvar och panelen visas igen när det andra fönstret stängs. */
+  body:has(.modal.show:not(#phoneBookingModal):not(#receptionModal):not(#newReservationModal):not(#reservationAvailabilityModal)) #phoneBookingModal.docked{display:none!important}
 
   /* v.01-122: frukostuppgiften använder samma dockade arbetsflöde som telefonen. */
   .breakfast-task-box{width:min(520px,94vw);max-height:88vh;overflow:auto;padding:0;background:#fff;border-radius:20px}
@@ -1235,7 +1239,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-253</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-259</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
@@ -1909,8 +1913,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-253";
-  const MASTER_CONTENT_VERSION = "v.01-253";
+  const HOTEL_VERSION = "v.01-259";
+  const MASTER_CONTENT_VERSION = "v.01-259";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -8434,7 +8438,7 @@
 
   function cleanText(value){return String(value||"").trim().replace(/\s+/g," ");}
   function normalizeCompare(value){return cleanText(value).toLowerCase().replace(/[.,-]/g,"");}
-  // v.01-253: telefonnummer jämförs på siffrorna, inte på hur eleven skriver mellanslag/bindestreck.
+  // v.01-259: telefonnummer jämförs på siffrorna, inte på hur eleven skriver mellanslag/bindestreck.
   function normalizePhoneCompare(value){return String(value||"").replace(/\D/g,"");}
 
   function expectedContactForBooking(booking){
@@ -9881,7 +9885,7 @@
       startSelect.value=String(Number(draft?.start??s.start));
       nightsSelect.value=String(Math.max(1,Number(draft?.nights ?? s.nights ?? 1)));
       const partySelect=document.getElementById("newReservationPartySize");
-      // v.01-253: antal gäster ska aktivt registreras av eleven från telefonsamtalet.
+      // v.01-259: antal gäster ska aktivt registreras av eleven från telefonsamtalet.
       if(partySelect){
         const savedPartySize=Number(draft?.partySize||0);
         partySelect.value=savedPartySize>=1?String(savedPartySize):"";
@@ -11826,7 +11830,8 @@
   renderSavedStudentProfiles();
 
 
-  // v.01-253 · Telefonreservation: robust telefonnummerjämförelse, aktivt val av antal gäster och tydligare periodtillgänglighet.
+  // v.01-259 · Telefonreservation: robust telefonnummerjämförelse, aktivt val av antal gäster och tydligare periodtillgänglighet.
+  // v.01-259 · UI-fix: dockad telefonruta döljs när annat arbetsmoment/lärarläge öppnas och återkommer efter stängning.
   // v.01-252 · Telefonreservation: uppgifterna registreras medan gästen är kvar i samtalet, återläses, dubbelbekräftas och sparas innan avslut.
   // Uppgiften avslutas först genom riktig sparning i PMS; ingen separat PMS-only-uppgift.
 
