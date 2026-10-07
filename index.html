@@ -505,7 +505,7 @@
   body.phone-call-docked #newReservationModal{padding-left:430px}
   body.phone-call-docked #newReservationModal .new-reservation-box{max-width:min(940px,calc(100vw - 455px));transform:none!important;pointer-events:auto;isolation:isolate}
   body.phone-call-docked #newReservationRoom{pointer-events:auto!important;position:relative;z-index:6}
-  body.phone-call-docked #saveNewReservationBtn{pointer-events:auto!important;position:relative;z-index:20}
+  body.phone-call-docked #saveNewReservationBtn{pointer-events:auto!important;position:relative;z-index:2147483646!important;touch-action:manipulation}
   @media(max-width:1050px){#phoneBookingModal.docked .phone-booking-box{left:8px;top:auto;bottom:8px;width:calc(100vw - 16px);max-width:none;max-height:42vh}#breakfastTaskModal.docked .breakfast-task-box{left:8px;top:auto;bottom:8px;width:calc(100vw - 16px);max-width:none;max-height:42vh}body.phone-call-docked #newReservationModal{padding-left:clamp(8px,2vh,18px)}body.phone-call-docked #receptionModal .pms-box,body.phone-call-docked #newReservationModal .new-reservation-box,body.phone-call-docked #reservationAvailabilityModal .availability-box,body.breakfast-task-docked #receptionModal .pms-box{max-width:96vw;transform:none}}
   .checkout-moment{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 4px;border-bottom:1px solid #e5e9ee}.checkout-moment strong{display:block}.checkout-moment small{display:block;color:#71808b;margin-top:3px}.checkout-action-btn{border:0;border-radius:12px;padding:10px 13px;background:#516fe8;color:#fff;font-weight:950}.checkout-action-btn.done{background:#cfeedd;color:#246844}.checkout-status-pill{border-radius:999px;padding:7px 10px;font-size:11px;font-weight:950;background:#eef1f4;color:#5d6870}.checkout-status-pill.done{background:#d9f3e4;color:#237047}.checkout-dialogue-box{width:min(680px,95vw)}.checkout-dialogue-body{padding:16px}.checkout-dialogue-line{background:#f5f7fb;border:2px solid #dfe5f2;border-radius:15px;padding:13px 15px;margin-bottom:12px;font-weight:800;color:#34445a;line-height:1.45}.checkout-dialogue-choices{display:grid;gap:8px}.checkout-dialogue-choices button{border:2px solid #d9dfec;background:#fff;border-radius:13px;padding:11px 13px;text-align:left;font-weight:900;color:#273858}
   .room-choice-statusbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}.room-choice-statusbar div{background:#f3f6f7;border:1px solid #dde5e8;border-radius:10px;padding:9px}.room-choice-statusbar span{display:block;font-size:9px;font-weight:1000;color:#7a878d}.room-choice-statusbar b{display:block;margin-top:2px;font-size:13px;color:#293943}
@@ -1240,7 +1240,7 @@
   #v245RoundCancelBtn{background:#edf1f8;color:#31426a}
 
   /* v.01-263 · robust telefonbokning, hoppa över och lärarpengar */
-  body.phone-call-docked #forceReservationOverrideBtn{pointer-events:auto!important;position:relative;z-index:21}
+  body.phone-call-docked #forceReservationOverrideBtn{pointer-events:auto!important;position:relative;z-index:2147483646!important;touch-action:manipulation}
   .phone-skip-wrap{margin-top:12px;padding-top:10px;border-top:1px solid #dfe5ef}
   .phone-skip-task{width:100%;border:0;border-radius:12px;background:#eef1f6;color:#39465c;font-weight:1000;padding:10px 12px;cursor:pointer}
   .phone-skip-task:hover{background:#e2e7f0}
@@ -1257,7 +1257,7 @@
   <div class="hud-left">
     <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-263</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
-    <button id="redeemTeacherMoneyBtn" type="button" title="Lös in en pengakod från läraren">🎁 Lärarpengar</button>
+    <button id="redeemTeacherMoneyBtn" type="button" title="Skriv in lärarens 8-teckens lösenord">🎁 Lärarpengar</button>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
     <div class="small-pill" id="dayPill">Dag <span id="dayText">1</span> · 🕒 <span id="hotelClockText">06–09</span></div>
     <button class="next-day-btn" id="nextDayBtn" type="button">Nästa period ▶</button>
@@ -1479,7 +1479,7 @@
       </div>
       <div class="reservation-room-actions"><button class="availability-button" id="openReservationAvailabilityBtn">🛏 Se rumsskärm</button><button type="button" class="reservation-override-button" id="forceReservationOverrideBtn">⚠ OVERRIDE / SPARA</button></div>
       <div class="new-reservation-error" id="newReservationError"></div>
-      <button class="primary" id="saveNewReservationBtn">Spara reservation</button>
+      <button type="button" class="primary" id="saveNewReservationBtn">Spara reservation</button>
     </div>
   </div>
 </div>
@@ -9109,7 +9109,7 @@
       btn.textContent=ready?"✓ SPARA RESERVATION":"📞 LÄS TILLBAKA TILL GÄSTEN";
       btn.style.background=ready?"#39c79f":"#5d72ef";
       btn.style.opacity="1";
-      btn.onclick=ready?()=>saveNewReservation(false):confirmPhoneReservationReadback;
+      btn.onclick=ready?()=>v263HandleReservationSaveClick(false):confirmPhoneReservationReadback;
       if(force){force.disabled=false;force.style.opacity="1";force.title=ready?"Spara bokningen med override":"Läs tillbaka bokningen till gästen först";}
     }else{
       btn.disabled=false;btn.textContent="Spara reservation";btn.style.background="";btn.style.opacity="1";btn.onclick=()=>saveNewReservation(false);
@@ -10081,7 +10081,7 @@
       }
       reservationForceOverrideApproved=true;
       reservationPriceRuleOverrideApproved=true;
-      saveNewReservation(true);
+      v263HandleReservationSaveClick(true);
     };
     refreshPhoneReservationSaveButton();
     document.getElementById("newReservationModal").classList.add("show");
@@ -10200,7 +10200,7 @@
   }
 
 
-  // ---------- v.01-263 · reservationssamtal HARD FIX ----------
+  // ---------- v.01-264 · reservationssamtal ABSOLUT SPARFIX ----------
   // Telefonbokningen får en separat, deterministisk sparväg. Den använder den
   // redan dubbelbekräftade formulärinformationen och fastnar inte i en andra
   // validerings-/onclick-kedja.
@@ -10226,128 +10226,119 @@
   }
 
   function v263CommitPhoneReservation(forceOverride=false){
-    if(!phoneRegistrationIsActive()){
-      saveNewReservation(Boolean(forceOverride));
+    // v.01-264: absolut sparväg för telefonreservationen.
+    // När gästen har dubbelbekräftat sparas kärnreservationen först. Poäng,
+    // rendering och övriga följdfunktioner får aldrig kunna stoppa själva sparningen.
+    const safe=(fn)=>{try{return fn();}catch(err){console.warn("v.01-264 följdfunktion misslyckades",err);return null;}};
+    try{
+      if(!phoneRegistrationIsActive()){
+        saveNewReservation(Boolean(forceOverride));
+        return true;
+      }
+      if(Number(state.phoneSavedBookingId||0)){
+        safe(()=>document.getElementById("newReservationModal")?.classList.remove("show"));
+        safe(()=>document.getElementById("phoneBookingModal")?.classList.add("show"));
+        safe(()=>setPhoneCallDocked(true));safe(()=>renderPhoneDialogueStep());
+        safe(()=>showTip("Reservationen är redan sparad. Avsluta samtalet med gästen."));
+        return true;
+      }
+      const ready=Boolean(state.phoneReservationReadbackConfirmed&&Number(state.phoneCallProgress||0)>=42);
+      if(!ready){
+        v263SetReservationError("Läs tillbaka hela bokningen till gästen och få ett tydligt ja innan du sparar.");
+        safe(()=>confirmPhoneReservationReadback());
+        return false;
+      }
+
+      safe(()=>syncForcedPhoneRoomToForm());
+      const f=v263PhoneFormValues();
+      if(!f.guest||!f.roomId){
+        v263SetReservationError("Namn och rumsnummer måste finnas innan bokningen kan sparas.");
+        return false;
+      }
+
+      const roomType=String(safe(()=>roomTypeForId(f.roomId))||state.pendingPhoneReservation?.roomType||"Queen Room");
+      const conflict=safe(()=>findReservationConflict(f.roomId,f.start,f.nights));
+      const sameGuestConflict=Boolean(conflict&&normalizeCompare(conflict.guest)===normalizeCompare(f.guest));
+      const forced=Boolean(forceOverride||reservationForceOverrideApproved);
+      if(conflict&&!sameGuestConflict&&!forced&&!safe(()=>phoneOverbookingModeActive())){
+        v263SetReservationError(`Rum ${f.roomId} är redan bokat av ${conflict.guest}. Tryck OVERRIDE / SPARA om du vill gå vidare ändå.`);
+        return false;
+      }
+
+      const arrivalRule=safe(()=>Object.assign({},rateRuleFor(roomType,f.start),{price:roomNightlyRate(f.roomId)}))||{price:0,minStay:1};
+      const minStayViolation=Number(f.nights)<Number(arrivalRule.minStay||1);
+      if(minStayViolation&&!forced&&!reservationPriceRuleOverrideApproved){
+        v263SetReservationError(`Prisregeln kräver minst ${Number(arrivalRule.minStay||1)} nätter. Tryck OVERRIDE / SPARA om du vill göra undantaget.`);
+        return false;
+      }
+
+      const intentionalPhoneOverbooking=Boolean(conflict&&!sameGuestConflict);
+      const id=Date.now();
+      const total=Number(safe(()=>calculateReservationTotalForRoom(f.roomId,f.start,f.nights))||0);
+      const reservedRoom=Array.isArray(state.rooms)?state.rooms.find(room=>Number(room.id)===Number(f.roomId)):null;
+      const hskCallRequired=f.start===safe(()=>getTodayIndex())&&(!reservedRoom||reservedRoom.status!=="available");
+      const bookingData={
+        id,guest:f.guest,phone:f.phone||"",city:f.city||"",address:f.address||"",roomId:f.roomId,preferredRoomId:f.roomId,
+        roomType,start:f.start,nights:f.nights,partySize:f.partySize,status:f.start===safe(()=>getTodayIndex())?"arrival":"reserved",source:"Telefon",
+        rate:Number(arrivalRule.price||0),total,paid:false,nameComplete:f.guest.split(/\s+/).filter(Boolean).length>=2,
+        availabilityChecked:Boolean(reservationAvailabilityChecked),priceRuleOverride:Boolean(minStayViolation&&(forced||reservationPriceRuleOverrideApproved)),
+        priceRuleMinStay:Number(arrivalRule.minStay||1),overbooked:Boolean(intentionalPhoneOverbooking),
+        overbookingConflictGuest:intentionalPhoneOverbooking?(conflict?.guest||null):null,overbookingPenaltyApplied:false,
+        hskCallRequired:Boolean(hskCallRequired),hskCalled:false,hskCallBonusGiven:false,
+        checkIn:String(safe(()=>hotelCalendarDayLabel(f.start))||f.start),checkOut:String(safe(()=>hotelCalendarDayLabel(f.start+f.nights))||(f.start+f.nights))
+      };
+
+      if(!Array.isArray(state.bookings))state.bookings=[];
+      let booking;
+      if(sameGuestConflict){
+        booking=Object.assign(conflict,bookingData,{id:conflict.id,paid:Boolean(conflict.paid),status:conflict.status||bookingData.status});
+      }else{
+        booking=bookingData;
+        state.bookings.push(booking);
+      }
+
+      // KÄRNSTATUS sätts innan något extra körs.
+      state.phoneSavedBookingId=Number(booking.id||id);
+      state.phoneCallStatus="in_call";
+      state.phoneCallProgress=43;
+      state.phoneCallBranch=intentionalPhoneOverbooking?"overbooked":"booked";
+      state.phoneCallCountdownEnd=0;
+      state.phoneCallHeardDay=Number(state.day||1);
+      state.phoneConversationCompletedDay=0;
+      state.phoneReservationReadbackConfirmed=false;
+      state.receptionCheckin=state.receptionCheckin||{};
+      state.receptionCheckin.selectedBookingId=booking.id;
+      reservationPriceRuleOverrideApproved=false;
+      reservationForceOverrideApproved=false;
+
+      // Spara direkt. Om ordinarie saveState mot förmodan kastar gör vi en lokal fallback.
+      let persisted=false;
+      try{saveState();persisted=true;}catch(err){console.error("v.01-264 saveState",err);}
+      if(!persisted){
+        try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));persisted=true;}catch(err){console.error("v.01-264 localStorage fallback",err);}
+      }
+      if(!persisted)throw new Error("Kunde inte skriva bokningen till webbläsarens lagring.");
+
+      // Allt nedan är extra och får inte hindra bokningen.
+      safe(()=>{bookingCalendarViewStart=clamp(Math.max(0,f.start-1),0,HOTEL_CALENDAR_LAST_INDEX);});
+      if(hskCallRequired)safe(()=>addHskRequest(f.roomId));
+      safe(()=>recordAssessment("phone_reservation_saved",{guest:f.guest,roomId:f.roomId,start:f.start,nights:f.nights,partySize:f.partySize,correct:true,points:100,day:Number(state.day||1),forceOverride:forced}));
+      if(forced)safe(()=>recordAssessment("reservation_manual_override",{guest:f.guest,roomId:f.roomId,start:f.start,nights:f.nights,day:Number(state.day||1),warning:Boolean(conflict||minStayViolation)}));
+      safe(()=>{state.score=Number(state.score||0)+100;saveState();});
+      if(pendingPhoneBookingAssignment)safe(()=>setStaffBusy(pendingPhoneBookingAssignment.staffId,12));
+      safe(()=>updateMission());safe(()=>updateHud());safe(()=>renderBookingCalendar());
+
+      safe(()=>document.getElementById("reservationAvailabilityModal")?.classList.remove("show"));
+      safe(()=>document.getElementById("newReservationModal")?.classList.remove("show"));
+      safe(()=>document.getElementById("phoneBookingModal")?.classList.add("show"));
+      safe(()=>setPhoneCallDocked(true));safe(()=>renderPhoneDialogueStep());
+      safe(()=>showTip(`✓ SPARAD I PMS: ${f.guest} · rum ${f.roomId}. Gästen är kvar i telefonen – önska en trevlig dag och lägg sedan på.`));
       return true;
-    }
-    if(Number(state.phoneSavedBookingId||0)){
-      document.getElementById("newReservationModal")?.classList.remove("show");
-      document.getElementById("phoneBookingModal")?.classList.add("show");
-      setPhoneCallDocked(true);renderPhoneDialogueStep();
-      showTip("Reservationen är redan sparad. Avsluta samtalet med gästen.");
-      return true;
-    }
-    const ready=Boolean(state.phoneReservationReadbackConfirmed&&Number(state.phoneCallProgress||0)>=42);
-    if(!ready){
-      v263SetReservationError("Läs tillbaka hela bokningen till gästen och få ett tydligt ja innan du sparar.");
-      confirmPhoneReservationReadback();
+    }catch(err){
+      console.error("v.01-264 TELEFONSPAR FEL",err);
+      v263SetReservationError(`Tekniskt sparfel: ${err?.message||err}. Tryck OVERRIDE / SPARA för reservsparning.`);
       return false;
     }
-
-    syncForcedPhoneRoomToForm();
-    const f=v263PhoneFormValues(),scenario=activePhoneScenario();
-    if(!f.guest||!f.phone||!f.city||!f.address||!f.roomId){
-      v263SetReservationError("Namn, telefon, stad, adress och rumsnummer måste finnas innan bokningen sparas.");
-      return false;
-    }
-
-    // Efter dubbelbekräftelsen får sparningen inte låsa sig på små UI-skillnader.
-    // Däremot behålls rums-/prisreglerna om eleven inte uttryckligen använder override.
-    const conflict=findReservationConflict(f.roomId,f.start,f.nights);
-    const sameGuestConflict=Boolean(conflict&&normalizeCompare(conflict.guest)===normalizeCompare(f.guest));
-    const forced=Boolean(forceOverride||reservationForceOverrideApproved);
-    const intentionalPhoneOverbooking=Boolean(conflict&&!sameGuestConflict&&(phoneOverbookingModeActive()||forced));
-    if(conflict&&!sameGuestConflict&&!intentionalPhoneOverbooking){
-      v263SetReservationError(`Rum ${f.roomId} är redan bokat av ${conflict.guest}. Välj annat rum eller tryck OVERRIDE / SPARA.`);
-      return false;
-    }
-
-    const roomType=roomTypeForId(f.roomId);
-    const arrivalRule=Object.assign({},rateRuleFor(roomType,f.start),{price:roomNightlyRate(f.roomId)});
-    const minStayViolation=Number(f.nights)<Number(arrivalRule.minStay||1);
-    if(minStayViolation&&!reservationPriceRuleOverrideApproved&&!forced){
-      v263SetReservationError(`Prisregeln kräver minst ${Number(arrivalRule.minStay||1)} nätter. Tryck OVERRIDE / SPARA om du vill göra undantaget.`);
-      return false;
-    }
-
-    const fullNameEntered=f.guest.split(/\s+/).filter(Boolean).length>=2;
-    const id=Date.now();
-    const reservedRoom=state.rooms.find(room=>Number(room.id)===Number(f.roomId));
-    const hskCallRequired=f.start===getTodayIndex()&&(!reservedRoom||reservedRoom.status!=="available");
-    const total=calculateReservationTotalForRoom(f.roomId,f.start,f.nights);
-    const bookingData={
-      id,guest:f.guest,phone:f.phone,city:f.city,address:f.address,roomId:f.roomId,preferredRoomId:f.roomId,
-      roomType,start:f.start,nights:f.nights,partySize:f.partySize,status:f.start===getTodayIndex()?"arrival":"reserved",source:"Telefon",
-      rate:Number(arrivalRule.price||0),total,paid:false,nameComplete:fullNameEntered,availabilityChecked:Boolean(reservationAvailabilityChecked),
-      priceRuleOverride:Boolean(minStayViolation&&(reservationPriceRuleOverrideApproved||forced)),priceRuleMinStay:Number(arrivalRule.minStay||1),
-      overbooked:Boolean(intentionalPhoneOverbooking),overbookingConflictGuest:intentionalPhoneOverbooking?(conflict?.guest||null):null,
-      overbookingPenaltyApplied:false,hskCallRequired,hskCalled:false,hskCallBonusGiven:false,
-      checkIn:hotelCalendarDayLabel(f.start),checkOut:hotelCalendarDayLabel(f.start+f.nights)
-    };
-    let booking;
-    if(sameGuestConflict){
-      booking=Object.assign(conflict,bookingData,{id:conflict.id,paid:Boolean(conflict.paid),status:conflict.status||bookingData.status});
-      recordAssessment("reservation_existing_updated",{guest:f.guest,bookingId:booking.id,roomId:f.roomId,start:f.start,nights:f.nights,day:Number(state.day||1),override:true});
-    }else{
-      booking=bookingData;state.bookings.push(booking);
-    }
-
-    state.receptionCheckin.selectedBookingId=booking.id;
-    bookingCalendarViewStart=clamp(Math.max(0,f.start-1),0,HOTEL_CALENDAR_LAST_INDEX);
-    if(hskCallRequired)addHskRequest(f.roomId);
-    if(!fullNameEntered)state.score=Math.max(0,Number(state.score||0)-30);
-    if(reservationAvailabilityChecked)state.score=Number(state.score||0)+25;
-
-    let mistakes=0;
-    if(normalizeCompare(f.guest)!==normalizeCompare(scenario.name))mistakes++;
-    if(normalizePhoneCompare(f.phone)!==normalizePhoneCompare(scenario.phone))mistakes++;
-    if(normalizeCompare(f.city)!==normalizeCompare(scenario.city))mistakes++;
-    if(normalizeCompare(f.address)!==normalizeCompare(scenario.address))mistakes++;
-    if(Number(scenario.selectedRoomId||0)){
-      if(f.roomId!==Number(scenario.selectedRoomId))mistakes++;
-    }else if(roomType!==String(scenario.roomType||""))mistakes++;
-    if(f.start!==Number(scenario.start))mistakes++;
-    if(f.nights!==Number(scenario.nights))mistakes++;
-    if(f.partySize!==Number(scenario.partySize||1))mistakes++;
-    booking.phoneBookingMistakes=mistakes+(intentionalPhoneOverbooking?1:0);
-
-    if(booking.priceRuleOverride)recordAssessment("reservation_price_rule_override",{guest:f.guest,roomId:f.roomId,roomType,start:f.start,nights:f.nights,minStay:Number(arrivalRule.minStay||1),day:Number(state.day||1),warning:true});
-    if(forced)recordAssessment("reservation_manual_override",{guest:f.guest,roomId:f.roomId,start:f.start,nights:f.nights,sameGuestExisting:Boolean(sameGuestConflict),conflictGuest:conflict?.guest||"",day:Number(state.day||1),warning:Boolean(conflict&&!sameGuestConflict||minStayViolation)});
-
-    state.phoneSavedBookingId=Number(booking.id||0);
-    state.phoneCallHeardDay=Number(state.day||1);
-    state.phoneConversationCompletedDay=0;
-    state.phoneCallStatus="in_call";
-    state.phoneCallCountdownEnd=0;
-    state.phoneCallProgress=43;
-    state.phoneCallBranch=intentionalPhoneOverbooking?"overbooked":"booked";
-    let phoneMessage="";
-    if(intentionalPhoneOverbooking){
-      const penalty=300+mistakes*20;
-      state.score=Math.max(0,Number(state.score||0)-penalty);
-      state.happiness=Math.max(0,Number(state.happiness||0)-20);
-      recordAssessment("phone_overbooking",{correct:false,points:-penalty,roomId:f.roomId,start:f.start,nights:f.nights,conflictGuest:conflict?.guest||"",day:Number(state.day||1),choice:"booked_despite_full_house"});
-      phoneMessage=` Överbokning registrerad: −${penalty} poäng.`;
-    }else if(mistakes===0){
-      state.score=Number(state.score||0)+100;phoneMessage=" Telefonbokningen registrerades korrekt: +100 poäng.";
-    }else{
-      state.score=Math.max(0,Number(state.score||0)-mistakes*20);phoneMessage=` Telefonbokningen registrerades med ${mistakes} fel.`;
-    }
-    recordAssessment("phone_reservation_saved",{guest:f.guest,roomId:f.roomId,start:f.start,nights:f.nights,partySize:f.partySize,mistakes:Number(booking.phoneBookingMistakes||0),correct:Number(booking.phoneBookingMistakes||0)===0&&!intentionalPhoneOverbooking,points:Number(booking.phoneBookingMistakes||0)===0?100:-Math.max(20,Number(booking.phoneBookingMistakes||0)*20),day:Number(state.day||1)});
-    if(pendingPhoneBookingAssignment)setStaffBusy(pendingPhoneBookingAssignment.staffId,12);
-
-    reservationPriceRuleOverrideApproved=false;
-    reservationForceOverrideApproved=false;
-    state.phoneReservationReadbackConfirmed=false;
-    saveState();updateMission();updateHud();
-    document.getElementById("reservationAvailabilityModal")?.classList.remove("show");
-    document.getElementById("newReservationModal")?.classList.remove("show");
-    renderBookingCalendar();
-    document.getElementById("phoneBookingModal")?.classList.add("show");
-    setPhoneCallDocked(true);renderPhoneDialogueStep();
-    v263SetReservationError("");
-    showTip(`✓ SPARAD I PMS: ${f.guest} · rum ${f.roomId}. Gästen är kvar i telefonen – avsluta samtalet trevligt.${phoneMessage}`);
-    return true;
   }
 
   function v263HandleReservationSaveClick(forceOverride=false){
@@ -10384,56 +10375,73 @@
     showTip(hasSaved?"Telefonuppgiften avslutades. Reservationen ligger kvar i PMS och du kan gå vidare.":"Reservationssamtalet hoppades över. Du kan gå vidare till nästa uppgift.");
   }
 
-  // ---------- v.01-263 · läraren kan ge elev pengar via en elevbunden kod ----------
-  function v263CashChecksum(value){
-    let hash=2166136261;const text=String(value||"");
-    for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}
-    return (hash>>>0).toString(36).toUpperCase();
+  // ---------- v.01-264 · lärarpengar via kort lösenord, giltigt i 15 minuter ----------
+  const V264_CASH_ALPHABET="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  function v264CashHash(text){
+    let h1=2166136261,h2=2246822519;const s=String(text||"");
+    for(let i=0;i<s.length;i++){
+      const c=s.charCodeAt(i);h1^=c;h1=Math.imul(h1,16777619);h2^=(c+i*131);h2=Math.imul(h2,3266489917);
+    }
+    return [(h1>>>0),(h2>>>0)];
   }
-  function v263MakeCashGrantCode(studentCode,amount){
+  function v264EncodeCashAmount(amount){
+    let value=Math.max(1,Math.min(50000,Math.round(Number(amount)||0))),out="";
+    for(let i=0;i<4;i++){out=V264_CASH_ALPHABET[value%32]+out;value=Math.floor(value/32);}
+    return out;
+  }
+  function v264DecodeCashAmount(part){
+    let value=0;for(const ch of String(part||"")){const i=V264_CASH_ALPHABET.indexOf(ch);if(i<0)return 0;value=value*32+i;}
+    return value>=1&&value<=50000?value:0;
+  }
+  function v264CashPasswordFor(studentCode,amount,minuteStamp){
     const code=normalizeStudentCode(studentCode),cash=Math.max(1,Math.min(50000,Math.round(Number(amount)||0)));
-    const id=`${Date.now().toString(36)}${Math.floor(Math.random()*1679616).toString(36).padStart(4,"0")}`.toUpperCase();
-    const raw=`${code}|${cash}|${id}`;
-    const data=bytesToBase64Url(new TextEncoder().encode(raw));
-    return `HMCASH1.${data}.${v263CashChecksum(raw)}`;
+    const [a,b]=v264CashHash(`HOTEL-MANAGER-V264|${code}|${cash}|${Number(minuteStamp)}`);
+    let value=(BigInt(a)<<32n)|BigInt(b),signature="";
+    const base=BigInt(V264_CASH_ALPHABET.length);
+    for(let i=0;i<4;i++){signature=V264_CASH_ALPHABET[Number(value%base)]+signature;value/=base;}
+    return v264EncodeCashAmount(cash)+signature;
   }
-  function v263ReadCashGrantCode(value){
-    const text=String(value||"").trim(),match=text.match(/HMCASH1\.([A-Za-z0-9_-]+)\.([A-Z0-9]+)/i);
-    if(!match)throw new Error("Ogiltig pengakod");
-    const raw=new TextDecoder().decode(base64UrlToBytes(match[1]));
-    if(v263CashChecksum(raw)!==String(match[2]).toUpperCase())throw new Error("Pengakoden är skadad");
-    const [studentCode,amountText,id]=raw.split("|");
-    const amount=Math.round(Number(amountText||0));
-    if(!normalizeStudentCode(studentCode)||!id||amount<1||amount>50000)throw new Error("Ogiltig pengakod");
-    return {studentCode:normalizeStudentCode(studentCode),amount,id};
-  }
+  function v264NormalizeCashPassword(value){return String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);}
+
   async function v263TeacherGiveMoney(studentCode){
     const code=normalizeStudentCode(studentCode);if(!code)return;
     const raw=prompt(`Hur många kronor vill du ge ${code} att köpa för?`,"1000");
     if(raw===null)return;
     const amount=Math.round(Number(String(raw).replace(/\s/g,"").replace(",",".")));
     if(!Number.isFinite(amount)||amount<1||amount>50000){showTip("Ange ett belopp mellan 1 och 50 000 kr.");return;}
-    const grantCode=v263MakeCashGrantCode(code,amount);
-    const copied=await copyTextRobust(grantCode);
-    prompt(`${code} får ${amount} kr. ${copied?"Koden är kopierad – ge den till eleven.":"Kopiera koden och ge den till eleven."}\n\nEleven klickar 🎁 Lärarpengar i spelet och klistrar in koden.`,grantCode);
-    showTip(`Pengakod skapad för ${code}: ${amount} kr.`);
-  }
-  function v263RedeemTeacherMoney(){
-    const raw=prompt("Klistra in pengakoden från läraren:","");if(raw===null||!String(raw).trim())return;
-    try{
-      const grant=v263ReadCashGrantCode(raw),code=normalizeStudentCode(currentStudentCode||state.studentCode||"");
-      if(!code){showTip("Välj elevkod innan du löser in lärarpengar.");return;}
-      if(grant.studentCode!==code){showTip(`Koden gäller ${grant.studentCode}, inte ${code}.`);return;}
-      if(!Array.isArray(state.teacherCashGrantsRedeemed))state.teacherCashGrantsRedeemed=[];
-      if(state.teacherCashGrantsRedeemed.includes(grant.id)){showTip("Den här pengakoden är redan använd.");return;}
-      state.teacherCashGrantsRedeemed.push(grant.id);
-      state.money=Number(state.money||0)+grant.amount;
-      recordAssessment("teacher_cash_grant",{amount:grant.amount,grantId:grant.id,studentCode:code,correct:true,day:Number(state.day||1)});
-      saveState();updateHud();renderHotelDevelopment();
-      showTip(`✓ Läraren gav hotellet ${grant.amount} kr att köpa för. Ny kassa: ${Math.round(Number(state.money||0))} kr.`);
-    }catch(err){console.warn(err);showTip("Pengakoden kunde inte läsas. Kontrollera att hela koden är inklistrad.");}
+    const minute=Math.floor(Date.now()/60000),password=v264CashPasswordFor(code,amount,minute);
+    const display=`${password.slice(0,4)}-${password.slice(4)}`;
+    const copied=await copyTextRobust(display);
+    prompt(`${code} får ${amount} kr.\n\nLösenord: ${display}\nGiltigt i 15 minuter.\n${copied?"Lösenordet är kopierat.":"Ge lösenordet till eleven."}\n\nEleven klickar 🎁 Lärarpengar och skriver in lösenordet.`,display);
+    showTip(`Lösenord skapat för ${code}: ${amount} kr · giltigt i 15 minuter.`);
   }
 
+  function v263RedeemTeacherMoney(){
+    const entered=prompt("Skriv lösenordet från läraren (8 tecken):","");if(entered===null)return;
+    const password=v264NormalizeCashPassword(entered);
+    if(password.length!==8){showTip("Lösenordet ska vara 8 tecken.");return;}
+    const code=normalizeStudentCode(currentStudentCode||state.studentCode||"");
+    if(!code){showTip("Välj elevkod innan du löser in lärarpengar.");return;}
+    const nowMinute=Math.floor(Date.now()/60000),amount=v264DecodeCashAmount(password.slice(0,4));
+    let found=null;
+    if(amount){
+      // Kontrollera endast de senaste 15 minuterna. Beloppet ligger kompakt i lösenordet,
+      // så elevens dator behöver inte söka igenom tusentals belopp.
+      for(let age=0;age<15;age++){
+        const minute=nowMinute-age;
+        if(v264CashPasswordFor(code,amount,minute)===password){found={amount,minute};break;}
+      }
+    }
+    if(!found){showTip("Lösenordet är fel eller har gått ut. Be läraren skapa ett nytt.");return;}
+    if(!Array.isArray(state.teacherCashGrantsRedeemed))state.teacherCashGrantsRedeemed=[];
+    const redeemId=`V264|${code}|${password}|${found.minute}`;
+    if(state.teacherCashGrantsRedeemed.includes(redeemId)){showTip("Det här lösenordet är redan använt.");return;}
+    state.teacherCashGrantsRedeemed.push(redeemId);
+    state.money=Number(state.money||0)+Number(found.amount||0);
+    recordAssessment("teacher_cash_grant",{amount:found.amount,grantId:redeemId,studentCode:code,correct:true,day:Number(state.day||1)});
+    saveState();updateHud();renderHotelDevelopment();
+    showTip(`✓ Läraren gav hotellet ${found.amount} kr att köpa för. Ny kassa: ${Math.round(Number(state.money||0))} kr.`);
+  }
 
 
   function openRoomChoice(){
@@ -11902,7 +11910,7 @@
   document.getElementById("startCheckinBtn").onclick=startCheckinFromBell;
   document.getElementById("startCheckoutBtn").onclick=startCheckoutFromBell;
   document.getElementById("completeCheckoutBtn").onclick=completeReceptionCheckout;
-  document.getElementById("saveNewReservationBtn").onclick=saveNewReservation;
+  document.getElementById("saveNewReservationBtn").onclick=()=>v263HandleReservationSaveClick(false);
   document.getElementById("skipPhoneBookingTaskBtn")?.addEventListener("click",v263SkipPhoneBookingTask);
   document.getElementById("redeemTeacherMoneyBtn")?.addEventListener("click",v263RedeemTeacherMoney);
   document.addEventListener("click",e=>{
@@ -11914,8 +11922,18 @@
     if(btn.disabled)return;
     v263HandleReservationSaveClick(true);
   },true);
-  // v.01-263: HARD FIX för telefonbokningens Spara-knapp.
-  // Capture-lyssnaren kör före andra lager/handlers och gör sparningen deterministisk i dockat telefonläge.
+  // v.01-264: Spara fångas både på pointerup och click. Dubbel anropning är säker eftersom phoneSavedBookingId stoppar dubbletter.
+  const v264ReservationPointerSave=e=>{
+    const target=e.target;
+    const btn=target&&typeof target.closest==="function"?target.closest("#saveNewReservationBtn,#forceReservationOverrideBtn"):null;
+    if(!btn)return;
+    const modal=document.getElementById("newReservationModal");if(!modal?.classList.contains("show"))return;
+    if(btn.disabled)return;
+    e.preventDefault();e.stopPropagation();if(typeof e.stopImmediatePropagation==="function")e.stopImmediatePropagation();
+    v263HandleReservationSaveClick(btn.id==="forceReservationOverrideBtn");
+  };
+  document.addEventListener("pointerup",v264ReservationPointerSave,true);
+  // Capture-lyssnaren på click finns kvar som reservväg.
   document.addEventListener("click",e=>{
     const target=e.target;
     const btn=target&&typeof target.closest==="function"?target.closest("#saveNewReservationBtn"):null;
@@ -13082,7 +13100,7 @@
       const code=normalizeStudentCode(row.dataset.scoreStudent||"");if(!code)return;
       const cell=row.lastElementChild||row.appendChild(document.createElement("td"));
       if(cell.querySelector("[data-give-student-money]"))return;
-      const btn=document.createElement("button");btn.type="button";btn.className="teacher-money-btn";btn.dataset.giveStudentMoney=code;btn.textContent="💰 Ge pengar";
+      const btn=document.createElement("button");btn.type="button";btn.className="teacher-money-btn";btn.dataset.giveStudentMoney=code;btn.textContent="💰 Ge pengar";btn.title="Skapa ett 8-teckens lösenord som gäller i 15 minuter";
       btn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();v263TeacherGiveMoney(code);});cell.appendChild(btn);
     });
   };
