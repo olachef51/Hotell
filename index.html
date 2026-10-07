@@ -1255,7 +1255,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-263</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-265</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <button id="redeemTeacherMoneyBtn" type="button" title="Skriv in lärarens 8-teckens lösenord">🎁 Lärarpengar</button>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
@@ -1931,8 +1931,8 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-263";
-  const MASTER_CONTENT_VERSION = "v.01-263";
+  const HOTEL_VERSION = "v.01-265";
+  const MASTER_CONTENT_VERSION = "v.01-265";
   const TEACHER_PASSWORD = "password1234";
 
   // v.01-230: bokningar kan nu innehålla 1–4 personer. Gruppen syns tillsammans i hotellet och vid frukost, och bokningen visar antal gäster. Frukostgäster sitter cirka 1 minut innan de lämnar bordet.
@@ -13105,8 +13105,518 @@
     });
   };
 
+
+  // ============================================================================
+  // v.01-266 · TELEFONBOKNING + PROFESSIONELL BACKNING VID MISSFÖRSTÅND
+  // ----------------------------------------------------------------------------
+  // Telefonbokningen använder från och med denna version INTE den vanliga
+  // "Ny reservation"-modalens sparknappar eller tidigare telefonpatchar.
+  // Den har ett eget tillstånd, ett eget PMS-formulär, egen återläsning och en
+  // direkt, deterministisk sparfunktion. Därmed kan gamla onclick/capture-
+  // lyssnare inte längre låsa telefonbokningen.
+  // ============================================================================
+  const V265_PHONE_FLOW_VERSION="v.01-266-rebuilt-with-date-recovery";
+
+  function v265Safe(fn,fallback=null){try{return fn();}catch(err){console.error("v.01-265",err);return fallback;}}
+  function v265Stage(){return String(state.phoneV265Stage||"idle");}
+  function v265SetStage(stage,progress){
+    state.phoneV265Stage=String(stage||"idle");
+    if(progress!==undefined)state.phoneCallProgress=Number(progress||0);
+    state.phoneFlowVersion=V265_PHONE_FLOW_VERSION;
+    v265Safe(()=>saveState());
+    v265Safe(()=>updateMission());
+  }
+  function v265Scenario(){
+    const base=phoneScenarioForDay();
+    const current=state.phoneV265Scenario&&Number(state.phoneV265Scenario.day||0)===Number(state.day||1)?state.phoneV265Scenario:null;
+    if(current)return current;
+    const made={...base,day:Number(state.day||1)};
+    // Ett nytt telefonscenario ska alltid vara genomförbart utan override när hotellet
+    // faktiskt har ett rum av önskad typ senare i kalendern. Om basdatumet är helt
+    // upptaget flyttas gästens förfrågan till närmaste datum med ledig önskad rumstyp.
+    if(!phoneAvailableRoomsForType(Number(made.start),Number(made.nights),String(made.roomType)).length){
+      const last=Math.max(0,HOTEL_CALENDAR_LAST_INDEX-Math.max(1,Number(made.nights||1)));
+      for(let candidate=Number(made.start)+1;candidate<=last;candidate++){
+        if(phoneAvailableRoomsForType(candidate,Number(made.nights),String(made.roomType)).length){made.start=candidate;break;}
+      }
+    }
+    state.phoneV265Scenario=made;
+    return made;
+  }
+  function v265ResetPhoneSession(toIdle=true){
+    state.phoneV265Stage=toIdle?"idle":"waiting";
+    state.phoneV265Scenario=null;
+    state.phoneV265Draft=null;
+    state.phoneV265ReadbackSnapshot="";
+    state.phoneV266CorrectionFrom="";
+    state.phoneV266CorrectionCount=0;
+    state.phoneV265SavedBookingId=0;
+    state.phoneReservationReadbackConfirmed=false;
+    state.phoneSavedBookingId=0;
+    state.pendingPhoneReservation=null;
+    state.phoneReservationDraft=null;
+    state.phoneCallProgress=0;
+    state.phoneCallBranch="";
+    state.phoneFlowVersion=V265_PHONE_FLOW_VERSION;
+    v265Safe(()=>saveState());
+  }
+
+  function v265EnsureUi(){
+    if(!document.getElementById("phonePmsV265Modal")){
+      const modal=document.createElement("div");
+      modal.className="modal";
+      modal.id="phonePmsV265Modal";
+      modal.innerHTML=`
+        <div class="box v265-phone-pms-box">
+          <div class="new-reservation-head"><h2>＋ Telefonbokning · PMS</h2><button class="close" id="v265ClosePmsBtn" type="button">Stäng PMS</button></div>
+          <div class="v265-phone-pms-body">
+            <div class="v265-call-live">☎ <strong>Gästen är fortfarande kvar på tråden.</strong> Registrera bokningen, läs tillbaka allt och spara först efter gästens bekräftelse.</div>
+            <div class="new-reservation-grid">
+              <label class="wide">Gästens namn<input id="v265Guest" type="text" autocomplete="off"></label>
+              <label>Telefon<input id="v265Phone" type="text" autocomplete="off"></label>
+              <label>Stad<input id="v265City" type="text" autocomplete="off"></label>
+              <label class="wide">Adress<input id="v265Address" type="text" autocomplete="off"></label>
+              <label>Rum<select id="v265Room"></select></label>
+              <label>Check-in<select id="v265Start"></select></label>
+              <label>Antal nätter<select id="v265Nights"></select></label>
+              <label>Antal gäster<select id="v265Party"><option value="">Välj antal gäster</option><option value="1">1 person</option><option value="2">2 personer</option><option value="3">3 personer</option><option value="4">4 personer</option></select></label>
+              <label>Källa<select id="v265Source"><option value="Telefon">Telefon</option></select></label>
+            </div>
+            <div class="v265-room-status" id="v265RoomStatus"></div>
+            <div class="v265-phone-error" id="v265Error" aria-live="polite"></div>
+            <div class="v265-phone-actions">
+              <button type="button" class="availability-button" id="v265ShowRoomsBtn">🛏 VISA RUMSTATUS</button>
+              <button type="button" class="secondary v266-correct-dates" id="v266CorrectDatesBtn">↩ JAG HÖRDE FEL – FRÅGA DATUM IGEN</button>
+              <button type="button" class="secondary" id="v265ReadbackBtn">📞 LÄS TILLBAKA TILL GÄSTEN</button>
+              <button type="button" class="reservation-override-button" id="v265OverrideBtn">⚠ OVERRIDE / SPARA</button>
+              <button type="button" class="primary" id="v265SaveBtn">✓ SPARA RESERVATION</button>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+    }
+    if(!document.getElementById("v265PhoneCss")){
+      const style=document.createElement("style");
+      style.id="v265PhoneCss";
+      style.textContent=`
+        #phonePmsV265Modal{z-index:2147483000;background:rgba(17,28,55,.36);padding-left:min(29vw,510px)}
+        #phonePmsV265Modal.show{display:flex}
+        .v265-phone-pms-box{width:min(1180px,calc(100vw - min(31vw,540px)));max-height:96vh;overflow:auto;border:3px solid #fff}
+        .v265-phone-pms-body{padding:18px 22px 24px}
+        .v265-call-live{border:2px solid #f0c56d;background:#fff7df;color:#5e4300;border-radius:14px;padding:12px 14px;margin-bottom:14px;font-weight:700}
+        .v265-phone-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+        .v265-phone-actions button{min-height:52px;font-weight:900;font-size:16px}
+        #v265SaveBtn{background:#39c79f}
+        #v265SaveBtn:disabled{opacity:.42;cursor:not-allowed}
+        #v265ReadbackBtn{background:#5d72ef;color:white}
+        .v266-correct-dates{background:#fff4dd!important;color:#6b4700!important;border:2px solid #e5b44a!important}
+        .v266-correct-dates:hover{filter:brightness(.98)}
+        .v265-phone-error{min-height:24px;margin-top:10px;color:#b52e22;font-weight:800}
+        .v265-phone-error.ok{color:#167853}
+        .v265-room-status{display:none;margin-top:12px;padding:12px;border-radius:12px;background:#eef3ff;border:1px solid #c9d5f5;line-height:1.55}
+        .v265-room-status.show{display:block}
+        body.phone-call-docked #phonePmsV265Modal{pointer-events:auto}
+        @media(max-width:1100px){#phonePmsV265Modal{padding-left:0}.v265-phone-pms-box{width:96vw}.phone-booking-box{max-width:430px}}
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  function v265Error(message,ok=false){
+    const el=document.getElementById("v265Error");if(!el)return;
+    el.textContent=String(message||"");el.classList.toggle("ok",Boolean(ok));
+  }
+  function v265DraftFromForm(){
+    const get=id=>document.getElementById(id);
+    return {
+      guest:String(get("v265Guest")?.value||"").trim(),
+      phone:String(get("v265Phone")?.value||"").trim(),
+      city:String(get("v265City")?.value||"").trim(),
+      address:String(get("v265Address")?.value||"").trim(),
+      roomId:Number(get("v265Room")?.value||0),
+      start:Number(get("v265Start")?.value||0),
+      nights:Math.max(1,Number(get("v265Nights")?.value||1)),
+      partySize:Number(get("v265Party")?.value||0),
+      source:"Telefon"
+    };
+  }
+  function v265Snapshot(d){
+    return JSON.stringify({guest:d.guest,phone:d.phone,city:d.city,address:d.address,roomId:Number(d.roomId||0),start:Number(d.start),nights:Number(d.nights),partySize:Number(d.partySize||0),source:"Telefon"});
+  }
+  function v265SaveDraft(markStale=true){
+    const d=v265DraftFromForm();state.phoneV265Draft=d;
+    if(markStale&&v265Stage()==="confirmed"&&state.phoneV265ReadbackSnapshot!==v265Snapshot(d)){
+      state.phoneReservationReadbackConfirmed=false;state.phoneV265ReadbackSnapshot="";v265SetStage("pms",41);
+      v265Error("Uppgifterna ändrades efter återläsningen. Läs tillbaka bokningen till gästen igen.");
+      v265UpdateButtons();
+    }else v265Safe(()=>saveState());
+    return d;
+  }
+  function v265PopulateDates(){
+    const start=document.getElementById("v265Start"),nights=document.getElementById("v265Nights");if(!start||!nights)return;
+    if(!start.options.length){
+      for(let i=0;i<=HOTEL_CALENDAR_LAST_INDEX;i++){const o=document.createElement("option");o.value=String(i);o.textContent=hotelCalendarDayLabel(i);start.appendChild(o);}
+    }
+    if(!nights.options.length){for(let n=1;n<=7;n++){const o=document.createElement("option");o.value=String(n);o.textContent=`${n} natt${n===1?"":"er"}`;nights.appendChild(o);}}
+  }
+  function v265UpdateRoomOptions(preferRoomId=0){
+    const roomSelect=document.getElementById("v265Room");if(!roomSelect)return;
+    const s=v265Scenario(),d=state.phoneV265Draft||{};
+    const start=Number(document.getElementById("v265Start")?.value??d.start??s.start);
+    const nights=Math.max(1,Number(document.getElementById("v265Nights")?.value??d.nights??s.nights));
+    const rooms=builtRooms().slice().sort((a,b)=>{
+      const at=roomTypeForId(a.id)===s.roomType?0:1,bt=roomTypeForId(b.id)===s.roomType?0:1;
+      return at-bt||Number(a.id)-Number(b.id);
+    });
+    const old=Number(preferRoomId||roomSelect.value||d.roomId||0);
+    roomSelect.innerHTML="";
+    rooms.forEach(room=>{
+      const conflict=findReservationConflict(room.id,start,nights);
+      const opt=document.createElement("option");opt.value=String(room.id);
+      opt.textContent=`Rum ${room.id} · ${roomTypeForId(room.id)} · ${conflict?`UPPTAGET (${conflict.guest})`:"LEDIGT vald period"}`;
+      roomSelect.appendChild(opt);
+    });
+    const selectable=[...roomSelect.options].map(o=>Number(o.value));
+    let chosen=selectable.includes(old)?old:0;
+    if(!chosen){
+      const wanted=rooms.find(r=>roomTypeForId(r.id)===s.roomType&&!findReservationConflict(r.id,start,nights));
+      const fallbackWanted=rooms.find(r=>roomTypeForId(r.id)===s.roomType);
+      const anyFree=rooms.find(r=>!findReservationConflict(r.id,start,nights));
+      chosen=Number((wanted||fallbackWanted||anyFree||rooms[0]||{}).id||0);
+    }
+    if(chosen)roomSelect.value=String(chosen);
+    if(state.phoneV265Draft)state.phoneV265Draft.roomId=Number(roomSelect.value||0);
+  }
+  function v265RoomStatus(){
+    const box=document.getElementById("v265RoomStatus");if(!box)return;
+    const d=v265DraftFromForm();const s=v265Scenario();
+    const rows=builtRooms().map(r=>{const c=findReservationConflict(r.id,d.start,d.nights);return `<div><strong>Rum ${r.id}</strong> · ${escapeHtml(roomTypeForId(r.id))} · ${c?`<span style="color:#b52e22">UPPTAGET av ${escapeHtml(c.guest)}</span>`:'<span style="color:#167853">LEDIGT</span>'}${roomTypeForId(r.id)===s.roomType?' · <strong>önskad rumstyp</strong>':''}</div>`;}).join("");
+    box.innerHTML=`<strong>${escapeHtml(hotelCalendarDayLabel(d.start))} · ${d.nights} natt${d.nights===1?"":"er"}</strong><br>${rows}`;box.classList.toggle("show");
+  }
+  function v265ValidateReadback(){
+    const d=v265SaveDraft(false),s=v265Scenario(),issues=[];
+    if(normalizeCompare(d.guest)!==normalizeCompare(s.name))issues.push("gästens namn");
+    if(normalizePhoneCompare(d.phone)!==normalizePhoneCompare(s.phone))issues.push("telefonnummer");
+    if(normalizeCompare(d.city)!==normalizeCompare(s.city))issues.push("stad");
+    if(normalizeCompare(d.address)!==normalizeCompare(s.address))issues.push("adress");
+    if(Number(d.start)!==Number(s.start))issues.push("check-in");
+    if(Number(d.nights)!==Number(s.nights))issues.push("antal nätter");
+    if(Number(d.partySize)!==Number(s.partySize))issues.push("antal gäster");
+    if(!d.roomId)issues.push("rum");
+    else if(roomTypeForId(d.roomId)!==String(s.roomType||""))issues.push(`rumstyp (${s.roomType})`);
+    return {ok:issues.length===0,issues,d};
+  }
+  function v265UpdateButtons(){
+    const confirmed=v265Stage()==="confirmed"&&state.phoneReservationReadbackConfirmed;
+    const saved=v265Stage()==="saved"||v265Stage()==="farewell"||Boolean(state.phoneV265SavedBookingId);
+    const save=document.getElementById("v265SaveBtn"),over=document.getElementById("v265OverrideBtn"),read=document.getElementById("v265ReadbackBtn");
+    if(save){save.disabled=!confirmed||saved;save.textContent=saved?"✓ RESERVATION SPARAD":"✓ SPARA RESERVATION";}
+    if(over){over.disabled=!confirmed||saved;over.style.opacity=over.disabled?".45":"1";}
+    if(read){read.disabled=saved;read.textContent=confirmed?"↻ LÄS TILLBAKA IGEN":"📞 LÄS TILLBAKA TILL GÄSTEN";}
+  }
+  function v265OpenPms(){
+    v265EnsureUi();
+    if(v265Stage()!=="confirmed")v265SetStage("pms",41);
+    const s=v265Scenario();v265PopulateDates();
+    const d=state.phoneV265Draft||{guest:"",phone:"",city:"",address:"",roomId:0,start:Number(s.start),nights:Number(s.nights),partySize:0,source:"Telefon"};
+    document.getElementById("v265Guest").value=d.guest||"";
+    document.getElementById("v265Phone").value=d.phone||"";
+    document.getElementById("v265City").value=d.city||"";
+    document.getElementById("v265Address").value=d.address||"";
+    document.getElementById("v265Start").value=String(Number.isFinite(Number(d.start))?Number(d.start):Number(s.start));
+    document.getElementById("v265Nights").value=String(Math.max(1,Number(d.nights||s.nights||1)));
+    document.getElementById("v265Party").value=d.partySize?String(d.partySize):"";
+    v265UpdateRoomOptions(Number(d.roomId||0));
+    v265SaveDraft(false);v265UpdateButtons();
+    document.getElementById("phonePmsV265Modal").classList.add("show");
+    document.getElementById("newReservationModal")?.classList.remove("show");
+    document.getElementById("reservationAvailabilityModal")?.classList.remove("show");
+    document.getElementById("phoneBookingModal")?.classList.add("show");setPhoneCallDocked(true);
+    v265Error(v265Stage()==="confirmed"?"✓ Gästen har bekräftat återläsningen. Nu kan reservationen sparas.":"Fyll i uppgifterna medan gästen är kvar på tråden.",v265Stage()==="confirmed");
+  }
+  function v265ClosePms(){
+    v265SaveDraft(false);document.getElementById("phonePmsV265Modal")?.classList.remove("show");
+    document.getElementById("phoneBookingModal")?.classList.add("show");setPhoneCallDocked(true);renderPhoneDialogueStep();
+  }
+  function v265Readback(){
+    const result=v265ValidateReadback();
+    if(!result.ok){const msg=`Kontrollera ${result.issues.join(", ")} innan du läser tillbaka.`;v265Error(msg);showTip(msg);return false;}
+    const d=result.d,s=v265Scenario();
+    state.phoneV265Draft=d;state.phoneV265ReadbackSnapshot=v265Snapshot(d);state.phoneReservationReadbackConfirmed=true;
+    v265SetStage("confirmed",42);
+    const text=`Jag läser tillbaka: ${s.name}, ${hotelCalendarDayLabel(d.start)}, ${d.nights} natt${d.nights===1?"":"er"}, ${d.partySize} ${d.partySize===1?"person":"personer"}, ${roomTypeForId(d.roomId)}, telefon ${d.phone}, ${d.address}, ${d.city}. Stämmer allt?`;
+    setPhoneBubble("staff",text);
+    v265Safe(()=>recordAssessment("phone_readback_confirmed",{guest:s.name,roomId:d.roomId,day:Number(state.day||1),correct:true,points:10}));
+    v265Error("✓ Gästen svarar: ”Ja, det stämmer. Ni kan spara bokningen.”",true);v265UpdateButtons();renderPhoneDialogueStep();
+    return true;
+  }
+  function v265CommitPhoneReservation(forceOverride=false){
+    if(state.phoneV265SavedBookingId){v265Error("Reservationen är redan sparad.",true);return true;}
+    if(v265Stage()!=="confirmed"||!state.phoneReservationReadbackConfirmed){v265Error("Läs tillbaka bokningen och få gästens bekräftelse innan du sparar.");return false;}
+    const d=v265SaveDraft(false);
+    if(v265Snapshot(d)!==state.phoneV265ReadbackSnapshot){state.phoneReservationReadbackConfirmed=false;v265SetStage("pms",41);v265Error("Uppgifterna har ändrats efter återläsningen. Läs tillbaka igen.");v265UpdateButtons();return false;}
+    const room=state.rooms.find(r=>Number(r.id)===Number(d.roomId));
+    if(!room){v265Error("Det valda rummet finns inte längre. Välj ett annat rum.");v265UpdateRoomOptions();return false;}
+    const conflict=findReservationConflict(d.roomId,d.start,d.nights);
+    if(conflict&&!forceOverride){v265Error(`Rum ${d.roomId} är upptaget av ${conflict.guest}. Välj ett annat rum eller använd OVERRIDE / SPARA.`);return false;}
+    const roomType=roomTypeForId(d.roomId);
+    const rule=v265Safe(()=>Object.assign({},rateRuleFor(roomType,d.start),{price:roomNightlyRate(d.roomId)}),{price:0,minStay:1});
+    const minStay=Number(rule?.minStay||1);const minStayViolation=d.nights<minStay;
+    if(minStayViolation&&!forceOverride){v265Error(`Prisregeln kräver minst ${minStay} nätter. Använd OVERRIDE / SPARA om du vill göra undantag.`);return false;}
+
+    // Kärnsparningen görs först och är helt frikopplad från det gamla reservationsflödet.
+    const id=Date.now()+Math.floor(Math.random()*1000);
+    const total=Number(v265Safe(()=>calculateReservationTotalForRoom(d.roomId,d.start,d.nights),0)||0);
+    const booking={
+      id,guest:d.guest,phone:d.phone,city:d.city,address:d.address,roomId:Number(d.roomId),preferredRoomId:Number(d.roomId),roomType,
+      start:Number(d.start),nights:Number(d.nights),partySize:Number(d.partySize),status:Number(d.start)===Number(getTodayIndex())?"arrival":"reserved",source:"Telefon",
+      rate:Number(rule?.price||0),total,paid:false,nameComplete:true,availabilityChecked:true,priceRuleOverride:Boolean(forceOverride&&minStayViolation),priceRuleMinStay:minStay,
+      overbooked:Boolean(forceOverride&&conflict),overbookingConflictGuest:forceOverride&&conflict?String(conflict.guest||""):null,overbookingPenaltyApplied:Boolean(forceOverride&&conflict),
+      hskCallRequired:false,hskCalled:false,hskCallBonusGiven:false,checkIn:hotelCalendarDayLabel(d.start),checkOut:hotelCalendarDayLabel(d.start+d.nights),phoneFlowVersion:V265_PHONE_FLOW_VERSION
+    };
+    state.bookings.push(booking);
+    state.receptionCheckin.selectedBookingId=id;
+    state.phoneV265SavedBookingId=id;state.phoneSavedBookingId=id;state.phoneReservationReadbackConfirmed=true;
+    state.phoneCallStatus="in_call";state.phoneCallBranch=forceOverride?(conflict?"overbooked":"override"):"booked";
+    v265SetStage("saved",43);
+    // Spara direkt efter push; följdfunktioner får inte kunna hindra bokningen.
+    let persisted=false;
+    try{saveState();persisted=true;}catch(err){console.error("v.01-265 saveState",err);}
+    if(!persisted){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));persisted=true;}catch(err){console.error("v.01-265 localStorage fallback",err);}}
+
+    v265Safe(()=>{if(forceOverride&&conflict){state.score=Math.max(0,Number(state.score||0)-300);recordAssessment("phone_overbooking",{correct:false,points:-300,roomId:d.roomId,start:d.start,nights:d.nights,conflictGuest:conflict.guest||"",day:Number(state.day||1)});}else{state.score=Math.max(0,Number(state.score||0)+100);recordAssessment("phone_reservation_saved",{guest:d.guest,roomId:d.roomId,start:d.start,nights:d.nights,partySize:d.partySize,mistakes:0,correct:true,points:100,day:Number(state.day||1)});}saveState();});
+    v265Safe(()=>renderBookingCalendar());v265Safe(()=>updateHud());v265Safe(()=>updateMission());
+    document.getElementById("phonePmsV265Modal")?.classList.remove("show");
+    document.getElementById("newReservationModal")?.classList.remove("show");
+    document.getElementById("phoneBookingModal")?.classList.add("show");setPhoneCallDocked(true);renderPhoneDialogueStep();
+    showTip(`✓ SPARAD I PMS: ${d.guest} · rum ${d.roomId}. Gästen är kvar i telefonen – avsluta samtalet trevligt.`);
+    return true;
+  }
+
+
+  // v.01-266: Professionell återhämtning när eleven hört/klickat fel om datumen.
+  // Ingen bokning raderas här. Funktionen är bara tillgänglig innan reservationen sparats.
+  function v266ResetDraftToGuestDates(){
+    const s=v265Scenario();
+    const d=state.phoneV265Draft||{};
+    state.phoneV265Draft={
+      ...d,
+      start:Number(s.start),
+      nights:Math.max(1,Number(s.nights||1)),
+      roomId:0,
+      source:"Telefon"
+    };
+    state.phoneReservationReadbackConfirmed=false;
+    state.phoneV265ReadbackSnapshot="";
+    v265Safe(()=>saveState());
+  }
+  function v266StartDateCorrection(){
+    if(state.phoneV265SavedBookingId||["saved","farewell","completed"].includes(v265Stage())){
+      showTip("Reservationen är redan sparad. Datum kan inte ändras via samtalsbackningen efter sparning.");
+      return false;
+    }
+    // Ta vara på det eleven hunnit skriva, men nollställ just datum/rumsval till gästens uppgifter.
+    if(document.getElementById("phonePmsV265Modal")?.classList.contains("show"))v265SaveDraft(false);
+    state.phoneV266CorrectionFrom=v265Stage();
+    state.phoneV266CorrectionCount=Number(state.phoneV266CorrectionCount||0)+1;
+    v266ResetDraftToGuestDates();
+    document.getElementById("phonePmsV265Modal")?.classList.remove("show");
+    document.getElementById("newReservationModal")?.classList.remove("show");
+    document.getElementById("reservationAvailabilityModal")?.classList.remove("show");
+    document.getElementById("phoneBookingModal")?.classList.add("show");
+    setPhoneCallDocked(true);
+    v265SetStage("date_correction_apology",2);
+    renderPhoneDialogueStep();
+    return true;
+  }
+  function v266ConfirmRepeatedDates(){
+    const s=v265Scenario();
+    v266ResetDraftToGuestDates();
+    setPhoneBubble("staff",`Tack. Då har jag ${hotelCalendarDayLabel(Number(s.start))} till ${hotelCalendarDayLabel(Number(s.start)+Number(s.nights||1))}, alltså ${Number(s.nights||1)} natt${Number(s.nights||1)===1?"":"er"}. Stämmer det?`);
+    v265SetStage("date_correction_confirm",3);
+    setTimeout(()=>renderPhoneDialogueStep(),220);
+    return true;
+  }
+  function v266ResumeAfterDateCorrection(){
+    const s=v265Scenario();
+    v266ResetDraftToGuestDates();
+    v265Safe(()=>recordAssessment("phone_date_misunderstanding_recovered",{day:Number(state.day||1),start:Number(s.start),nights:Number(s.nights||1),attempt:Number(state.phoneV266CorrectionCount||1),correct:true,points:0}));
+    // Backa på riktigt till steget direkt efter datumen så eleven får fortsätta samtalet igen.
+    v265SetStage("room",3);
+    setTimeout(()=>renderPhoneDialogueStep(),220);
+    return true;
+  }
+  function v266AddRecoveryButton(choices){
+    if(!choices||state.phoneV265SavedBookingId)return;
+    const stage=v265Stage();
+    if(!["room","contact","pms","confirmed"].includes(stage))return;
+    const wrap=document.createElement("div");
+    wrap.style.marginTop="12px";
+    wrap.style.paddingTop="12px";
+    wrap.style.borderTop="1px solid #d8deec";
+    const btn=v265Choice("↩ JAG HÖRDE FEL – BE OM URSÄKT OCH FRÅGA DATUMEN IGEN",v266StartDateCorrection,"v266-correct-dates");
+    btn.style.width="100%";
+    wrap.appendChild(btn);
+    choices.appendChild(wrap);
+  }
+
+  function v265FinishCall(){
+    if(!state.phoneV265SavedBookingId){showTip("Reservationen måste sparas innan det färdiga bokningssamtalet kan avslutas.");return false;}
+    state.tasks.phoneBooking=true;state.phoneTaskCompletedDay=Number(state.day||1);state.phoneTaskCompletedPeriodKey=phoneTaskPeriodKey();
+    state.phoneCallHeardDay=Number(state.day||1);state.phoneConversationCompletedDay=Number(state.day||1);state.phoneCallStatus="completed";state.phoneCallCountdownEnd=0;state.phoneCallProgress=45;state.phoneV265Stage="completed";
+    v265Safe(()=>recordAssessment("phone_call_closed_after_booking",{bookingId:Number(state.phoneV265SavedBookingId),day:Number(state.day||1),correct:true,points:10}));
+    v265Safe(()=>saveState());v265Safe(()=>updateMission());v265Safe(()=>updateHud());
+    document.getElementById("phonePmsV265Modal")?.classList.remove("show");closePhoneCallPanel();showTip("Telefonbokningen är klar. Reservationen är sparad och samtalet avslutades professionellt.");return true;
+  }
+  function v265SkipPhoneBooking(){
+    const saved=Boolean(state.phoneV265SavedBookingId);
+    const msg=saved?"Reservationen är redan sparad. Vill du avsluta uppgiften och gå vidare?":"Vill du hoppa över reservationssamtalet och gå vidare till nästa uppgift? Ingen reservation sparas.";
+    if(!confirm(msg))return false;
+    state.tasks.phoneBooking=true;state.phoneTaskCompletedDay=Number(state.day||1);state.phoneTaskCompletedPeriodKey=phoneTaskPeriodKey();state.phoneCallStatus="completed";state.phoneCallCountdownEnd=0;state.phoneCallProgress=95;state.phoneV265Stage="skipped";state.phoneCallBranch=saved?"saved_then_skipped":"skipped";
+    v265Safe(()=>recordAssessment("phone_booking_task_skipped",{day:Number(state.day||1),saved,correct:false,points:0}));v265Safe(()=>saveState());v265Safe(()=>updateMission());
+    document.getElementById("phonePmsV265Modal")?.classList.remove("show");closePhoneCallPanel();showTip(saved?"Telefonuppgiften avslutades. Bokningen ligger kvar i PMS.":"Telefonuppgiften hoppades över. Du kan gå vidare till nästa arbete.");return true;
+  }
+  function v265HangUp(){
+    if(v265Stage()==="farewell"||v265Stage()==="saved")return v265FinishCall();
+    return v265SkipPhoneBooking();
+  }
+
+  function v265SummaryHtml(){
+    const s=v265Scenario();return `<div class="phone-request-summary-title">📞 Gästens aktuella förfrågan</div><div class="phone-request-summary-grid"><div class="phone-request-summary-item"><span>Ankomst</span><b>${escapeHtml(hotelCalendarDayLabel(Number(s.start)))}</b></div><div class="phone-request-summary-item"><span>Avresa</span><b>${escapeHtml(hotelCalendarDayLabel(Number(s.start)+Number(s.nights||1)))}</b></div><div class="phone-request-summary-item"><span>Antal nätter</span><b>${Number(s.nights||1)}</b></div><div class="phone-request-summary-item"><span>Antal gäster</span><b>${Number(s.partySize||1)}</b></div><div class="phone-request-summary-item"><span>Rumstyp</span><b>${escapeHtml(String(s.roomType||"—"))}</b></div></div>`;}
+  function v265Choice(text,handler,cls=""){
+    const b=document.createElement("button");b.type="button";b.textContent=text;if(cls)b.className=cls;b.addEventListener("click",handler);return b;
+  }
+  function v265Advance(stage,progress,staffText,points=0){
+    if(staffText)setPhoneBubble("staff",staffText);if(points)state.score=Math.max(0,Number(state.score||0)+Number(points||0));
+    v265SetStage(stage,progress);setTimeout(()=>renderPhoneDialogueStep(),250);
+  }
+
+  // Ersätter hela telefondialogens state machine.
+  renderPhoneDialogueStep=function(){
+    v265EnsureUi();
+    const root=document.getElementById("phoneRequestSummary"),choices=document.getElementById("phoneDialogueChoices"),s=v265Scenario();if(!choices)return;
+    const stage=v265Stage();choices.innerHTML="";
+    if(root){root.innerHTML=v265SummaryHtml();root.classList.toggle("show",!["idle","waiting","greeting"].includes(stage));}
+    if(stage==="waiting"||stage==="idle"){
+      setPhoneBubble("guest","☎ Telefonen ringer...");choices.appendChild(v265Choice("SVARA",()=>{state.phoneCallStatus="in_call";state.phoneCallHeardDay=Number(state.day||1);v265SetStage("greeting",0);renderPhoneDialogueStep();}));return;
+    }
+    if(stage==="greeting"){
+      setPhoneBubble("guest","Hej, jag skulle vilja boka ett rum.");
+      choices.appendChild(v265Choice("God dag och välkommen till hotellet. Självklart hjälper jag er. När vill ni komma?",()=>v265Advance("dates",1,"God dag och välkommen till hotellet. Självklart hjälper jag er. När vill ni komma?",15)));
+      choices.appendChild(v265Choice("Receptionen. När vill ni komma?",()=>v265Advance("dates",1,"Receptionen. När vill ni komma?",5)));return;
+    }
+    if(stage==="dates"){
+      setPhoneBubble("guest",`Jag vill komma ${hotelCalendarDayLabel(Number(s.start))} och stanna ${Number(s.nights)} natt${Number(s.nights)===1?"":"er"}.`);
+      choices.appendChild(v265Choice("Hur många personer är ni och vilken rumstyp önskar ni?",()=>v265Advance("room",3,"Hur många personer är ni och vilken rumstyp önskar ni?",10)));return;
+    }
+    if(stage==="date_correction_apology"){
+      setPhoneBubble("guest","Ja, det är ingen fara. Vad vill ni kontrollera?");
+      choices.appendChild(v265Choice("Ursäkta, jag hörde fel. Kan ni säga ankomst- och avresedatum igen?",()=>v265Advance("date_correction_repeat",2,"Ursäkta, jag hörde fel. Kan ni säga ankomst- och avresedatum igen?",0),"primary"));return;
+    }
+    if(stage==="date_correction_repeat"){
+      setPhoneBubble("guest",`Självklart. Jag vill komma ${hotelCalendarDayLabel(Number(s.start))} och åka ${hotelCalendarDayLabel(Number(s.start)+Number(s.nights||1))}. Det blir ${Number(s.nights||1)} natt${Number(s.nights||1)===1?"":"er"}.`);
+      choices.appendChild(v265Choice(`Tack. Då har jag ${hotelCalendarDayLabel(Number(s.start))} till ${hotelCalendarDayLabel(Number(s.start)+Number(s.nights||1))}. Jag läser det tillbaka en gång.`,v266ConfirmRepeatedDates,"primary"));return;
+    }
+    if(stage==="date_correction_confirm"){
+      setPhoneBubble("guest","Ja, precis. De datumen stämmer.");
+      choices.appendChild(v265Choice("Tack för förtydligandet. Då fortsätter vi bokningen.",v266ResumeAfterDateCorrection,"primary"));return;
+    }
+    if(stage==="room"){
+      setPhoneBubble("guest",`${Number(s.partySize)===1?"Jag är":"Vi är"} ${Number(s.partySize)} ${Number(s.partySize)===1?"person":"personer"} och önskar ${s.roomType}.`);
+      choices.appendChild(v265Choice("Tack. Kan jag få namn, telefonnummer, adress och stad?",()=>v265Advance("contact",4,"Tack. Kan jag få namn, telefonnummer, adress och stad?",10)));
+      v266AddRecoveryButton(choices);return;
+    }
+    if(stage==="contact"){
+      setPhoneBubble("guest",`${s.name}, telefon ${s.phone}. ${s.address}, ${s.city}.`);
+      choices.appendChild(v265Choice("Tack. Jag registrerar bokningen i PMS medan ni är kvar på tråden.",()=>{v265SetStage("pms",41);v265OpenPms();},"primary"));v266AddRecoveryButton(choices);return;
+    }
+    if(stage==="pms"){
+      setPhoneBubble("guest",`${s.name}, telefon ${s.phone}. ${s.address}, ${s.city}. Jag är kvar på tråden.`);
+      const info=document.createElement("div");info.className="phone-dialogue-bubble guest";info.innerHTML="<strong>Registrera uppgifterna i PMS.</strong><br>Rumsnumret väljs i den nya rullgardinen. När allt är rätt: klicka <strong>LÄS TILLBAKA TILL GÄSTEN</strong>.";choices.appendChild(info);
+      choices.appendChild(v265Choice(document.getElementById("phonePmsV265Modal")?.classList.contains("show")?"PMS ÄR ÖPPET":"ÖPPNA TELEFONBOKNING I PMS",v265OpenPms,"primary"));v266AddRecoveryButton(choices);return;
+    }
+    if(stage==="confirmed"){
+      setPhoneBubble("guest","Ja, det stämmer. Ni kan spara bokningen.");
+      const ok=document.createElement("div");ok.className="phone-dialogue-bubble guest";ok.innerHTML="<strong>✓ Gästen har dubbelbekräftat.</strong><br>Nu ska bokningen sparas i PMS. Den nya Spara-knappen använder en helt separat sparfunktion.";choices.appendChild(ok);
+      choices.appendChild(v265Choice("ÅTERGÅ TILL PMS OCH SPARA",v265OpenPms,"primary"));v266AddRecoveryButton(choices);return;
+    }
+    if(stage==="saved"){
+      setPhoneBubble("guest","Tack så mycket!");
+      const done=document.createElement("div");done.className="phone-dialogue-bubble guest";done.innerHTML=`<strong>✓ Reservationen är sparad i PMS.</strong><br>Boknings-ID: ${Number(state.phoneV265SavedBookingId||0)}. Avsluta samtalet professionellt.`;choices.appendChild(done);
+      choices.appendChild(v265Choice("Tack för att ni ringde. Ha en fortsatt trevlig dag!",()=>v265Advance("farewell",44,"Tack för att ni ringde. Ha en fortsatt trevlig dag!",15)));return;
+    }
+    if(stage==="farewell"){
+      setPhoneBubble("guest","Tack detsamma. Hej då!");choices.appendChild(v265Choice("LÄGG PÅ – BOKNING OCH SAMTAL KLART",v265FinishCall,"primary"));return;
+    }
+    if(stage==="skipped"){
+      setPhoneBubble("guest","Samtalet avslutades utan att uppgiften genomfördes.");return;
+    }
+    if(stage==="completed"){
+      setPhoneBubble("guest","✓ Telefonbokningen är klar.");return;
+    }
+    v265SetStage("greeting",0);renderPhoneDialogueStep();
+  };
+
+  openPhoneReservationWorkspace=v265OpenPms;
+  confirmPhoneReservationReadback=v265Readback;
+  finishPhoneReservationCall=v265FinishCall;
+  v263SkipPhoneBookingTask=v265SkipPhoneBooking;
+
+  openPhoneBookingTask=function(task,staffId,mode){
+    const status=phoneCallStatus();
+    if(status!=="ringing"&&status!=="in_call"){
+      showTip(status==="arming"?`Telefonsamtalet kopplas fram. Vänta ${phoneCallCountdownSeconds()} sekunder.`:"Telefonen ringer inte ännu.");return;
+    }
+    pendingPhoneBookingAssignment={task,staffId,mode};
+    if(status==="ringing"){
+      state.phoneAutoAnswerPending=false;state.phoneCallStatus="in_call";state.phoneCallHeardDay=Number(state.day||1);
+      if(!state.phoneV265Stage||["idle","waiting","completed","skipped"].includes(v265Stage())){v265ResetPhoneSession(false);state.phoneCallStatus="in_call";state.phoneCallHeardDay=Number(state.day||1);v265SetStage("greeting",0);}
+    }else if(!state.phoneV265Stage||["idle","waiting"].includes(v265Stage()))v265SetStage("greeting",0);
+    document.getElementById("phoneBookingModal")?.classList.add("show");setPhoneCallDocked(true);renderPhoneDialogueStep();
+  };
+
+  const v265LegacyStartIncomingPhoneCall=startIncomingPhoneCall;
+  startIncomingPhoneCall=function(){
+    if(!state.tasks.phoneBooking&&phoneCallStatus()==="idle")v265ResetPhoneSession(false);
+    const result=v265LegacyStartIncomingPhoneCall();
+    if(!state.tasks.phoneBooking){state.phoneFlowVersion=V265_PHONE_FLOW_VERSION;if(phoneCallStatus()==="arming")state.phoneV265Stage="waiting";v265Safe(()=>saveState());}
+    return result;
+  };
+
+  function v265Install(){
+    v265EnsureUi();
+    // Rensa ett halvfärdigt gammalt telefonflöde så v.01-265 alltid börjar rent.
+    if(state.phoneFlowVersion!==V265_PHONE_FLOW_VERSION&&!state.tasks.phoneBooking){
+      state.phoneCallStatus="idle";state.phoneCallCountdownEnd=0;state.phoneAutoAnswerPending=false;v265ResetPhoneSession(true);
+    }
+    document.getElementById("newReservationModal")?.classList.remove("show");
+    document.getElementById("reservationAvailabilityModal")?.classList.remove("show");
+    document.getElementById("phonePmsV265Modal")?.classList.remove("show");
+
+    // Byt ut de två gamla telefonknapparna helt så inga äldre eventlyssnare finns kvar.
+    const oldSkip=document.getElementById("skipPhoneBookingTaskBtn");
+    if(oldSkip){const fresh=oldSkip.cloneNode(true);fresh.id="skipPhoneBookingTaskBtn";fresh.addEventListener("click",v265SkipPhoneBooking);oldSkip.replaceWith(fresh);}
+    const oldClose=document.querySelector("#phoneBookingModal .box-head .close");
+    if(oldClose){const fresh=oldClose.cloneNode(true);fresh.removeAttribute("data-close");fresh.textContent="Lägg på";fresh.addEventListener("click",v265HangUp);oldClose.replaceWith(fresh);}
+
+    document.getElementById("v265ClosePmsBtn").onclick=v265ClosePms;
+    document.getElementById("v266CorrectDatesBtn").onclick=v266StartDateCorrection;
+    document.getElementById("v265ReadbackBtn").onclick=v265Readback;
+    document.getElementById("v265SaveBtn").onclick=()=>v265CommitPhoneReservation(false);
+    document.getElementById("v265OverrideBtn").onclick=()=>v265CommitPhoneReservation(true);
+    document.getElementById("v265ShowRoomsBtn").onclick=v265RoomStatus;
+    ["v265Guest","v265Phone","v265City","v265Address","v265Room","v265Start","v265Nights","v265Party","v265Source"].forEach(id=>{
+      const el=document.getElementById(id);if(!el)return;
+      el.addEventListener("input",()=>v265SaveDraft(true));
+      el.addEventListener("change",()=>{if(id==="v265Start"||id==="v265Nights")v265UpdateRoomOptions();v265SaveDraft(true);});
+    });
+    // Debug/test-yta; påverkar inte spelet men gör flödet maskintestbart.
+    window.__phoneV265={open:v265OpenPms,readback:v265Readback,save:v265CommitPhoneReservation,skip:v265SkipPhoneBooking,correctDates:v266StartDateCorrection,render:renderPhoneDialogueStep,reset:v265ResetPhoneSession,stage:v265Stage};
+  }
+  v265Install();
+
   v231bInstallRecoveryUi();
-  Object.assign(assessmentLabels,{routine_control_verified:"Verifierad arbetskontroll",period_work_task_completed:"Huvuduppgift genomförd",period_work_task_handed_over:"Huvuduppgift korrekt överlämnad",period_work_task_skipped:"Huvuduppgift hoppades över",period_work_serious_penalty:"Stort avdrag för ogjort arbete",handover_created:"Överlämning skapad",handover_acknowledged:"Överlämning kvitterad",breakfast_guest_served:"Frukostgäst serverad",breakfast_table_cleaned:"Frukostbord återställt",breakfast_buffet_refilled:"Frukostbuffé påfylld",breakfast_stock_low:"Frukostbuffé börjar ta slut",phone_reservation_saved:"Telefonreservation registrerad",phone_booking_task_skipped:"Telefonuppgift hoppades över",teacher_cash_grant:"Lärarpengar till hotellet",checkout_completed:"Check-out slutförd",guest_environment_satisfaction:"Miljö påverkade gästnöjdheten"});
+  Object.assign(assessmentLabels,{routine_control_verified:"Verifierad arbetskontroll",period_work_task_completed:"Huvuduppgift genomförd",period_work_task_handed_over:"Huvuduppgift korrekt överlämnad",period_work_task_skipped:"Huvuduppgift hoppades över",period_work_serious_penalty:"Stort avdrag för ogjort arbete",handover_created:"Överlämning skapad",handover_acknowledged:"Överlämning kvitterad",breakfast_guest_served:"Frukostgäst serverad",breakfast_table_cleaned:"Frukostbord återställt",breakfast_buffet_refilled:"Frukostbuffé påfylld",breakfast_stock_low:"Frukostbuffé börjar ta slut",phone_reservation_saved:"Telefonreservation registrerad",phone_date_misunderstanding_recovered:"Missförstånd om datum rättat professionellt",phone_booking_task_skipped:"Telefonuppgift hoppades över",teacher_cash_grant:"Lärarpengar till hotellet",checkout_completed:"Check-out slutförd",guest_environment_satisfaction:"Miljö påverkade gästnöjdheten"});
 
   ensureV231State();v231PeriodRecord();
 
