@@ -1274,7 +1274,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-268</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-272</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <button id="redeemTeacherMoneyBtn" type="button" title="Skriv in den aktiva 7-siffriga lärarkoden">🎁 Lärarpengar</button>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
@@ -1973,7 +1973,7 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-268";
+  const HOTEL_VERSION = "v.01-272";
   const MASTER_CONTENT_VERSION = "v.01-265";
   const TEACHER_PASSWORD = "password1234";
 
@@ -13919,6 +13919,364 @@
 
   v231bInstallRecoveryUi();
   Object.assign(assessmentLabels,{routine_control_verified:"Verifierad arbetskontroll",period_work_task_completed:"Huvuduppgift genomförd",period_work_task_handed_over:"Huvuduppgift korrekt överlämnad",period_work_task_skipped:"Huvuduppgift hoppades över",period_work_serious_penalty:"Stort avdrag för ogjort arbete",handover_created:"Överlämning skapad",handover_acknowledged:"Överlämning kvitterad",breakfast_guest_served:"Frukostgäst serverad",breakfast_table_cleaned:"Frukostbord återställt",breakfast_buffet_refilled:"Frukostbuffé påfylld",breakfast_stock_low:"Frukostbuffé börjar ta slut",phone_reservation_saved:"Telefonreservation registrerad",phone_date_misunderstanding_recovered:"Missförstånd om datum rättat professionellt",phone_booking_task_skipped:"Telefonuppgift hoppades över",teacher_cash_grant:"Lärarpengar till hotellet",checkout_completed:"Check-out slutförd",guest_environment_satisfaction:"Miljö påverkade gästnöjdheten"});
+
+
+
+  // ============================================================================
+  // v.01-271 · AVRESEKONTROLL + HSK-ÖVERGÅNG + HJÄLP MIG + BESTÅENDE TEXTRUTA
+  // ----------------------------------------------------------------------------
+  // 1) Avreselistan kräver att eleven faktiskt öppnar PMS. Om listan är tom
+  //    väljer eleven uttryckligen "INGA AVRESEGÄSTER IDAG". Fel val loggas i
+  //    progressionen men eleven får öppna PMS och försöka igen.
+  // 2) Housekeeping får aldrig falla tillbaka till rum 102 när inget HSK-rum
+  //    finns. Detta var orsaken till falska "rum 102 avbröts"-lägen.
+  // 3) HJÄLP MIG för publikt skräp tar Luise till HSK-office. Där startar
+  //    UTFÖR UPPGIFT den verkliga skräpplockningen.
+  // 4) Den mörka informationsrutan ligger kvar tills eleven klickar bort den.
+  // ============================================================================
+
+  function v271DepartureKey(index=currentHotelPeriodIndex()){
+    return `${Number(state.day||1)}:${Number(index)}:departure_list`;
+  }
+  function v271DepartureStore(){
+    if(!state.v271DepartureChecks||typeof state.v271DepartureChecks!=="object")state.v271DepartureChecks={};
+    return state.v271DepartureChecks;
+  }
+  function v271DepartureState(index=currentHotelPeriodIndex()){
+    const store=v271DepartureStore(),key=v271DepartureKey(index);
+    if(!store[key]||typeof store[key]!=="object")store[key]={openedPms:false,choice:"",wrongAttempts:0,correctLogged:false};
+    return store[key];
+  }
+  function v271TodayDepartures(){
+    const today=getTodayIndex();
+    return (Array.isArray(state.bookings)?state.bookings:[]).filter(b=>String(b.status||"")==="inhouse"&&bookingEndIndex(b)===today);
+  }
+
+  const v271BaseShowTip=showTip;
+  showTip=function(text){
+    const tip=document.getElementById("tip");
+    if(!tip)return v271BaseShowTip(text);
+    clearTimeout(showTip.timer);clearTimeout(v271BaseShowTip.timer);
+    tip.textContent=String(text||"");
+    tip.title="Klicka här eller någon annanstans för att stänga meddelandet";
+    tip.classList.add("show");
+  };
+  const v271Tip=document.getElementById("tip");
+  if(v271Tip){
+    v271Tip.style.pointerEvents="auto";v271Tip.style.cursor="pointer";
+    v271Tip.addEventListener("click",e=>{e.stopPropagation();v271Tip.classList.remove("show");});
+    document.addEventListener("pointerdown",e=>{
+      if(v271Tip.classList.contains("show")&&!e.target.closest("#tip"))v271Tip.classList.remove("show");
+    },true);
+  }
+
+  const v271BasePmsRoutineBar=v242ShowPmsRoutineBar;
+  v242ShowPmsRoutineBar=function(){
+    v271BasePmsRoutineBar();
+    const ctx=v242PmsRoutineContext;
+    if(String(ctx?.task?.id||"")!=="departure_list")return;
+    const wrap=document.getElementById("v242PmsRoutineCheckWrap");
+    const title=document.getElementById("v242PmsRoutineTitle");
+    if(wrap)wrap.hidden=true;
+    if(title)title.textContent="Arbetsuppgift: Kontrollera dagens avreselista i PMS och gå sedan tillbaka till uppgiften.";
+  };
+
+  const v271BaseOpenWorkArea=v232OpenWorkArea;
+  v232OpenWorkArea=function(target){
+    if(String(v232ActiveRoutineTask?.task?.id||"")==="departure_list"&&(target==="pms"||target==="pmsTomorrow")){
+      const dep=v271DepartureState(v232ActiveRoutineTask.index);
+      dep.openedPms=true;dep.choice="";dep.lastOpenedAt=new Date().toISOString();saveState();
+    }
+    return v271BaseOpenWorkArea(target);
+  };
+
+  function v271RenderDepartureDecision(index,task){
+    if(String(task?.id||"")!=="departure_list")return;
+    const body=document.getElementById("routineTaskBody");if(!body)return;
+    body.querySelectorAll(".v232-routine-table-wrap,.v232-empty,.v232-checklist").forEach(el=>el.remove());
+    const dep=v271DepartureState(index),count=v271TodayDepartures().length,has=count>0;
+    const correctValue=has?"has":"none";
+    const block=document.createElement("div");
+    block.id="v271DepartureDecision";
+    block.innerHTML=`
+      <div style="margin:14px 0;padding:14px;border:2px solid #d6def6;border-radius:14px;background:#f7f9ff">
+        <strong>👀 Kontrollera först i PMS – svaret visas inte här.</strong>
+        <div style="margin-top:6px">${dep.openedPms?"✓ PMS har öppnats från den här uppgiften. Välj nu det du faktiskt såg.":"Öppna PMS med knappen ovan. När du har tittat på dagens avreselista går du tillbaka hit."}</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
+        <button type="button" class="primary" data-v271-dep="none" ${dep.openedPms?"":"disabled"}>INGA AVRESEGÄSTER IDAG</button>
+        <button type="button" class="secondary" data-v271-dep="has" ${dep.openedPms?"":"disabled"}>JAG SER AVRESEGÄSTER IDAG</button>
+      </div>
+      <div id="v271DepartureFeedback" class="small" style="font-weight:800;margin-bottom:8px"></div>`;
+    const links=body.querySelector(".v232-work-links");
+    if(links)links.insertAdjacentElement("afterend",block);else body.prepend(block);
+    const feedback=block.querySelector("#v271DepartureFeedback");
+    if(dep.choice===correctValue&&feedback)feedback.textContent="✓ Din observation stämmer med PMS. Du kan slutföra kontrollen.";
+    block.querySelectorAll("[data-v271-dep]").forEach(btn=>btn.addEventListener("click",()=>{
+      const value=String(btn.dataset.v271Dep||"");
+      if(!dep.openedPms){showTip("Öppna PMS först och kontrollera dagens avreselista.");return;}
+      if(value!==correctValue){
+        dep.wrongAttempts=Number(dep.wrongAttempts||0)+1;dep.choice="";dep.openedPms=false;
+        recordAssessment("departure_list_observation",{correct:false,selected:value,expected:correctValue,actualDepartures:count,attempt:Number(dep.wrongAttempts),day:Number(state.day||1),period:currentHotelPeriod().short,retryAllowed:true});
+        saveState();
+        if(feedback)feedback.textContent="Det stämmer inte med PMS. Öppna avreselistan igen och försök en gång till.";
+        block.querySelectorAll("[data-v271-dep]").forEach(x=>x.disabled=true);
+        showTip("Det svaret stämmer inte med avreselistan. Ingen låsning – öppna PMS igen, kontrollera och försök på nytt.");
+        v232RefreshRoutineCompleteButton();return;
+      }
+      dep.choice=value;
+      if(!dep.correctLogged){
+        dep.correctLogged=true;
+        recordAssessment("departure_list_observation",{correct:true,selected:value,expected:correctValue,actualDepartures:count,attempt:Number(dep.wrongAttempts||0)+1,day:Number(state.day||1),period:currentHotelPeriod().short});
+      }
+      saveState();
+      if(feedback)feedback.textContent=has?`✓ Rätt. Du såg att dagens avreselista innehåller ${count} avres${count===1?"a":"or"}.`:"✓ Rätt. Det finns inga avresgäster idag.";
+      v232RefreshRoutineCompleteButton();
+    }));
+  }
+
+  const v271BaseOpenRoutineTask=v232OpenRoutineTask;
+  v232OpenRoutineTask=function(index,task){
+    const result=v271BaseOpenRoutineTask(index,task);
+    if(String(task?.id||"")==="departure_list"){
+      v271RenderDepartureDecision(index,task);
+      v232RefreshRoutineCompleteButton();
+    }
+    return result;
+  };
+
+  const v271BaseRefreshRoutineCompleteButton=v232RefreshRoutineCompleteButton;
+  v232RefreshRoutineCompleteButton=function(){
+    if(String(v232ActiveRoutineTask?.task?.id||"")==="departure_list"){
+      const button=document.getElementById("routineTaskCompleteBtn");if(!button)return;
+      const dep=v271DepartureState(v232ActiveRoutineTask.index),correct=v271TodayDepartures().length>0?"has":"none";
+      const ok=Boolean(dep.openedPms&&dep.choice===correct);
+      button.disabled=!ok;
+      button.title=ok?"Slutför avresekontrollen.":"Öppna PMS och välj det du faktiskt ser i dagens avreselista.";
+      return;
+    }
+    return v271BaseRefreshRoutineCompleteButton();
+  };
+
+  const v271BaseCompleteRoutineTask=v232CompleteRoutineTask;
+  v232CompleteRoutineTask=function(){
+    if(String(v232ActiveRoutineTask?.task?.id||"")==="departure_list"){
+      const index=v232ActiveRoutineTask.index,dep=v271DepartureState(index),correct=v271TodayDepartures().length>0?"has":"none";
+      if(!dep.openedPms||dep.choice!==correct){showTip("Kontrollera först dagens avreselista i PMS och välj det du faktiskt såg.");return;}
+      const key=v271DepartureKey(index);
+      const result=v271BaseCompleteRoutineTask();
+      delete v271DepartureStore()[key];saveState();
+      return result;
+    }
+    return v271BaseCompleteRoutineTask();
+  };
+
+  function v271HskRoomStillNeedsWork(roomId){
+    const id=Number(roomId||0),room=state.rooms.find(r=>Number(r.id)===id);if(!id||!room)return false;
+    const status=String(room.status||""),sign=String(room.doorSign||"none").toUpperCase();
+    return ["dirty","occupied_dirty","occupied"].includes(status)||sign==="DND"||sign==="PMUR"||(Array.isArray(state.hskQueue)&&state.hskQueue.some(x=>Number(x)===id));
+  }
+  function v271ReleaseStaleHskWorkflow(){
+    if(!hskWorkflow)return false;
+    const roomId=Number(hskWorkflow.roomId||0);
+    if(v271HskRoomStillNeedsWork(roomId))return false;
+    if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
+    hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();roomEntryState=null;
+    v270ClearHskOfficeAssignment(roomId);player.moving=false;selectedMissionTaskKey=null;
+    renderStaffBar();updateInteraction();
+    return true;
+  }
+
+  const v271BaseRouteLuiseToHskOffice=v270RouteLuiseToHskOffice;
+  v270RouteLuiseToHskOffice=function(roomId,showMessage=true){
+    const requested=Number(roomId)||Number(currentHskRoomId()||0);
+    if(hskWorkflow&&requested&&Number(hskWorkflow.roomId)!==requested)v271ReleaseStaleHskWorkflow();
+    return v271BaseRouteLuiseToHskOffice(requested,showMessage);
+  };
+
+  const v271BaseStartHousekeepingWorkflow=startHousekeepingWorkflow;
+  startHousekeepingWorkflow=function(task,staffId="housekeeper",mode="ideal",explicitRoomId=null){
+    const roomId=Number(explicitRoomId)||Number(currentHskRoomId()||0);
+    if(!roomId){
+      if(Array.isArray(state.ambientLitter)&&state.ambientLitter.length){startPublicLitterCleanup();return;}
+      showTip("Det finns inget rum som väntar på housekeeping just nu.");return;
+    }
+    if(hskWorkflow&&Number(hskWorkflow.roomId)!==roomId)v271ReleaseStaleHskWorkflow();
+    return v271BaseStartHousekeepingWorkflow(task,staffId,mode,roomId);
+  };
+
+  const v271BaseCancelHousekeepingWorkflow=cancelHousekeepingWorkflow;
+  cancelHousekeepingWorkflow=function(reason="manual_cancel"){
+    if(hskWorkflow&&reason==="walk_away_from_door"&&!v271HskRoomStillNeedsWork(hskWorkflow.roomId)){
+      v271ReleaseStaleHskWorkflow();return null;
+    }
+    return v271BaseCancelHousekeepingWorkflow(reason);
+  };
+
+  function v271RouteLuiseToPublicHskOffice(){
+    const task=tasks.find(t=>t.id==="clean");if(!task)return false;
+    v271ReleaseStaleHskWorkflow();publicLitterWorkflow=null;v270ClearHskOfficeAssignment();
+    if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
+    if(state.activeStaffId!=="housekeeper")setActiveStaff("housekeeper",false);
+    selectedMissionTaskKey="clean";
+    player.targetX=task.x;player.targetY=task.y;player.moving=Math.hypot(Number(player.x)-Number(task.x),Number(player.y)-Number(task.y))>12;
+    focusCameraOnWorldPoint(task.x,task.y);saveState();renderStaffBar();updateInteraction();
+    showTip("Luise går till HSK-office. När hon är framme: tryck UTFÖR UPPGIFT för att börja plocka skräp i de allmänna ytorna.");
+    return true;
+  }
+
+  const v271BasePerformInteraction=performInteraction;
+  performInteraction=function(){
+    if(interaction?.id==="clean"&&state.activeStaffId==="housekeeper"&&!currentHskRoomId()){
+      if(Array.isArray(state.ambientLitter)&&state.ambientLitter.length){startPublicLitterCleanup();return;}
+      showTip("Det finns varken ett HSK-rum eller publikt skräp som väntar just nu.");return;
+    }
+    return v271BasePerformInteraction();
+  };
+
+  const v271BaseUpdateMission=updateMission;
+  updateMission=function(){
+    const result=v271BaseUpdateMission();
+    // När den enda HSK-uppgiften är publikt skräp ska HJÄLP MIG först ta Luise
+    // till HSK-office. Eleven startar sedan själva arbetsmomentet därifrån.
+    if(!currentHskRoomId()&&Array.isArray(state.ambientLitter)&&state.ambientLitter.length){
+      document.querySelectorAll('#missionList [data-fix-task="clean"]').forEach(button=>{
+        button.onclick=e=>{e.stopPropagation();v271RouteLuiseToPublicHskOffice();};
+      });
+    }
+    return result;
+  };
+
+  Object.assign(assessmentLabels,{
+    departure_list_observation:"Avreselista · observation",
+    housekeeping_assignment_collected_at_hsk_office:"HSK-uppdrag hämtat på HSK-office"
+  });
+
+  // ============================================================================
+  // v.01-272 · STAYOVER-TID + ROBUST HSK-OFFICE
+  // ----------------------------------------------------------------------------
+  // 1) En stayover-gäst får INTE ge poängavdrag för ostädat rum före 15:00.
+  //    Om rummet fortfarande är ostädat hålls gästen kvar ute/i lobbyn tills
+  //    hotellperioden 15–18 börjar. Först därefter kan missad städning bedömas.
+  // 2) HSK-office får en explicit interaktion för Luise. Knappen fungerar även
+  //    efter föregående rum och startar alltid nästa verkliga HSK-rum.
+  // 3) Interaktionsknappen binds om efter alla versionspatchar så klick alltid
+  //    använder den senaste performInteraction-funktionen.
+  // ============================================================================
+
+  function v272StayoverRoomIsReady(guest,booking){
+    const day=Number(state.day||1),roomId=Number(guest?.roomId||booking?.roomId||0);
+    const room=state.rooms.find(item=>Number(item.id)===roomId);
+    return Number(booking?.stayoverCleanedDay||0)===day || String(room?.status||"")==="occupied_clean";
+  }
+  function v272StayoverHasDnd(guest,booking){
+    const roomId=Number(guest?.roomId||booking?.roomId||0),room=state.rooms.find(item=>Number(item.id)===roomId);
+    return String(room?.doorSign||"none").toUpperCase()==="DND";
+  }
+  function v272HoldStayoverGuestUntil15(guest,booking){
+    if(!guest||!booking)return;
+    const seat=typeof lobbyRestPointForGuest==="function"?lobbyRestPointForGuest(guest):{x:610,y:1730};
+    guest.v272WaitUntil15=true;
+    guest.state="inLobby";guest.finalState="inLobby";guest.path=[];guest.pathIndex=0;
+    guest.x=Number(seat?.x||610);guest.y=Number(seat?.y||1730);
+    guest.nextActionAt=Number.MAX_SAFE_INTEGER;
+    booking.stayoverWindowOpen=true;
+    saveState();updateMission();renderReceptionPms();
+  }
+
+  const v272BaseFinishStayoverReturnCheck=finishStayoverReturnCheck;
+  finishStayoverReturnCheck=function(guest,booking){
+    if(!guest||!booking)return v272BaseFinishStayoverReturnCheck(guest,booking);
+    const day=Number(state.day||1);
+    const activeWindow=Number(booking.stayoverOpportunityDay||0)===day&&booking.stayoverWindowOpen!==false;
+    // Före 15:00 får ett ostädat stayover-rum aldrig ge avdrag. Gästen väntar
+    // utanför rummet tills 15–18-perioden, så Luise har hela arbetsfönstret.
+    if(activeWindow&&currentHotelPeriodIndex()<5&&!v272StayoverRoomIsReady(guest,booking)&&!v272StayoverHasDnd(guest,booking)){
+      v272HoldStayoverGuestUntil15(guest,booking);
+      return;
+    }
+    guest.v272WaitUntil15=false;
+    return v272BaseFinishStayoverReturnCheck(guest,booking);
+  };
+
+  const v272BaseUpdateGuests=updateGuests;
+  updateGuests=function(dt){
+    // När klockan når 15–18 släpps gäster som väntat på att HSK-fönstret ska
+    // löpa ut. Den ordinarie gästlogiken tar dem därefter tillbaka till rummet.
+    if(currentHotelPeriodIndex()>=5){
+      guestAgents.forEach(guest=>{
+        if(!guest?.v272WaitUntil15)return;
+        guest.v272WaitUntil15=false;
+        if(guest.state!=="inLobby")guest.state="inLobby";
+        guest.nextActionAt=0;
+      });
+    }
+    return v272BaseUpdateGuests(dt);
+  };
+
+  function v272HskOfficeTask(){return tasks.find(t=>t.id==="clean")||null;}
+  function v272AtHskOffice(){
+    const task=v272HskOfficeTask();if(!task)return false;
+    return Math.hypot(Number(player.x)-Number(task.x),Number(player.y)-Number(task.y))<=125;
+  }
+
+  const v272BaseUpdateInteraction=updateInteraction;
+  updateInteraction=function(){
+    v272BaseUpdateInteraction();
+    // Tvinga fram en tydlig HSK-office-knapp när Luise står vid kontoret och
+    // ett riktigt rum väntar. Detta får företräde framför gamla generiska lägen.
+    const roomId=Number(currentHskRoomId()||0),task=v272HskOfficeTask();
+    if(state.activeStaffId==="housekeeper"&&roomId&&task&&!hskWorkflow&&!dndWorkflow&&v272AtHskOffice()){
+      interaction=task;
+      const button=document.getElementById("interact");
+      if(button){
+        button.classList.add("show");
+        button.disabled=false;
+        button.style.pointerEvents="auto";
+        button.innerHTML=`TA EMOT<br>RUM ${roomId}`;
+      }
+    }
+  };
+
+  const v272BasePerformInteraction=performInteraction;
+  performInteraction=function(){
+    if(interaction?.id==="clean"&&state.activeStaffId==="housekeeper"){
+      const roomId=Number(currentHskRoomId()||0);
+      if(roomId){
+        // Ett avslutat gammalt rum får aldrig blockera nästa HSK-uppdrag.
+        if(hskWorkflow&&Number(hskWorkflow.roomId)!==roomId){
+          if(typeof v271ReleaseStaleHskWorkflow==="function")v271ReleaseStaleHskWorkflow();
+          if(hskWorkflow&&Number(hskWorkflow.roomId)!==roomId){
+            hskWorkflow=null;hskAutoPath=[];hskAutoPathIndex=0;resetHskPathGuard();roomEntryState=null;
+            if(state.staffBusyUntil)state.staffBusyUntil.housekeeper=0;
+          }
+        }
+        if(!v270HskOfficeAuthorized(roomId)&&!v270AuthorizeHskFromOffice(roomId))return;
+        startHousekeepingWorkflow(interaction,"housekeeper","ideal",roomId);
+        updateMission();updateInteraction();
+        return;
+      }
+      if(Array.isArray(state.ambientLitter)&&state.ambientLitter.length){
+        startPublicLitterCleanup();updateInteraction();return;
+      }
+      showTip("Det finns inget HSK-rum eller publikt skräp som väntar just nu.");
+      return;
+    }
+    return v272BasePerformInteraction();
+  };
+
+  // Den ursprungliga onclick-bindningen skapades innan versionspatcharna.
+  // Bind om här så knappen alltid anropar den SENASTE performInteraction.
+  const v272InteractButton=document.getElementById("interact");
+  if(v272InteractButton){
+    v272InteractButton.disabled=false;
+    v272InteractButton.style.pointerEvents="auto";
+    v272InteractButton.onclick=e=>{e?.preventDefault?.();performInteraction();};
+  }
+
+  Object.assign(assessmentLabels,{
+    housekeeping_stayover_return_deferred:"Stayover · återkomst väntar till 15:00"
+  });
 
   ensureV231State();v231PeriodRecord();
 
