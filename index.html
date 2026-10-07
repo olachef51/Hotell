@@ -176,6 +176,11 @@
   #teacherModal .teacher-logout:hover{filter:brightness(1.06)}
   .teacher-quick-reset{border:0;border-radius:12px;padding:9px 12px;background:#c94c46;color:#fff;font-weight:1000;box-shadow:0 3px 0 #8d302c}
   .teacher-quick-reset:hover{filter:brightness(1.04)}
+  .teacher-cash-open{border:0;border-radius:12px;padding:9px 12px;background:#1e9d62;color:#fff;font-weight:1000;box-shadow:0 3px 0 #11643f}
+  .teacher-cash-open:hover{filter:brightness(1.05)}
+  .teacher-cash-modal-box{max-width:760px}
+  #teacherCashModal .teacher-cash-control{margin:0;border:0;background:transparent;padding:4px 0 0}
+  .teacher-money-btn,[data-give-student-money]{display:none!important}
   .close{border:0;background:#edf0fb;border-radius:12px;padding:9px 12px;font-weight:900;color:#33406e}
   .choice{
     width:100%;text-align:left;border:2px solid #dde3f5;background:#f9faff;border-radius:14px;padding:13px 14px;
@@ -1681,7 +1686,7 @@
 
 <div class="modal" id="teacherModal">
   <div class="box">
-    <div class="box-head"><h2>Lärarläge</h2><div class="teacher-head-actions"><button class="teacher-quick-reset" id="teacherQuickResetBtn" type="button">🔄 Nollställ elevspel</button><button class="teacher-logout" id="teacherLogoutBtn" type="button">🔒 Logga ut</button></div></div>
+    <div class="box-head"><h2>Lärarläge</h2><div class="teacher-head-actions"><button class="teacher-quick-reset" id="teacherQuickResetBtn" type="button">🔄 Nollställ elevspel</button><button class="teacher-cash-open" id="teacherCashOpenBtn" type="button">💰 Ge pengar</button><button class="teacher-logout" id="teacherLogoutBtn" type="button">🔒 Logga ut</button></div></div>
     <div class="tabs">
       <button class="active" data-teacher-tab="upload">Importera progression</button>
       <button data-teacher-tab="scoreboard">Elever & progression</button>
@@ -1724,23 +1729,6 @@
       <div class="scoreboard-note"><strong>Samlat resultat:</strong> Check-in, Service, Städ, Frukost, Ekonomi och Gästnöjdhet väger lika. Om ett område ännu inte har genomförts räknas det inte med.</div>
       <div class="info" id="teacherProgressLocalStatus"><strong>Automatiskt lokalt register:</strong> elevprogressionen läses och sparas automatiskt i samma webbläsare. Du behöver normalt inte använda några backupknappar.</div>
       <details class="teacher-advanced-tools"><summary>Avancerat · backup och återställning</summary><div class="scoreboard-tools"><button class="secondary" id="exportTeacherProgressBtn" type="button">💾 Spara lärarbackup</button><button class="secondary" id="importTeacherProgressBtn" type="button">📂 Läs in lärarbackup</button><button class="secondary" id="restoreTeacherProgressBtn" type="button">↩ Återställ föregående</button><button class="secondary" id="clearScoreboardBtn" type="button">Rensa all progression</button><input id="teacherProgressBackupFile" type="file" accept=".json,application/json" hidden></div></details>
-      <div class="teacher-cash-control" id="teacherCashControl">
-        <h4>💰 Lärarpengar · en kod till hela klassen</h4>
-        <p>Välj belopp och aktivera. Eleverna kan stänga spelet, öppna länken igen och skriva in samma kod under <strong>🎁 Lärarpengar</strong>. Koden gäller i 15 minuter och kan användas en gång per elevspel.</p>
-        <div class="teacher-cash-row">
-          <label>Belopp
-            <input id="teacherCashAmount" type="number" min="50" max="50000" step="50" value="1000">
-          </label>
-          <div class="teacher-cash-presets">
-            <button type="button" data-teacher-cash-preset="100">100 kr</button>
-            <button type="button" data-teacher-cash-preset="500">500 kr</button>
-            <button type="button" data-teacher-cash-preset="1000">1 000 kr</button>
-            <button type="button" data-teacher-cash-preset="5000">5 000 kr</button>
-          </div>
-          <button class="teacher-cash-activate" id="activateTeacherCashBtn" type="button">AKTIVERA KOD I 15 MIN</button>
-        </div>
-        <div class="teacher-cash-status" id="teacherCashStatus">Ingen lärarpengakod är aktiverad på den här lärardatorn.</div>
-      </div>
       <div id="scoreboardView"></div>
       <div class="scoreboard-detail" id="scoreboardDetail"></div>
     </section>
@@ -1852,6 +1840,29 @@
       </div>
       <button class="danger" id="resetBtn" type="button" style="margin-top:12px;background:#7f2f2c">Radera allt inklusive lärarinnehåll</button>
     </section>
+  </div>
+</div>
+
+<div class="modal" id="teacherCashModal">
+  <div class="box teacher-cash-modal-box">
+    <div class="box-head"><h2>💰 Ge pengar</h2><button class="close" data-close="teacherCashModal">Stäng</button></div>
+    <div class="teacher-cash-control" id="teacherCashControl">
+      <h4>Gemensam kod till hela klassen</h4>
+      <p>Välj belopp och aktivera koden. Samma kod kan användas av alla elever i 15 minuter, en gång per elevspel.</p>
+      <div class="teacher-cash-row">
+        <label>Belopp
+          <input id="teacherCashAmount" type="number" min="50" max="50000" step="50" value="1000">
+        </label>
+        <div class="teacher-cash-presets">
+          <button type="button" data-teacher-cash-preset="100">100 kr</button>
+          <button type="button" data-teacher-cash-preset="500">500 kr</button>
+          <button type="button" data-teacher-cash-preset="1000">1 000 kr</button>
+          <button type="button" data-teacher-cash-preset="5000">5 000 kr</button>
+        </div>
+        <button class="teacher-cash-activate" id="activateTeacherCashBtn" type="button">AKTIVERA KOD I 15 MIN</button>
+      </div>
+      <div class="teacher-cash-status" id="teacherCashStatus">Ingen lärarpengakod är aktiverad på den här lärardatorn.</div>
+    </div>
   </div>
 </div>
 
@@ -12083,6 +12094,7 @@
     loadTeacherSettings();
     renderTeacherScoreboard();
     renderTeacherHighscores();
+    document.querySelectorAll(".teacher-money-btn,[data-give-student-money]").forEach(el=>el.remove());
     document.getElementById("teacherModal").classList.add("show");
     const pending=pendingTeacherResultCode();
     if(pending){
@@ -12126,6 +12138,11 @@
   }
   document.getElementById("teacherBtn").onclick=requestTeacherMode;
   document.getElementById("teacherLogoutBtn")?.addEventListener("click",logoutTeacherMode);
+  document.getElementById("teacherCashOpenBtn")?.addEventListener("click",()=>{
+    document.querySelectorAll(".teacher-money-btn,[data-give-student-money]").forEach(el=>el.remove());
+    v267RenderTeacherCashControl();
+    document.getElementById("teacherCashModal")?.classList.add("show");
+  });
   document.getElementById("teacherPasswordSubmit").onclick=submitTeacherPassword;
   document.getElementById("teacherPasswordInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitTeacherPassword();}});
   document.getElementById("saveTeacherSettingsBtn").onclick=saveTeacherSettings;
@@ -13175,7 +13192,7 @@
     const root=document.getElementById('highscoreView');if(!root)return;const students=Object.values(scoreboardLoad().students||{}).filter(v231bStudentHasHistory),newRows=[],legacyRows=[];students.forEach(s=>{const l=v231bLatestSnapshot(s),p=studentDisplayParts(s);(v231bIsLegacySnapshot(l)?legacyRows:newRows).push({s,l,p});});newRows.sort((a,b)=>Number(b.l?.ranking?.total||0)-Number(a.l?.ranking?.total||0));legacyRows.sort((a,b)=>v231bLegacyQuality(b.l)-v231bLegacyQuality(a.l));const tableNew=`<div class="highscore-card"><h4>🏆 Ny ranking · v.01-231</h4>${newRows.length?`<table class="highscore-table"><thead><tr><th>#</th><th>Klass</th><th>Elev</th><th>Yrk.</th><th>Gäst</th><th>Uppg.</th><th>Eko</th><th>Hotellp.</th><th>Ranking</th></tr></thead><tbody>${newRows.slice(0,10).map((x,i)=>{const r=x.l.ranking||{};return `<tr><td>${rankMedal(i)}</td><td>${escapeHtml(x.p.classCode||'—')}</td><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(r.vocational||0).toFixed(0)}%</td><td>${Number(r.guestSatisfaction||0).toFixed(0)}%</td><td>${Number(r.tasks||0).toFixed(0)}%</td><td>${Number(r.economy||0).toFixed(0)}%</td><td>${Number(r.hotelPoints||0).toFixed(0)}%</td><td><b>${Number(r.total||0).toFixed(1)}%</b></td></tr>`;}).join('')}</tbody></table>`:'<div class="info">Ingen elev har ännu en rapport enligt den nya rankingmodellen.</div>'}</div>`;const tableOld=`<div class="highscore-card"><h4>📚 Äldre historik · bevarad</h4>${legacyRows.length?`<table class="highscore-table"><thead><tr><th>Elev</th><th>Dag</th><th>Äldre resultat</th><th>Yrk.progression</th><th>Gäst</th></tr></thead><tbody>${legacyRows.map(x=>`<tr><td>${escapeHtml(x.s.name||x.p.studentNo||x.s.code)}</td><td>${Number(x.l.day||1)}</td><td><b>${v231bLegacyQuality(x.l).toFixed(1)}%</b></td><td>${v231bLegacyVocational(x.l).toFixed(1)}%</td><td>${Number(x.l.guestAverage||0).toFixed(1)}%</td></tr>`).join('')}</tbody></table><div class="info">Äldre resultat visas separat och rangordnas inte tillsammans med den nya 40/35/15/5/5-modellen.</div>`:'<div class="info">Ingen äldre historik i det här registret.</div>'}</div>`;root.innerHTML=`<div class="highscore-grid">${tableNew}${tableOld}</div>`;
   };
 
-  // v.01-267: lärarpengar är nu en gemensam klasskod i lärarpanelen, inte elevunika koder.
+  // v.01-269: lärarpengar öppnas från EN knapp i lärarlägets toppfält; inga knappar per elevrad.
   const v263RenderTeacherScoreboardBase=renderTeacherScoreboard;
   renderTeacherScoreboard=function(){
     v263RenderTeacherScoreboardBase();
@@ -13192,7 +13209,7 @@
   // direkt, deterministisk sparfunktion. Därmed kan gamla onclick/capture-
   // lyssnare inte längre låsa telefonbokningen.
   // ============================================================================
-  const V265_PHONE_FLOW_VERSION="v.01-268-rebuilt-save-finish-hardfix";
+  const V265_PHONE_FLOW_VERSION="v.01-269-teacher-money-header-button";
 
   function v265Safe(fn,fallback=null){try{return fn();}catch(err){console.error("v.01-265",err);return fallback;}}
   function v265Stage(){return String(state.phoneV265Stage||"idle");}
