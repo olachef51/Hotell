@@ -1274,7 +1274,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-279</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-280</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <button id="redeemTeacherMoneyBtn" type="button" title="Skriv in den aktiva 7-siffriga lärarkoden">🎁 Lärarpengar</button>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
@@ -1973,7 +1973,7 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-279";
+  const HOTEL_VERSION = "v.01-280";
   const MASTER_CONTENT_VERSION = "v.01-265";
   const TEACHER_PASSWORD = "password1234";
 
@@ -4879,21 +4879,58 @@
       return migrated;
     }catch(e){return null;}
   }
+  // v.01-280: Fullständig, verifierad spelprofil. Ingen återställning av spelvärden
+  // genom standardsammanslagning för nya fullständiga sparningar.
+  function fullSaveKey(code){return `hotel_manager_full_v280_${normalizeStudentCode(code)}`;}
+  function fullSaveBackupKey(code){return `${fullSaveKey(code)}_previous`;}
+  function fullSaveFingerprint(st){
+    const dev=st?.hotelDevelopment;
+    return JSON.stringify({day:st?.day,money:st?.money,score:st?.score,
+      development:dev,expansionBuilt:st?.expansionBuilt,
+      tasks:st?.tasks,completed:st?.completed,
+      bookings:st?.bookings,rooms:st?.rooms});
+  }
+  function validFullSave(pkg,code){
+    return pkg&&pkg.schema==="hotel-manager-complete-v1"&&pkg.state&&
+      normalizeStudentCode(pkg.studentCode)===code&&
+      normalizeStudentCode(pkg.state.studentCode)===code&&
+      Number.isFinite(Number(pkg.state.day))&&
+      Number.isFinite(Number(pkg.state.money))&&
+      Number.isFinite(Number(pkg.state.score))&&
+      pkg.fingerprint===fullSaveFingerprint(pkg.state);
+  }
+  function readFullSave(key,code){
+    try{const raw=localStorage.getItem(key);if(!raw)return null;
+      const pkg=JSON.parse(raw);return validFullSave(pkg,code)?pkg:null;
+    }catch(e){console.warn("Ogiltig fullständig sparfil",key,e);return null;}
+  }
   function loadState(){
-    // Läs huvudprofil och separat backup. Använd senast bekräftat sparade tillstånd.
+    const code=normalizeStudentCode(currentStudentCode||"");
+    if(!code)return clone(defaultState);
+    const copies=[readFullSave(fullSaveKey(code),code),readFullSave(fullSaveBackupKey(code),code)].filter(Boolean);
+    if(copies.length){
+      copies.sort((a,b)=>Number(b.sequence||0)-Number(a.sequence||0));
+      const restored=clone(copies[0].state);
+      // Lägg endast till helt nya fält, skriv aldrig över sparade framsteg.
+      for(const [key,value] of Object.entries(defaultState))if(!(key in restored))restored[key]=clone(value);
+      return restored;
+    }
+    // Bakåtkompatibilitet med v.01-277–279 och äldre elevsparfiler.
     let primary=null,backup=null,backupTime=0;
-    try{const raw=localStorage.getItem(SAVE_KEY);if(raw){const p=JSON.parse(raw);if(p&&typeof p==="object")primary=p;}}catch(e){console.warn("Huvudprofil kunde inte läsas",e);}
-    try{const raw=localStorage.getItem(AUTO_BACKUP_KEY);if(raw){const pkg=JSON.parse(raw);const match=normalizeStudentCode(pkg?.studentCode||pkg?.state?.studentCode||"")===currentStudentCode;if(match&&pkg.state&&typeof pkg.state==="object"){backup=pkg.state;backupTime=Date.parse(pkg.savedAt||"")||0;}}}catch(e){console.warn("Lokal backup kunde inte läsas",e);}
-    // Never use another student's last session or overwrite a saved profile.
-    if(primary&&currentStudentCode&&normalizeStudentCode(primary.studentCode||"")!==currentStudentCode)primary=null;
+    try{const raw=localStorage.getItem(SAVE_KEY);if(raw)primary=JSON.parse(raw);}catch(e){console.warn(e);}
+    try{const raw=localStorage.getItem(AUTO_BACKUP_KEY);if(raw){const pkg=JSON.parse(raw);
+      if(normalizeStudentCode(pkg?.studentCode||pkg?.state?.studentCode||"")===code){backup=pkg.state;backupTime=Date.parse(pkg.savedAt||"")||0;}}}catch(e){console.warn(e);}
+    if(primary&&normalizeStudentCode(primary.studentCode||"")!==code)primary=null;
     const primaryTime=Date.parse(primary?.localSavedAt||"")||0;
     const raw=backup&&(!primary||backupTime>primaryTime)?backup:(primary||backup);
     if(!raw)return clone(defaultState);
-    try{
-      const migrated=mergeStudentProgressWithCurrentMaster(raw,currentStudentCode||raw.studentCode||"");
-      if(raw!==primary||String(raw.masterContentVersion||"")!==MASTER_CONTENT_VERSION){try{localStorage.setItem(SAVE_KEY,JSON.stringify(migrated));}catch(e){}}
-      return migrated;
-    }catch(e){console.warn("Spelprofilen kunde inte återställas",e);return clone(defaultState);}
+    const migrated=mergeStudentProgressWithCurrentMaster(raw,code);
+    // Behåll uttryckligen samtliga värden från den gamla filen, inklusive tomma listor.
+    for(const [key,value] of Object.entries(raw)){
+      if(!["studentCode","masterContentVersion"].includes(key))migrated[key]=clone(value);
+    }
+    migrated.studentCode=code;
+    return migrated;
   }
   function reconcileRoomOccupancyFromBookings(){
     if(!state||!Array.isArray(state.rooms)||!Array.isArray(state.bookings))return;
@@ -4922,36 +4959,37 @@
     }
   }
 
+  let fullSaveSequence=0;
   function saveState(){
     const code=normalizeStudentCode(currentStudentCode||"");
     if(!code||!state||typeof state!=="object")return false;
-    // Do not persist an in-memory state belonging to a different student.
-    if(state.studentCode&&normalizeStudentCode(state.studentCode)!==code){
-      console.error("Sparning stoppad: fel elevkod i spelstatus");return false;
-    }
-    SAVE_KEY=studentSaveKey(code);
-    AUTO_BACKUP_KEY=studentAutoBackupKey(code);
+    if(state.studentCode&&normalizeStudentCode(state.studentCode)!==code)return false;
     state.studentCode=code;
     state.localSavedAt=new Date().toISOString();
-    let saved=false;
+    SAVE_KEY=studentSaveKey(code);AUTO_BACKUP_KEY=studentAutoBackupKey(code);
     try{
-      const data=JSON.stringify(state);
-      localStorage.setItem(SAVE_KEY,data);
-      saved=localStorage.getItem(SAVE_KEY)===data;
-    }catch(err){console.warn("Hotel Manager: lokal lagring misslyckades",err);}
-    updateHud();
-    return saved;
+      const copied=JSON.parse(JSON.stringify(state));
+      const previous=readFullSave(fullSaveKey(code),code);
+      const nextSequence=Math.max(fullSaveSequence,Number(previous?.sequence||0),Date.now())+1;
+      const pkg={schema:"hotel-manager-complete-v1",studentCode:code,
+        savedAt:copied.localSavedAt,sequence:nextSequence,
+        fingerprint:fullSaveFingerprint(copied),state:copied};
+      const value=JSON.stringify(pkg);
+      // Flytta föregående giltiga sparning till reservplats innan den nya skrivs.
+      if(previous)localStorage.setItem(fullSaveBackupKey(code),JSON.stringify(previous));
+      localStorage.setItem(fullSaveKey(code),value);
+      const verified=readFullSave(fullSaveKey(code),code);
+      if(!verified||verified.fingerprint!==pkg.fingerprint||verified.sequence!==nextSequence)
+        throw new Error("Läsningen efter sparning misslyckades");
+      fullSaveSequence=nextSequence;
+      // Gammal nyckel skrivs för bakåtkompatibilitet, men är inte längre primär.
+      try{localStorage.setItem(SAVE_KEY,JSON.stringify(copied));}catch(_e){}
+      updateHud();return true;
+    }catch(err){console.error("Fullständig spelprofil kunde inte sparas",err);return false;}
   }
   function saveLocalAutoBackup(reason="autosave"){
-    if(!state||typeof state!=="object")return false;
-    const code=normalizeStudentCode(currentStudentCode||state.studentCode||"");
-    if(!code)return false;
-    const persisted=saveState();
-    if(!persisted)return false;
-    try{
-      const backup=JSON.stringify({schema:"hotel-manager-local-autobackup-v1",savedAt:state.localSavedAt,reason,hotelVersion:HOTEL_VERSION,masterContentVersion:MASTER_CONTENT_VERSION,studentCode:code,state});
-      localStorage.setItem(studentAutoBackupKey(code),backup);
-    }catch(err){console.warn("Backup kunde inte skrivas",err);}
+    const ok=saveState();if(!ok)return false;
+    try{localStorage.setItem(AUTO_BACKUP_KEY,JSON.stringify({schema:"hotel-manager-local-autobackup-v1",savedAt:state.localSavedAt,reason,studentCode:currentStudentCode,state:JSON.parse(JSON.stringify(state))}));}catch(_e){}
     return true;
   }
   // Även om fliken stängs oväntat sparas den aktiva elevens arbete löpande.
@@ -11341,13 +11379,13 @@
     showTip(`Mottagaren är låst till ${email}.`);
     return true;
   }
-  function exportStudentState(){const progress=clone(state);delete progress.scenarios;delete progress.checkinPhrases;progress.masterContentVersion=MASTER_CONTENT_VERSION;return progress;}
+  function exportStudentState(){const progress=clone(state);progress.masterContentVersion=MASTER_CONTENT_VERSION;return progress;}
   function studentPackagePayload(){
     const backupState=exportStudentState();
     const moods=guestSatisfactionEntries();
     return {
       schema:"hotel-manager-student-package-v3",
-      saveFormat:"portable-progress-v1",
+      saveFormat:"complete-game-v280",
       hotelVersion:HOTEL_VERSION,
       masterContentVersion:MASTER_CONTENT_VERSION,
       exportedAt:new Date().toISOString(),
@@ -11372,7 +11410,7 @@
     return file.name;
   }
   function downloadStudentPackage(){const pkg=studentPackageFile();downloadFile(pkg.file);return pkg.name;}
-  // v.01-279: en bestående bekräftelse för lokal save och tydlig varning när endast
+  // v.01-280: en bestående bekräftelse för lokal save och tydlig varning när endast
   // ett nedladdningsförsök har gjorts. Webbläsaren kan inte intyga att filen nått disken.
   function lessonSaveStatus(message,kind="ok"){
     const el=document.getElementById("lessonSaveStatus");
@@ -12028,7 +12066,7 @@
     const pkg=loadedStudentResultPackage,backup=pkg?.backup?.state;if(!backup){showTip("Den här filen innehåller ingen spelbackup.");return;}
     const code=normalizeStudentCode(pkg.student?.code||backup.studentCode||"");if(!code){showTip("Elevkoden saknas i filen.");return;}
     if(!confirm(`Öppna backupen för elev ${code}? Den sparas som elevens lokala spelprofil på den här datorn.`))return;
-    const restored=mergeStudentProgressWithCurrentMaster(backup,code);
+    const restored=clone(backup);
     localStorage.setItem(studentSaveKey(code),JSON.stringify(restored));localStorage.setItem(CURRENT_STUDENT_KEY,code);localStorage.setItem(AUTO_START_KEY,"1");localStorage.setItem(LOAD_NOTICE_KEY,JSON.stringify({code,fromVersion:pkg.hotelVersion||"äldre version",toVersion:HOTEL_VERSION,day:Number(restored.day||1)}));location.reload();
   }
   function extractPortableStudentSave(payload){
@@ -12049,7 +12087,8 @@
   // v.01-275: Läs en elevfil direkt till det aktiva spelet, utan sidomladdning.
   // Detta fungerar även när browsern begränsar localStorage för file://-dokument.
   function activateImportedStudentGame(pkg,backup,code){
-    const migrated=mergeStudentProgressWithCurrentMaster(backup,code);
+    const migrated=clone(backup);
+    for(const [key,value] of Object.entries(defaultState))if(!(key in migrated))migrated[key]=clone(value);
     currentStudentCode=code;
     SAVE_KEY=studentSaveKey(code);
     AUTO_BACKUP_KEY=studentAutoBackupKey(code);
@@ -12096,11 +12135,11 @@
     try{
       for(let i=0;i<localStorage.length;i++){
         const key=localStorage.key(i)||"";
-        if(!key.startsWith(prefix))continue;
-        const keyCode=normalizeStudentCode(key.slice(prefix.length));
+        if(!key.startsWith(prefix)&&!(key.startsWith("hotel_manager_full_v280_")&&!key.endsWith("_previous")))continue;
+        const keyCode=normalizeStudentCode(key.startsWith(prefix)?key.slice(prefix.length):key.slice("hotel_manager_full_v280_".length));
         if(!keyCode)continue;
         let saved={};
-        try{saved=JSON.parse(localStorage.getItem(key)||"{}");}catch(e){}
+        try{const pkg=JSON.parse(localStorage.getItem(key)||"{}");saved=pkg.schema==="hotel-manager-complete-v1"?pkg.state:pkg;}catch(e){}
         const code=normalizeStudentCode(saved?.studentCode||keyCode)||keyCode;
         profiles.push({
           code,
@@ -12146,7 +12185,7 @@
     }
     // The student's state was loaded at page initialization, before any new save.
     // Missing local data is not silently advertised as a restored game.
-    const hasSavedProfile=Boolean(localStorage.getItem(studentSaveKey(code))||localStorage.getItem(studentAutoBackupKey(code)));
+    const hasSavedProfile=Boolean(localStorage.getItem(fullSaveKey(code))||localStorage.getItem(studentSaveKey(code))||localStorage.getItem(studentAutoBackupKey(code)));
     started=true;document.getElementById("startScreen").style.display="none";startGuestFlow();focusCameraOnWorldPoint(880,960);recordAssessment("session_started",{studentCode:code});saveState();
     if(hasSavedProfile)showTip(`✓ Elev ${code}: sparat hotell återupptaget. Dag ${Number(state.day||1)}, ${Number(state.score||0)} poäng.`);
     const loadNotice=localStorage.getItem(LOAD_NOTICE_KEY);if(loadNotice){localStorage.removeItem(LOAD_NOTICE_KEY);try{const info=JSON.parse(loadNotice);showTip(`✓ ${info.code||code} laddad från ${info.fromVersion||"äldre version"} till ${info.toVersion||HOTEL_VERSION}. Fortsätter på Dag ${Number(info.day||state.day||1)}.`);}catch(e){showTip("✓ Elevens sparade hotell är laddat i den nya spelversionen.");}}else{showTip(`Elevkod ${code}: ${saveLocalAutoBackup("start")?"lokal sparning aktiv":"lokal lagring misslyckades – ladda ner en reservkopia"}. Avsluta lektionen för att skicka progressionen.`);}
@@ -12425,7 +12464,7 @@
     let filename="",error=null;
     try{filename=downloadStudentPackage();}catch(err){error=err;console.error("Nedladdning misslyckades",err);}
     if(localOk&&filename){
-      lessonSaveStatus(`✓ Spelet är sparat lokalt för ${code} (dag ${Number(state.day||1)}).\n✓ Nedladdning av ${filename} har begärts. Kontrollera att JSON-filen verkligen finns under Hämtade filer.`,"ok");
+      lessonSaveStatus(`✓ HELA HOTELLET SPARAT OCH KONTROLLERAT: ${code} | Dag ${Number(state.day||1)} | ${Number(state.money||0)} kr | ${Number(state.score||0)} poäng.\n✓ Nedladdning av ${filename} har begärts. Kontrollera att JSON-filen verkligen finns under Hämtade filer.`,"ok");
     }else if(localOk){
       lessonSaveStatus(`✓ Spelet är sparat lokalt för ${code}.\n✗ JSON-nedladdningen kunde inte starta: ${error?.message||"okänt fel"}. Försök med reservkopiaknappen.`,"warn");
     }else if(filename){
@@ -14356,7 +14395,7 @@
   refreshDailyTaskCompletion();
   updateHud();
   updateMission();
-  // v.01-279: Visa ALLTID startsidan när länken öppnas.
+  // v.01-280: Visa ALLTID startsidan när länken öppnas.
   // Elevkoden fylls i automatiskt om den finns på datorn, men eleven
   // måste själv klicka Starta/Fortsätt. Sparade hotell raderas inte.
   // Även efter import/byte av elevkod ska eleven se startsidan.
