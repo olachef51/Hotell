@@ -1274,7 +1274,7 @@
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-272</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-279</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <button id="redeemTeacherMoneyBtn" type="button" title="Skriv in den aktiva 7-siffriga lärarkoden">🎁 Lärarpengar</button>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
@@ -1908,7 +1908,7 @@
   <div class="v245-round-actions"><button id="v245RoundCancelBtn" type="button">Avbryt</button><button id="v245RoundConfirmBtn" type="button" disabled>✓ KONTROLLERAT HÄR</button></div>
 </div>
 
-<div class="modal" id="lessonEndModal"><div class="box lesson-end-box"><div class="box-head"><h2>📤 Avsluta lektion</h2><button class="close" data-close="lessonEndModal">Stäng</button></div><p>Skicka dagens progression till läraren. Huvudknappen öppnar datorns <strong>vanliga e-postprogram</strong> med mottagare, ämne och progressionspaket färdigifyllt.</p><div class="lesson-summary-grid" id="lessonSummaryGrid"></div><div class="lesson-recipient" id="lessonRecipientInfo"></div><div class="privacy-note"><strong>Dataminimering:</strong> mejlet använder elevkod och innehåller inte personnummer. Det innehåller sammanställd progression, resultat och evidensnivåer – inte hela spelbackupen.</div><div class="lesson-actions"><button class="primary" id="shareProgressBtn" type="button">✉ Öppna e-postprogram och skicka</button><button class="secondary" id="copyProgressBtn" type="button">📋 Kopiera progression</button><button class="secondary" id="downloadProgressBtn" type="button" title="Sparar lokalt och laddar ner din JSON-sparfil">💾 Spara spelet + ladda ner fil</button><button class="secondary" id="downloadBackupBtn" type="button" title="Reservkopia för byte av dator eller webbläsare">📁 Ladda ner reservkopia</button></div><div class="progress-fallback" id="progressFallbackPanel" hidden><strong>Reserv om e-postprogrammet inte öppnas</strong><p>Progressionen finns kvar här. Kopiera mejltexten eller prova Outlook webb eller Gmail webb manuellt.</p><textarea id="progressFallbackText" readonly spellcheck="false"></textarea><div class="progress-fallback-actions"><button class="secondary" id="copyProgressTextBtn" type="button">📋 Kopiera mejltext</button><button class="secondary" id="openMailAppManualBtn" type="button">✉ Försök öppna e-postprogram igen</button><button class="secondary" id="openOutlookWebBtn" type="button">🌐 Outlook webb</button><button class="secondary" id="openGmailWebBtn" type="button">🌐 Gmail webb</button></div></div><div class="info"><strong>Så fungerar Skicka:</strong> spelet använder datorns registrerade e-postprogram via en vanlig e-postlänk. Outlook webb öppnas bara om eleven själv väljer reservknappen. Ett fel i datorns lokala lagring får inte stoppa försöket att öppna mejlet. <strong>Spara spelet + ladda ner fil</strong> gör både en lokal sparning och en nedladdningsbar JSON-reservkopia. <strong>Ladda ner reservkopia</strong> används vid byte av dator, webbläsare eller spelplats.</div></div></div>
+<div class="modal" id="lessonEndModal"><div class="box lesson-end-box"><div class="box-head"><h2>📤 Avsluta lektion</h2><button class="close" data-close="lessonEndModal">Stäng</button></div><p>Skicka dagens progression till läraren. Huvudknappen öppnar datorns <strong>vanliga e-postprogram</strong> med mottagare, ämne och progressionspaket färdigifyllt.</p><div class="lesson-summary-grid" id="lessonSummaryGrid"></div><div class="lesson-recipient" id="lessonRecipientInfo"></div><div class="privacy-note"><strong>Dataminimering:</strong> mejlet använder elevkod och innehåller inte personnummer. Det innehåller sammanställd progression, resultat och evidensnivåer – inte hela spelbackupen.</div><div id="lessonSaveStatus" role="status" aria-live="polite" style="display:none;margin:12px 0;padding:13px 15px;border:2px solid #b8ddc3;border-radius:12px;background:#e8f6ed;color:#225b38;font-weight:850;white-space:pre-line"></div><div class="lesson-actions"><button class="primary" id="shareProgressBtn" type="button">✉ Öppna e-postprogram och skicka</button><button class="secondary" id="copyProgressBtn" type="button">📋 Kopiera progression</button><button class="secondary" id="downloadProgressBtn" type="button" title="Sparar lokalt och laddar ner din JSON-sparfil">💾 Spara spelet och ladda ner JSON</button><button class="secondary" id="downloadBackupBtn" type="button" title="Reservkopia för byte av dator eller webbläsare">📁 Ladda ner reservkopia</button></div><div class="progress-fallback" id="progressFallbackPanel" hidden><strong>Reserv om e-postprogrammet inte öppnas</strong><p>Progressionen finns kvar här. Kopiera mejltexten eller prova Outlook webb eller Gmail webb manuellt.</p><textarea id="progressFallbackText" readonly spellcheck="false"></textarea><div class="progress-fallback-actions"><button class="secondary" id="copyProgressTextBtn" type="button">📋 Kopiera mejltext</button><button class="secondary" id="openMailAppManualBtn" type="button">✉ Försök öppna e-postprogram igen</button><button class="secondary" id="openOutlookWebBtn" type="button">🌐 Outlook webb</button><button class="secondary" id="openGmailWebBtn" type="button">🌐 Gmail webb</button></div></div><div class="info"><strong>Så fungerar Skicka:</strong> spelet använder datorns registrerade e-postprogram via en vanlig e-postlänk. Outlook webb öppnas bara om eleven själv väljer reservknappen. Ett fel i datorns lokala lagring får inte stoppa försöket att öppna mejlet. <strong>Spara spelet + ladda ner fil</strong> gör både en lokal sparning och en nedladdningsbar JSON-reservkopia. <strong>Ladda ner reservkopia</strong> används vid byte av dator, webbläsare eller spelplats.</div></div></div>
 
 <div class="modal" id="guestReviewModal">
   <div class="box review-box">
@@ -1973,7 +1973,7 @@
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-277";
+  const HOTEL_VERSION = "v.01-279";
   const MASTER_CONTENT_VERSION = "v.01-265";
   const TEACHER_PASSWORD = "password1234";
 
@@ -11372,6 +11372,17 @@
     return file.name;
   }
   function downloadStudentPackage(){const pkg=studentPackageFile();downloadFile(pkg.file);return pkg.name;}
+  // v.01-279: en bestående bekräftelse för lokal save och tydlig varning när endast
+  // ett nedladdningsförsök har gjorts. Webbläsaren kan inte intyga att filen nått disken.
+  function lessonSaveStatus(message,kind="ok"){
+    const el=document.getElementById("lessonSaveStatus");
+    if(!el)return;
+    el.style.display="block";
+    el.style.background=kind==="bad"?"#fff0ef":kind==="warn"?"#fff5d9":"#e8f6ed";
+    el.style.borderColor=kind==="bad"?"#ecaba7":kind==="warn"?"#dfbe70":"#b8ddc3";
+    el.style.color=kind==="bad"?"#90382f":kind==="warn"?"#735719":"#225b38";
+    el.textContent=message;
+  }
   function openLessonEnd(){
     const code=currentStudentCode||state.studentCode||"—";const avg=Math.round(guestSatisfactionAverage());
     document.getElementById("lessonSummaryGrid").innerHTML=`<div class="lesson-summary-item"><span>Elevkod</span><b>${escapeHtml(code)}</b></div><div class="lesson-summary-item"><span>Dag</span><b>${Number(state.day||1)}</b></div><div class="lesson-summary-item"><span>Hotellpoäng</span><b>${Number(state.score||0)}</b></div><div class="lesson-summary-item"><span>Gästsnitt</span><b>${avg}%</b></div>`;
@@ -11379,6 +11390,7 @@
     if(recipient){recipient.textContent=email?`Mejlet adresseras automatiskt till: ${email}`:"⚠ Ingen läraradress är sparad. Öppna Lärarläge → Inställningar och ange mottagarens e-postadress.";recipient.classList.toggle("missing",!email);}
     if(shareBtn){shareBtn.disabled=!isValidTeacherEmail(email);shareBtn.title=email?`Skicka till ${email}`:"Lärarens e-postadress saknas";}
     const fallback=document.getElementById("progressFallbackPanel");if(fallback)fallback.hidden=true;
+    lessonSaveStatus("Ingen manuell sparning har gjorts i det här fönstret ännu. Klicka på Spara spelet och ladda ner JSON.","warn");
     document.getElementById("lessonEndModal").classList.add("show");
   }
   function bytesToBase64Url(bytes){
@@ -12408,19 +12420,27 @@
   document.getElementById("endLessonBtn").onclick=openLessonEnd;
   document.getElementById("downloadProgressBtn").onclick=()=>{
     const code=normalizeStudentCode(currentStudentCode||state.studentCode||"");
-    if(!code){alert("Ingen elevkod är aktiv. Starta först spelet med en elevkod.");return;}
+    if(!code){lessonSaveStatus("✗ Ingen elevkod är aktiv. Starta spelet med en elevkod först.","bad");return;}
     const localOk=saveLocalAutoBackup("manual");
-    let downloaded=false, filename="";
-    try{filename=downloadStudentPackage();downloaded=true;}
-    catch(err){console.error("Kunde inte skapa sparfil",err);}
-    if(downloaded){
-      showTip(localOk?`✓ Sparat lokalt för ${code}. Nedladdning av ${filename} har startats.`:`⚠ Lokal sparning misslyckades. JSON-filen ${filename} har skickats till Hämtade filer – behåll filen!`);
-      alert(localOk?`Spelet är sparat lokalt under ${code}.\nEn extra sparfil (${filename}) har skickats till webbläsarens nedladdningar.\nKontrollera att filen finns i Hämtade filer.`:`VARNING: Webbläsaren kunde INTE spara lokalt.\nEn reservfil (${filename}) har skickats till nedladdningar.\nKontrollera Hämtade filer och spara den för nästa gång.`);
+    let filename="",error=null;
+    try{filename=downloadStudentPackage();}catch(err){error=err;console.error("Nedladdning misslyckades",err);}
+    if(localOk&&filename){
+      lessonSaveStatus(`✓ Spelet är sparat lokalt för ${code} (dag ${Number(state.day||1)}).\n✓ Nedladdning av ${filename} har begärts. Kontrollera att JSON-filen verkligen finns under Hämtade filer.`,"ok");
+    }else if(localOk){
+      lessonSaveStatus(`✓ Spelet är sparat lokalt för ${code}.\n✗ JSON-nedladdningen kunde inte starta: ${error?.message||"okänt fel"}. Försök med reservkopiaknappen.`,"warn");
+    }else if(filename){
+      lessonSaveStatus(`⚠ Lokal lagring kunde inte bekräftas för ${code}.\nJSON-nedladdningen har begärts (${filename}). Kontrollera att filen finns i Hämtade filer innan du lämnar spelet.`,"bad");
     }else{
-      alert(localOk?"Spelet sparades lokalt, men JSON-nedladdningen kunde inte startas. Använd Ladda ner reservkopia.":"VARNING: Varken lokal sparning eller filnedladdning kunde bekräftas. Stäng INTE spelet. Kontrollera webbläsarens nedladdningsinställningar.");
+      lessonSaveStatus(`✗ Varken lokal sparning eller JSON-nedladdning kunde bekräftas. STÄNG INTE SPELET. ${error?.message||""}`,"bad");
     }
   };
-  document.getElementById("downloadBackupBtn").onclick=()=>{try{recordAssessment("lesson_export",{method:"download",fileName:exportFileName()});saveLocalAutoBackup("manual_export");const name=downloadStudentPackage();showTip(`Reservkopia ${name} skickades till webbläsarens nedladdningar. Kontrollera Hämtade filer.`);}catch(err){console.error(err);alert("Kunde inte ladda ner reservkopia: "+err.message);}};
+  document.getElementById("downloadBackupBtn").onclick=()=>{
+    const localOk=saveLocalAutoBackup("manual_export");
+    try{
+      const name=downloadStudentPackage();
+      lessonSaveStatus(`${localOk?"✓ Lokalt sparat.":"⚠ Lokal lagring kunde inte bekräftas."}\nReservkopia ${name} har begärts. Kontrollera Hämtade filer och att filen inte är tom.`,localOk?"ok":"warn");
+    }catch(err){console.error(err);lessonSaveStatus(`✗ Reservkopia kunde inte laddas ner: ${err.message}`,"bad");}
+  };
   document.getElementById("shareProgressBtn").onclick=shareProgressJson;
   document.getElementById("copyProgressBtn").onclick=()=>copyProgressionForManualEmail(true);
   document.getElementById("copyProgressTextBtn").onclick=()=>copyProgressionForManualEmail(true);
@@ -14336,13 +14356,11 @@
   refreshDailyTaskCompletion();
   updateHud();
   updateMission();
-  // GitHub Pages: reopen this student's previously saved hotel without requiring a JSON import.
-  // A fresh student without a local save must still actively start the game.
-  if(currentStudentCode){
-    const auto=localStorage.getItem(AUTO_START_KEY)==="1";
-    const known=Boolean(localStorage.getItem(studentSaveKey(currentStudentCode))||localStorage.getItem(studentAutoBackupKey(currentStudentCode)));
-    if(auto||known){localStorage.removeItem(AUTO_START_KEY);setTimeout(startOrContinueStudent,0);}
-  }
+  // v.01-279: Visa ALLTID startsidan när länken öppnas.
+  // Elevkoden fylls i automatiskt om den finns på datorn, men eleven
+  // måste själv klicka Starta/Fortsätt. Sparade hotell raderas inte.
+  // Även efter import/byte av elevkod ska eleven se startsidan.
+  try{localStorage.removeItem(AUTO_START_KEY);}catch(e){}
   requestAnimationFrame(loop);
 })();
 </script>
