@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Hotellchefen – Hotel Manager</title>
+<title>Hotellchefen – Hotel Manager · v.01-300</title>
 <meta name="description" content="Hotellchefen – ett interaktivt hotellspel för undervisning.">
 <meta property="og:title" content="Hotellchefen – Hotel Manager">
 <meta property="og:description" content="Interaktivt hotellspel för undervisning.">
@@ -481,7 +481,7 @@
   /* v.01-260 · Telefonpanelen får bara ligga ovanpå själva telefon/PMS-arbetsflödet.
      Om eleven öppnar ett annat arbetsmoment eller lärarläget döljs panelen tillfälligt.
      Samtalet och bokningsinformationen ligger kvar och panelen visas igen när det andra fönstret stängs. */
-  body:has(.modal.show:not(#phoneBookingModal):not(#receptionModal):not(#newReservationModal):not(#reservationAvailabilityModal)) #phoneBookingModal.docked{display:none!important}
+  body:has(.modal.show:not(#phoneBookingModal):not(#receptionModal):not(#newReservationModal):not(#reservationAvailabilityModal):not(#phonePmsV265Modal)) #phoneBookingModal.docked{display:none!important}
 
   /* v.01-122: frukostuppgiften använder samma dockade arbetsflöde som telefonen. */
   .breakfast-task-box{width:min(520px,94vw);max-height:88vh;overflow:auto;padding:0;background:#fff;border-radius:20px}
@@ -1398,7 +1398,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
 
 <div id="hud">
   <div class="hud-left">
-    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-299</span>
+    <button class="round" id="homeBtn" title="Starta om">⌂</button><span id="versionTag">v.01-300</span>
     <div class="money"><span class="cash-icon">●</span><span id="moneyText">20</span></div>
     <button id="redeemTeacherMoneyBtn" type="button" title="Lärarpengar – skriv in den aktiva 7-siffriga lärarkoden" aria-label="Lärarpengar">🎁</button>
     <div class="score">Hotellpoäng: <span id="scoreText">0</span></div>
@@ -2109,7 +2109,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
   const TEACHER_SCOREBOARD_KEY = "index_hotell_teacher_scoreboard_v1";
   const TEACHER_SCOREBOARD_BACKUP_KEY = "index_hotell_teacher_scoreboard_backup_v1";
   const TEACHER_SCOREBOARD_SCHEMA = 1;
-  const HOTEL_VERSION = "v.01-283";
+  const HOTEL_VERSION = "v.01-300";
   const MASTER_CONTENT_VERSION = "v.01-265";
   const TEACHER_PASSWORD = "password1234";
 
@@ -8809,7 +8809,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
         const ready=actualRoomState==="Ledig Rent";
         return {bg:ready?"#d8f1c4":"#ffd1d5",line2:`Check In idag - ${actualRoomState}`};
       }
-      if(start>todayIndex)return {bg:"#e4ccff",line2:"Bokad reservation"};
+      if(start>todayIndex)return {bg:"#e4ccff",line2:booking.confirmed?"Bekräftad reservation":"Bokad reservation"};
       return {bg:booking.color||"#dce7ef",line2:booking.status==="reserved"?"Bokad reservation":"Bokning"};
     };
     let html=`<div class="pms-toolbar"><div class="pms-toolbar-group"><button class="pms-nav" data-calendar-nav="-1" aria-label="Tidigare datum">‹</button><button class="pms-nav" data-calendar-nav="1" aria-label="Senare datum">›</button><button class="pms-today" id="bookingCalendarTodayBtn" type="button">Idag</button></div><div class="v287-right-tools"><div class="pms-help" id="bookingCalendarRange" hidden></div></div></div><div class="booking-scroll booking-room-scroll"><div class="booking-calendar" style="grid-template-columns:165px repeat(${totalHalfColumns},${halfDayWidth}px)"><div class="calendar-corner" style="grid-row:1;grid-column:1">RUM · STATUS</div>`;
@@ -8826,7 +8826,16 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
       html+=`<button class="booking-block ${oneDay?"one-day":""} ${booking.status==="arrival"?"arrival":""} ${selected?"selected":""}" data-booking-id="${booking.id}" style="grid-row:${row};grid-column:${startLine}/${endLine};background:${p.bg}"><span class="booking-guest">${escapeHtml(booking.guest)} · 👥 ${bookingPartySize(booking)}</span><span class="booking-status">${escapeHtml(p.line2)}</span></button>`;
     });
     target.innerHTML=html+`</div></div>`;
-    target.querySelectorAll("[data-booking-id]").forEach(button=>button.onclick=()=>openBookingDetail(Number(button.dataset.bookingId)));
+    target.querySelectorAll("[data-booking-id]").forEach(button=>button.onclick=()=>{
+      const id=Number(button.dataset.bookingId);
+      // Vid pågående reservationssamtal stannar eleven i telefon+PMS-vyn.
+      if(document.getElementById("phonePmsV265Modal")?.classList.contains("show")){
+        const booking=state.bookings.find(item=>Number(item.id)===id);
+        if(booking)showTip(`Rum ${Number(booking.roomId||0)} är bokat för ${booking.guest}, ${hotelCalendarDayLabel(Number(booking.start||0))}–${hotelCalendarDayLabel(Number(booking.start||0)+Number(booking.nights||1))}.`);
+        return;
+      }
+      openBookingDetail(id);
+    });
     const scroller=target.querySelector(".booking-room-scroll"),rangeLabel=target.querySelector("#bookingCalendarRange"),navButtons=[...target.querySelectorAll("[data-calendar-nav]")];
     const updateVisibleRange=()=>{
       if(!scroller)return;
@@ -8846,7 +8855,8 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     const todayBtn=target.querySelector("#bookingCalendarTodayBtn");if(todayBtn)todayBtn.onclick=()=>{if(!scroller)return;bookingCalendarViewStart=calendarViewStartAroundToday();scroller.scrollTo({left:bookingCalendarViewStart*dayWidth,behavior:"smooth"});};
     // v.01-291: Datumstyrningen hör hemma uppe bland PMS-flikarna.
     // Flytta de redan händelsekopplade knapparna, duplicera dem inte.
-    const navSlot=document.getElementById("v289CalendarNav");
+    const navSlot=(document.getElementById("phonePmsV265Modal")?.classList.contains("show")
+      ?document.getElementById("v300CalendarNav"):null)||document.getElementById("v289CalendarNav");
     const toolbar=target.querySelector(".pms-toolbar");
     if(navSlot && toolbar){
       navSlot.replaceChildren();
@@ -13930,6 +13940,117 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
       `;
       document.head.appendChild(style);
     }
+
+    // v.01-300: återanvänd det VERKLIGA boknings-PMS:et bredvid den öppna
+    // telefonlinjen. Ingen kopia av rumsbeläggningen eller andra bokningsdata.
+    const v300Modal=document.getElementById("phonePmsV265Modal");
+    if(v300Modal&&!document.getElementById("v300Workspace")){
+      const shell=v300Modal.querySelector(".v265-phone-pms-box");
+      const editor=shell.querySelector(".v265-phone-pms-body");
+      const workspace=document.createElement("div");
+      workspace.id="v300Workspace";
+      workspace.innerHTML=`<section class="v300-calendar-pane" aria-label="PMS rumsöversikt">
+        <div class="v300-pane-head"><strong>🗓 PMS · Bokningskalender</strong><div id="v300CalendarNav"></div></div>
+        <div class="v300-calendar-help">Kontrollera rummen och datumen direkt i PMS. Gästen är kvar på tråden.</div>
+        <div id="v300CalendarHost"></div>
+      </section><section class="v300-booking-pane" aria-label="PMS bokningsformulär">
+        <div class="v300-pane-head"><strong>📝 ${"Bokningsuppgifter"}</strong><span id="v300ConfirmedMark"></span></div>
+      </section>`;
+      shell.appendChild(workspace);
+      workspace.querySelector(".v300-booking-pane").appendChild(editor);
+    }
+    if(v300Modal&&!document.getElementById("v300Style")){
+      const css=document.createElement("style");css.id="v300Style";
+      css.textContent=`
+      /* 01-300: telefon / verkligt PMS / sparpanel samtidigt på dator */
+      #phoneBookingModal.docked{z-index:2147483002!important}
+      #phoneBookingModal.docked .phone-booking-box{left:8px;top:8px;bottom:8px;width:337px;max-width:337px;max-height:none;box-shadow:0 4px 20px #122b4b20}
+      #phoneBookingModal.docked .phone-booking-body{padding:9px 11px 13px}
+      #phoneBookingModal.docked .box-head{padding:8px 10px 7px;gap:6px}
+      #phoneBookingModal.docked .box-head h2{font-size:17px;line-height:1.2}
+      #phoneBookingModal.docked .box-head .close{padding:7px 9px;font-size:12px}
+      #phoneBookingModal.docked .phone-request-summary{padding:8px 9px}
+      #phoneBookingModal.docked .phone-dialogue-bubble{max-width:100%;font-size:12px;padding:8px}
+      #phoneBookingModal.docked .phone-dialogue-choices button{font-size:12px;padding:9px}
+      #phonePmsV265Modal{z-index:2147483000!important;position:fixed;inset:0 0 0 350px!important;padding:8px!important;background:#f1f4f9!important;backdrop-filter:none!important;align-items:stretch;justify-content:stretch}
+      #phonePmsV265Modal.show{display:flex!important}
+      #phonePmsV265Modal .v265-phone-pms-box{display:flex;flex-direction:column;width:100%!important;height:calc(100dvh - 16px);max-width:none!important;max-height:none!important;min-width:0;overflow:hidden;border:1px solid #dce3ef;box-shadow:0 8px 28px #21344b16;transform:none!important;border-radius:15px}
+      #phonePmsV265Modal .new-reservation-head{padding:9px 14px;min-height:53px;flex:0 0 auto}
+      #phonePmsV265Modal .new-reservation-head h2{font-size:18px}
+      #v300Workspace{display:grid;grid-template-columns:minmax(345px,1.18fr) minmax(350px,1fr);gap:9px;padding:9px;flex:1;min-height:0;min-width:0;overflow:hidden;background:#f1f4f9}
+      .v300-calendar-pane,.v300-booking-pane{display:flex;flex-direction:column;min-width:0;min-height:0;background:#fff;border:1px solid #dfe6ed;border-radius:12px;overflow:hidden}
+      .v300-pane-head{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;padding:10px 11px;background:#eaf0fa;color:#253653;flex:0 0 auto;font-size:13px}
+      .v300-calendar-help{padding:7px 11px;font-size:11px;line-height:1.3;color:#586982;background:#fafbfe}
+      #v300CalendarNav .pms-toolbar-group{display:flex;align-items:center;gap:5px}
+      #v300CalendarNav .pms-nav{width:30px;height:30px;font-size:18px}
+      #v300CalendarNav .pms-today{padding:5px 9px;font-size:12px}
+      #v300CalendarHost{display:flex;flex:1;min-height:0;min-width:0;overflow:hidden}
+      #v300CalendarHost #pmsBookingBoard{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
+      #v300CalendarHost #pmsBookingBoard .booking-room-scroll{display:block;flex:1;min-height:0;max-height:none!important;overflow:auto;overscroll-behavior:contain}
+      #v300CalendarHost .booking-calendar{grid-template-rows:63px;grid-auto-rows:49px}
+      #v300CalendarHost .calendar-day b{font-size:17px}
+      #v300CalendarHost .calendar-room{padding:4px 6px;font-size:10px}
+      #v300CalendarHost .calendar-room b{font-size:10px}
+      #v300CalendarHost .calendar-room-status{font-size:8px}
+      #v300CalendarHost .booking-block{height:40px;padding:4px 15px 4px 6px}
+      #v300CalendarHost .booking-guest{font-size:10px}
+      #v300CalendarHost .booking-status{font-size:8px}
+      #v300CalendarHost .calendar-day{padding-bottom:13px}
+      #v300CalendarHost .v287-day-halves{font-size:8px}
+      #phonePmsV265Modal .v265-phone-pms-body{flex:1;min-height:0;overflow:auto;padding:11px 13px 18px}
+      #phonePmsV265Modal .v265-call-live{font-size:12px;padding:9px 10px;margin-bottom:9px}
+      #phonePmsV265Modal .new-reservation-grid{gap:7px 9px}
+      #phonePmsV265Modal .new-reservation-grid input,#phonePmsV265Modal .new-reservation-grid select{padding:8px;font-size:12px}
+      #phonePmsV265Modal .new-reservation-grid label{font-size:11px}
+      #phonePmsV265Modal .v265-phone-actions{gap:7px;margin-top:9px}
+      #phonePmsV265Modal .v265-phone-actions button{font-size:12px;min-height:39px;padding:8px 10px}
+      #phonePmsV265Modal #v265OverrideBtn{display:none!important}
+      #v300ConfirmedMark{color:#14764c;font-weight:900;font-size:11px}
+      @media(max-width:1150px){
+        #phonePmsV265Modal{inset:0 0 0 315px!important}
+        #phoneBookingModal.docked .phone-booking-box{width:305px;max-width:305px}
+        #v300Workspace{grid-template-columns:minmax(240px,1fr) minmax(285px,1fr)}
+      }
+      @media(max-width:780px){
+        #phonePmsV265Modal{inset:0!important;padding:0!important}
+        #phonePmsV265Modal .v265-phone-pms-box{height:100dvh;border-radius:0}
+        #v300Workspace{grid-template-columns:1fr;grid-template-rows:minmax(210px,42%) minmax(150px,1fr);padding:5px;gap:5px}
+        #phoneBookingModal.docked .phone-booking-box{left:5px;right:5px;top:auto;bottom:5px;width:auto;max-width:none;max-height:33dvh}
+        #phonePmsV265Modal .new-reservation-head{padding-bottom:5px}
+        #v300Workspace{padding-bottom:33dvh}
+      }
+      `;
+      document.head.appendChild(css);
+      const watch=new MutationObserver(()=>{
+        if(v300Modal.classList.contains("show"))v300MountRealCalendar();
+        else v300RestoreRealCalendar();
+      });watch.observe(v300Modal,{attributes:true,attributeFilter:["class"]});
+    }
+  }
+
+  function v300MountRealCalendar(){
+    const board=document.getElementById("pmsBookingBoard"),host=document.getElementById("v300CalendarHost");
+    if(!board||!host||!document.getElementById("phonePmsV265Modal")?.classList.contains("show"))return;
+    if(board.parentElement!==host){
+      host.appendChild(board);
+      const s=v265Scenario();
+      bookingCalendarViewStart=Math.max(0,Number(s.start||getTodayIndex())-1);
+    }
+    if(!board.querySelector(".booking-calendar")||!document.getElementById("v300CalendarNav")?.children.length)renderBookingCalendar();
+  }
+  function v300RestoreRealCalendar(){
+    const board=document.getElementById("pmsBookingBoard"),home=document.getElementById("pms-bookings");
+    if(board&&home&&board.parentElement!==home){
+      home.appendChild(board);
+      renderBookingCalendar();
+    }
+  }
+  function v300FocusDate(index){
+    const scroller=document.querySelector("#v300CalendarHost .booking-room-scroll");
+    if(!scroller)return;
+    const date=Math.max(0,Math.min(HOTEL_CALENDAR_LAST_INDEX,Number(index||0)));
+    bookingCalendarViewStart=Math.max(0,date-1);
+    requestAnimationFrame(()=>{scroller.scrollLeft=bookingCalendarViewStart*98;});
   }
 
   function v265Error(message,ok=false){
@@ -14039,6 +14160,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     document.getElementById("v265RoomStatus").classList.remove("show");
     const modal=document.getElementById("phonePmsV265Modal");
     modal.classList.add("show","v299-availability-mode");
+    v300MountRealCalendar();v300FocusDate(Number(document.getElementById("v265Start")?.value||s.start));
     document.getElementById("phoneBookingModal")?.classList.add("show");setPhoneCallDocked(true);
     v265Error("Kontrollera datumen och välj KONTROLLERA LEDIGA RUM. Gästens personuppgifter efterfrågas först därefter.");
   }
@@ -14046,6 +14168,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     const start=Number(document.getElementById("v265Start")?.value||0);
     const nights=Math.max(1,Number(document.getElementById("v265Nights")?.value||1));
     const s=v265Scenario(),type=String(s.roomType||"");
+    v300FocusDate(start);
     const available=phoneAvailableRoomsForType(start,nights,type);
     const box=document.getElementById("v265RoomStatus");
     box.classList.add("show");
@@ -14099,6 +14222,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     v265UpdateRoomOptions(Number(d.roomId||0));
     v265SaveDraft(false);v265UpdateButtons();
     document.getElementById("phonePmsV265Modal").classList.add("show");
+    v300MountRealCalendar();v300FocusDate(Number(d.start));
     document.getElementById("newReservationModal")?.classList.remove("show");
     document.getElementById("reservationAvailabilityModal")?.classList.remove("show");
     document.getElementById("phoneBookingModal")?.classList.add("show");setPhoneCallDocked(true);
@@ -14121,7 +14245,8 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     const d=result.d,s=v265Scenario();
     state.phoneV265Draft=d;state.phoneV265ReadbackSnapshot=v265Snapshot(d);state.phoneReservationReadbackConfirmed=true;
     v265SetStage("confirmed",42);
-    const text=`Jag läser tillbaka: ${s.name}, ${hotelCalendarDayLabel(d.start)}, ${d.nights} natt${d.nights===1?"":"er"}, ${d.partySize} ${d.partySize===1?"person":"personer"}, ${roomTypeForId(d.roomId)}, telefon ${d.phone}, ${d.address}, ${d.city}. Stämmer allt?`;
+    const total=Number(v265Safe(()=>calculateReservationTotalForRoom(d.roomId,d.start,d.nights),0)||0);
+    const text=`Jag läser tillbaka: ${s.name}, ${hotelCalendarDayLabel(d.start)} till ${hotelCalendarDayLabel(Number(d.start)+Number(d.nights))}, ${d.nights} natt${d.nights===1?"":"er"}, ${d.partySize} ${d.partySize===1?"person":"personer"}, ${roomTypeForId(d.roomId)}, totalt ${Math.round(total).toLocaleString("sv-SE")} kr, telefon ${d.phone}, ${d.address}, ${d.city}. Stämmer allt?`;
     setPhoneBubble("staff",text);
     v265Safe(()=>recordAssessment("phone_readback_confirmed",{guest:s.name,roomId:d.roomId,day:Number(state.day||1),correct:true,points:10}));
     v265Error("✓ Gästen svarar: ”Ja, det stämmer. Ni kan spara bokningen.”",true);v265UpdateButtons();renderPhoneDialogueStep();
@@ -14147,6 +14272,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     const booking={
       id,guest:d.guest,phone:d.phone,city:d.city,address:d.address,roomId:Number(d.roomId),preferredRoomId:Number(d.roomId),roomType,
       start:Number(d.start),nights:Number(d.nights),partySize:Number(d.partySize),status:Number(d.start)===Number(getTodayIndex())?"arrival":"reserved",source:"Telefon",
+      confirmed:true,confirmationStatus:"confirmed",confirmedAt:new Date().toISOString(),
       rate:Number(rule?.price||0),total,paid:false,nameComplete:true,availabilityChecked:true,priceRuleOverride:Boolean(forceOverride&&minStayViolation),priceRuleMinStay:minStay,
       overbooked:Boolean(forceOverride&&conflict),overbookingConflictGuest:forceOverride&&conflict?String(conflict.guest||""):null,overbookingPenaltyApplied:Boolean(forceOverride&&conflict),
       hskCallRequired:false,hskCalled:false,hskCallBonusGiven:false,checkIn:hotelCalendarDayLabel(d.start),checkOut:hotelCalendarDayLabel(d.start+d.nights),phoneFlowVersion:V265_PHONE_FLOW_VERSION
@@ -14159,9 +14285,14 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     // Därmed kan ingen äldre render/update-rutin lämna samtalet kvar på "Spara".
     state.phoneV265Stage="saved";state.phoneCallProgress=43;state.phoneFlowVersion=V265_PHONE_FLOW_VERSION;
     // Spara direkt efter push; följdfunktioner får inte kunna hindra bokningen.
-    let persisted=false;
-    try{saveState();persisted=true;}catch(err){console.error("v.01-265 saveState",err);}
-    if(!persisted){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));persisted=true;}catch(err){console.error("v.01-265 localStorage fallback",err);}}
+    const persisted=v265Safe(()=>saveState(),false)===true;
+    if(!persisted){
+      state.bookings=state.bookings.filter(b=>Number(b.id)!==id);
+      state.phoneV265SavedBookingId=0;state.phoneSavedBookingId=0;
+      state.phoneV265Stage="confirmed";state.phoneCallProgress=42;
+      v265Error("Kunde inte spara i elevens lokala PMS. Kontrollera att elevspelet är startat med elevkod och försök igen.");
+      v265UpdateButtons();return false;
+    }
 
     v265Safe(()=>{if(forceOverride&&conflict){state.score=Math.max(0,Number(state.score||0)-300);recordAssessment("phone_overbooking",{correct:false,points:-300,roomId:d.roomId,start:d.start,nights:d.nights,conflictGuest:conflict.guest||"",day:Number(state.day||1)});}else{state.score=Math.max(0,Number(state.score||0)+100);recordAssessment("phone_reservation_saved",{guest:d.guest,roomId:d.roomId,start:d.start,nights:d.nights,partySize:d.partySize,mistakes:0,correct:true,points:100,day:Number(state.day||1)});}saveState();});
     v265Safe(()=>renderBookingCalendar());v265Safe(()=>updateHud());v265Safe(()=>updateMission());
@@ -14172,7 +14303,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     // rendera "confirmed" efter klicket korrigeras den tillbaka till "saved".
     v268ReconcileSavedPhoneState();renderPhoneDialogueStep();
     setTimeout(()=>{v268ReconcileSavedPhoneState();renderPhoneDialogueStep();},0);
-    showTip(`✓ SPARAD I PMS: ${d.guest} · rum ${d.roomId}. Gästen är kvar i telefonen – avsluta samtalet trevligt.`);
+    showTip(`✓ BEKRÄFTAD I PMS: ${d.guest} · rum ${d.roomId} · bokningsnummer ${id}. Gästen är kvar i telefonen – avsluta samtalet trevligt.`);
     return true;
   }
 
@@ -14389,7 +14520,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     if(stage==="saved"){
       const booking=v268FindSavedPhoneBooking();
       setPhoneBubble("guest","Tack så mycket!");
-      const done=document.createElement("div");done.className="phone-dialogue-bubble guest";done.innerHTML=`<strong>✓ RESERVATIONEN ÄR SPARAD I PMS.</strong><br>${booking?`Rum ${Number(booking.roomId||0)} · ${escapeHtml(hotelCalendarDayLabel(Number(booking.start||0)))}.`:""}<br><strong>Nu ska du avsluta telefonsamtalet.</strong>`;choices.appendChild(done);
+      const done=document.createElement("div");done.className="phone-dialogue-bubble guest";done.innerHTML=`<strong>✓ BEKRÄFTAD OCH SPARAD I PMS.</strong><br>${booking?`Bokningsnummer ${Number(booking.id||0)} · Rum ${Number(booking.roomId||0)} · ${escapeHtml(hotelCalendarDayLabel(Number(booking.start||0)))}.`:""}<br><strong>Nu ska du avsluta telefonsamtalet.</strong>`;choices.appendChild(done);
       choices.appendChild(v265Choice("Tack för att ni ringde. Ha en fortsatt trevlig dag!",()=>v265Advance("farewell",44,"Tack för att ni ringde. Ha en fortsatt trevlig dag!",15),"primary"));
       choices.appendChild(v265Choice("☎ AVSLUTA SAMTALET NU",v265FinishCall,"v268-finish-now"));return;
     }
@@ -14460,7 +14591,7 @@ body:has(#v245LobbyRoundPanel:not([hidden])) #v292StaffDock:not(.open){opacity:.
     ["v265Guest","v265Phone","v265City","v265Address","v265Room","v265Start","v265Nights","v265Party","v265Source"].forEach(id=>{
       const el=document.getElementById(id);if(!el)return;
       el.addEventListener("input",()=>v265SaveDraft(true));
-      el.addEventListener("change",()=>{if(id==="v265Start"||id==="v265Nights")v265UpdateRoomOptions();v265SaveDraft(true);});
+      el.addEventListener("change",()=>{if(id==="v265Start"||id==="v265Nights"){v265UpdateRoomOptions();v300FocusDate(Number(document.getElementById("v265Start")?.value||0));}v265SaveDraft(true);});
     });
     // Debug/test-yta; påverkar inte spelet men gör flödet maskintestbart.
     window.__phoneV265={open:v265OpenPms,readback:v265Readback,save:v265CommitPhoneReservation,skip:v265SkipPhoneBooking,correctDates:v266StartDateCorrection,render:renderPhoneDialogueStep,reset:v265ResetPhoneSession,stage:v265Stage};
